@@ -12,6 +12,7 @@
     "env:generate": "varlock codegen"
   },
   "dependencies": {
+    "@puzzle/game": "workspace:*",
     "@puzzle/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-form": "catalog:",
@@ -19,6 +20,7 @@
     "better-auth": "catalog:",
     "lucide-react": "catalog:",
     "next-themes": "catalog:",
+    "pixi.js": "^8.21.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "sonner": "catalog:",
