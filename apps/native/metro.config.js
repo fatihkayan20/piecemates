@@ -1,10 +1,11 @@
 const { withVarlockMetroConfig } = require("@varlock/expo-integration/metro-config");
-const { getDefaultConfig } = require("expo/metro-config");
+const { getSentryExpoConfig } = require("@sentry/react-native/metro");
 const { withUniwindConfig } = require("uniwind/metro");
 const { wrapWithReanimatedMetroConfig } = require("react-native-reanimated/metro-config");
 
+// Expo's default config plus the debug IDs Sentry matches source maps with.
 /** @type {import('expo/metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname);
+const config = getSentryExpoConfig(__dirname);
 // Alchemy writes runtime state here; block it to avoid Metro refresh loops.
 const blockList = config.resolver.blockList ?? [];
 const blockListPatterns = Array.isArray(blockList) ? blockList : [blockList];

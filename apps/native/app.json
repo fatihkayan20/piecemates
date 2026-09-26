@@ -41,7 +41,16 @@
           }
         }
       ],
-      "expo-audio"
+      "expo-audio",
+      [
+        "@sentry/react-native",
+        {
+          "url": "https://sentry.io/",
+          "organization": "piecemates",
+          "project": "native"
+        }
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

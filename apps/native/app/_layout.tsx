@@ -1,5 +1,6 @@
 import "@/global.css";
 import { loadSettings } from "@piecemates/client";
+import * as Sentry from "@sentry/react-native";
 import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { HeroUINativeProvider } from "heroui-native";
@@ -8,7 +9,10 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 import { ensureSession } from "@/lib/auth-client";
+import { startTelemetry } from "@/lib/telemetry";
 
+// First, so the session request is already traced.
+startTelemetry();
 void ensureSession();
 // ponytail: SecureStore is the storage we already ship; fine for a few prefs (2 KB per key).
 void loadSettings({
@@ -33,7 +37,7 @@ function StackLayout() {
 	);
 }
 
-export default function Layout() {
+function Layout() {
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
 			<KeyboardProvider>
@@ -46,3 +50,6 @@ export default function Layout() {
 		</GestureHandlerRootView>
 	);
 }
+
+// Catches render errors and native crashes for Sentry.
+export default Sentry.wrap(Layout);
