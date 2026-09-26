@@ -45,6 +45,8 @@ export function usePixiBoard(
 			const world = new Container({ sortableChildren: true });
 			app.stage.addChild(world);
 			const camera = createCamera(world, app.screen);
+			// Pixi's resizeTo already batches window resizes into one per frame.
+			app.renderer.on("resize", camera.resize);
 			let pieces: Graphics[] = [];
 
 			unsubscribe = roomStore.subscribe((snap) => {

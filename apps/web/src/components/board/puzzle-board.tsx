@@ -20,7 +20,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 
 	return (
 		<div
-			className="relative flex h-full min-h-0 flex-col"
+			className="relative flex h-full min-h-0 min-w-0 flex-col"
 			style={{ backgroundColor: background }}
 		>
 			{/* Kept outside the canvas so the table never sits under the bars. */}

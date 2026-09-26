@@ -2,6 +2,7 @@ import {
 	type Camera,
 	clampCamera,
 	fitCamera,
+	resizeCamera,
 	roomStore,
 	zoomAt,
 } from "@puzzle/client";
@@ -25,6 +26,8 @@ export function createCamera(world: Container, screen: Rectangle) {
 		world.scale.set(c.scale);
 		world.position.set(c.x, c.y);
 	};
+	// app.screen changes in place, so the size before a resize is kept here.
+	let last = { width: screen.width, height: screen.height };
 	return {
 		get,
 		set,
@@ -32,6 +35,13 @@ export function createCamera(world: Container, screen: Rectangle) {
 		fit: () => {
 			const bounds = table();
 			if (bounds) set(fitCamera(bounds, screen));
+		},
+		/** Keeps the zoom and centre point when the canvas changes size. */
+		resize: () => {
+			const bounds = table();
+			const to = { width: screen.width, height: screen.height };
+			if (bounds) set(resizeCamera(get(), bounds, last, to));
+			last = to;
 		},
 		wheel: (e: WheelEvent) => {
 			e.preventDefault();
