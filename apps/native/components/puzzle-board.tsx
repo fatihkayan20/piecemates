@@ -1,9 +1,9 @@
 import {
 	type Camera,
+	clampCamera,
 	fitCamera,
 	RoomConnection,
 	type RoomInfo,
-	tableBounds,
 	zoomAt,
 } from "@puzzle/client";
 import {
@@ -12,8 +12,10 @@ import {
 	groupOf,
 	lockedByOther,
 	MAX_PLAYERS,
+	type Point,
 	piecePath,
 	type State,
+	tableRect,
 } from "@puzzle/game";
 import {
 	Canvas,
@@ -34,7 +36,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { openRoomSocket } from "@/lib/api";
 
-type Drag = { piece: number; members: Set<number> };
+/** `starts`: where each member of the dragged group was drawn when the drag began. */
+type Drag = { piece: number; starts: Map<number, Point> };
 
 export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const image = useImage(room.imageUrl);
@@ -72,14 +75,19 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 		y: cameraY.value,
 		scale: cameraScale.value,
 	});
-	const setCamera = (c: Camera) => {
+	/** Every camera change goes through here, so the table stays on screen. */
+	const setCamera = (camera: Camera) => {
+		const state = connection.current?.state;
+		const c = state
+			? clampCamera(camera, tableRect(state), viewport.current)
+			: camera;
 		cameraX.value = c.x;
 		cameraY.value = c.y;
 		cameraScale.value = c.scale;
 	};
 	const fitToView = (state: State) => {
 		if (viewport.current.width)
-			setCamera(fitCamera(tableBounds(state), viewport.current));
+			setCamera(fitCamera(tableRect(state), viewport.current));
 	};
 
 	const endDrag = () => {
@@ -145,10 +153,10 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 		const tableY = (y - cameraY.value) / cameraScale.value;
 		for (let k = drawOrder.current.length - 1; k >= 0; k--) {
 			const i = drawOrder.current[k] as number;
-			const piece = state.pieces[i];
-			if (!piece || piece.bag !== null || lockedByOther(state, i, conn.me))
+			if (state.pieces[i]?.bag !== null || lockedByOther(state, i, conn.me))
 				continue;
-			if (paths[i]?.contains(tableX - piece.x, tableY - piece.y)) return i;
+			const at = conn.position(i);
+			if (paths[i]?.contains(tableX - at.x, tableY - at.y)) return i;
 		}
 		return null;
 	};
@@ -162,16 +170,17 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 		})
 		.onStart(() => {
 			const i = touchedPiece.current;
-			const state = connection.current?.state;
-			if (!state || i === null) return;
-			const members = new Set(groupOf(state, i));
+			const conn = connection.current;
+			if (!conn?.state || i === null) return;
+			const members = groupOf(conn.state, i);
+			const starts = new Map(members.map((m) => [m, conn.position(m)]));
 			drawOrder.current = [
-				...drawOrder.current.filter((j) => !members.has(j)),
+				...drawOrder.current.filter((j) => !starts.has(j)),
 				...members,
 			];
 			dragX.value = 0;
 			dragY.value = 0;
-			setDrag({ piece: i, members });
+			setDrag({ piece: i, starts });
 			send({ type: "lock", piece: i });
 		})
 		.onChange((e) => {
@@ -180,15 +189,14 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				dragX.value = e.translationX / cameraScale.value;
 				dragY.value = e.translationY / cameraScale.value;
 			} else {
-				cameraX.value += e.changeX;
-				cameraY.value += e.changeY;
+				const c = camera();
+				setCamera({ ...c, x: c.x + e.changeX, y: c.y + e.changeY });
 			}
 		})
 		.onEnd((e) => {
 			const i = touchedPiece.current;
-			const piece =
-				i === null ? undefined : connection.current?.state?.pieces[i];
-			if (i !== null && piece) {
+			const start = i === null ? undefined : dragRef.current?.starts.get(i);
+			if (i !== null && start) {
 				// Use the final translation; the last move may not have reached onChange.
 				dragX.value = e.translationX / cameraScale.value;
 				dragY.value = e.translationY / cameraScale.value;
@@ -196,8 +204,8 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				send({
 					type: "drop",
 					piece: i,
-					x: piece.x + dragX.value,
-					y: piece.y + dragY.value,
+					x: start.x + dragX.value,
+					y: start.y + dragY.value,
 				});
 			}
 			touchedPiece.current = null;
@@ -205,14 +213,26 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 
 	const pinch = Gesture.Pinch()
 		.runOnJS(true)
-		.onChange((e) =>
-			setCamera(zoomAt(camera(), e.focalX, e.focalY, e.scaleChange)),
-		);
+		.onChange((e) => {
+			const state = connection.current?.state;
+			if (!state) return;
+			setCamera(
+				zoomAt(
+					camera(),
+					e.focalX,
+					e.focalY,
+					e.scaleChange,
+					tableRect(state),
+					viewport.current,
+				),
+			);
+		});
 
 	// Lets device automation find pieces on screen during development.
 	if (__DEV__) {
 		Object.assign(globalThis, {
 			__puzzle: {
+				connection: connection.current,
 				state,
 				viewport: viewport.current,
 				pieceAt,
@@ -250,10 +270,11 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 									color="rgba(255,255,255,0.15)"
 								/>
 								{drawOrder.current.map((i) =>
-									drag?.members.has(i) ? null : (
+									drag?.starts.has(i) ? null : (
 										<Piece
 											key={i}
 											index={i}
+											at={conn?.position(i) ?? { x: 0, y: 0 }}
 											state={state}
 											me={me}
 											image={image}
@@ -263,10 +284,11 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 								)}
 								<Group transform={dragTransform}>
 									{drag &&
-										[...drag.members].map((i) => (
+										[...drag.starts].map(([i, start]) => (
 											<Piece
 												key={i}
 												index={i}
+												at={start}
 												state={state}
 												me={me}
 												image={image}
@@ -280,9 +302,9 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				</View>
 			</GestureDetector>
 
+			{/* Kept outside the canvas so the table never sits under the controls. */}
 			<View
-				pointerEvents="box-none"
-				className="absolute inset-x-0 bottom-0 flex-row items-center gap-2 p-3"
+				className="flex-row items-center gap-2 p-3"
 				style={{ paddingBottom: insets.bottom + 12 }}
 			>
 				<Text className="rounded bg-black/60 px-2 py-1 font-mono text-white">
@@ -297,7 +319,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				<Pressable
 					accessibilityRole="button"
 					className="ml-auto rounded bg-white px-3 py-1.5 active:opacity-70"
-					onPress={() => send({ type: "tidy" })}
+					onPress={() => connection.current?.tidy()}
 				>
 					<Text className="font-medium text-black">Tidy pile</Text>
 				</Pressable>
@@ -308,12 +330,14 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 
 function Piece({
 	index,
+	at,
 	state,
 	me,
 	image,
 	path,
 }: {
 	index: number;
+	at: Point;
 	state: State;
 	me: string;
 	image: SkImage;
@@ -324,7 +348,7 @@ function Piece({
 	const { row, col } = cellOf(state, index);
 	return (
 		<Group
-			transform={[{ translateX: piece.x }, { translateY: piece.y }]}
+			transform={[{ translateX: at.x }, { translateY: at.y }]}
 			opacity={lockedByOther(state, index, me) ? 0.5 : 1}
 		>
 			<Group clip={path}>
