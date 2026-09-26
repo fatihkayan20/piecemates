@@ -14,7 +14,7 @@ Rules marked **(lint)** are enforced by `biome.json` and `biome-plugins/*.grit`;
 6. **A feature is done only when it works on web and iOS.** Test both with Argent (Chrome CDP and the iOS simulator) before committing.
 7. **One component per file, with a named export and a kebab-case file name (lint).** Hooks go in `hooks/use-*.ts`. Default exports only where a framework requires them (routes, Expo Router screens, the Worker entry, config files).
 8. **No hard-coded values in components.** Colours use theme tokens; no `bg-[#...]` (lint). Tuning numbers (tolerance, slot size, max zoom) live as named constants in the package that owns them (lint: `noMagicNumbers`).
-9. **Check untrusted input with zod only where it enters, and trust the types inside.** No `as` casts in app code except `as const` (lint). Where a cast is unavoidable, add a `biome-ignore` comment saying why.
+9. **Check untrusted input with zod only where it enters, and trust the types inside.** No `as` casts in app code except `as const` (lint). Where a cast is unavoidable, add `// biome-ignore lint/plugin: <why>` (plugin rules use the `lint/plugin` category).
 10. **Packages expose one public API**, through their `index.ts` or `exports`. Never import `@puzzle/*/src/...` (lint).
 11. **Adding a dependency needs a reason in the commit message.** First check the platform, the standard library and the dependencies we already have.
 12. **No hand-written memoization.** The React Compiler memoizes, so no `useMemo`, `useCallback`, `memo` (lint) and no `"use no memo"` (lint). If one is really needed, add a `biome-ignore` saying why.
