@@ -12,9 +12,10 @@ import { Users } from "lucide-react";
 import { useRoom } from "@/hooks/use-room";
 
 import { iconButton } from "./icon-button";
+import { ShareRoom } from "./share-room";
 
-/** The players button and a sheet listing who is in the room. */
-export function PlayersSheet() {
+/** The players button and a sheet listing who is in the room, with its share link. */
+export function PlayersSheet({ code }: { code: string }) {
 	const players = useRoom((r) => r.players);
 	const me = useRoom((r) => r.conn?.me);
 	const status = useRoom((r) => r.status);
@@ -27,9 +28,12 @@ export function PlayersSheet() {
 			<SheetContent side="bottom">
 				<div className="mx-auto flex w-full max-w-md flex-col gap-4 p-4">
 					<SheetHeader className="p-0">
-						<SheetTitle>
-							Players {players.length} / {MAX_PLAYERS}
-						</SheetTitle>
+						<div className="flex items-center gap-2">
+							<SheetTitle>
+								Players {players.length} / {MAX_PLAYERS}
+							</SheetTitle>
+							<ShareRoom code={code} />
+						</div>
 						{(status === "connecting" || status === "disconnected") && (
 							<SheetDescription>You are {status}.</SheetDescription>
 						)}

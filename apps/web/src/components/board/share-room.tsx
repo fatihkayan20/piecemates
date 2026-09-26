@@ -1,8 +1,7 @@
 import { roomUrl } from "@puzzle/client";
+import { Button } from "@puzzle/ui/components/button";
 import { Share } from "lucide-react";
 import { toast } from "sonner";
-
-import { iconButton } from "./icon-button";
 
 /** Shares the room link (phones) or copies it. */
 export function ShareRoom({ code }: { code: string }) {
@@ -18,14 +17,14 @@ export function ShareRoom({ code }: { code: string }) {
 	};
 
 	return (
-		<button
-			type="button"
+		<Button
+			variant="ghost"
+			size="icon-sm"
 			title={`Copy link to room ${code}`}
 			aria-label="Share room link"
-			className={iconButton}
 			onClick={share}
 		>
-			<Share className="size-4" />
-		</button>
+			<Share />
+		</Button>
 	);
 }
