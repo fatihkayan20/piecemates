@@ -6,7 +6,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Polish and user engagement features Prio 2
 
-- [ ] **Screen resize**: handle window and rotation changes on the board and other views, debounced.
 - [ ] **Dark and light theme**: one global theme toggle; fix the views that don't follow it yet.
 - [ ] **PostHog, Sentry and i18n**: analytics and error reports tagged with app version, environment and platform; translations on web and native.
 - [ ] **Harder to guess room codes**: codes are 6 characters from a 31-letter alphabet (`newCode` in `apps/server/src/index.ts`); make them longer so users can't guess their way into rooms, and keep them easy to type and share.
@@ -45,6 +44,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **First deploy**: `pnpm run deploy`, set `CORS_ORIGIN` to the deployed web origin, then deploy again. Host the web app and server on sibling subdomains (`app.` / `api.`) so the auth cookie works for WebSockets.
 
 ## Done
+- [x] **Screen resize**: the web board shrinks with the window, and a resize keeps the zoom and centre point on web and iOS. `c632307` `f2037aa` `100ee90`
 - [x] **Room timings and win celebration**: a server clock that only runs while someone is in the room, a play time chip, `played_ms`/`finished_at` in D1 for History, and confetti with "Solved in m:ss" replacing the controls. `cb520f4` `7543f42` `f0a19cc` `d8106b4` `e64a903` `5b58d6d` `78e448a` `a54d0ac` `a8282e3`
 
 - [x] Monorepo scaffold (Better-T-Stack: TanStack Router, Expo, Hono on Workers, D1, Better Auth). `a589b30`
