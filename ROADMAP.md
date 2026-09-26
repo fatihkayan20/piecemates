@@ -4,7 +4,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Next
 
-- [ ] **Bags**: create, rename and delete bags. Put selected pieces in a bag and take them out on web and native. `bag:create` and `bag:put` already exist in `packages/game`; drop takes a piece out of a bag.
 - [ ] **Sticky edges**: pieces snap to their correct spot on the board frame, not only to neighbours, so the finished puzzle fits the board area.
 - [ ] **Reference image button**: show the full image to help solve the puzzle (overlay or popup, web and native).
 - [ ] **Unsplash search**: a server route `GET /images/search` keeps the API key server-side and handles attribution plus the required download-tracking call. Replaces the hardcoded sample images on both home screens.
@@ -20,6 +19,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Completion**: show a finished state and celebration when `isComplete` is true (the server already marks the room `done` in D1).
 - [ ] **Accounts**: add email and social login in Better Auth. Guest data already moves to the real account through `onLinkAccount`.
 - [ ] **Portrait phones**: the table has one shape for everyone, so a landscape puzzle leaves empty space above and below on a portrait phone. Consider laying the pile out to suit portrait screens.
+- [ ] **Who is in which bag**: show on each bag chip which players are looking at it (a presence field).
 - [ ] **Performance at 1000 pieces**:
   - Native gestures run on the JS thread; move them to worklets if dragging stutters.
   - Consider Skia `Atlas` instead of one clip group per piece.
@@ -42,3 +42,4 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] iOS dev build and native board (Skia), in sync with web. `cab20bb`, `4a98d6d`
 - [x] Shared `@puzzle/client` package (API, session, room connection, camera) and clearer names across game, web and native. `13cfea8`…`90e4917`
 - [x] Table with the pile around the board, drops kept on the table, zoom and pan limits, local-only tidy. `221299e`…`f28ef01`
+- [x] Bags: a shared bag bar on web and iOS, drop a piece or group on a bag, a per-device bag view (the bag plus the puzzle so far), groups kept inside bags, take-out zone, create/edit sheet (shadcn on web, Expo UI on iOS). `00f3463`…`5d391c1`
