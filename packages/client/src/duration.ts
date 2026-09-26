@@ -1,4 +1,4 @@
-const SECOND = 1000;
+export const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
 

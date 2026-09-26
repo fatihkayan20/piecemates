@@ -6,6 +6,7 @@ import {
 	type Player,
 	type State,
 } from "@piecemates/game";
+import { track } from "@piecemates/telemetry";
 import { createStore } from "zustand/vanilla";
 
 import { beginDrag, type Drag, endsDrag } from "./drag.ts";
@@ -66,6 +67,8 @@ const empty: RoomSnapshot = {
 
 // One room is open at a time, so the store is a singleton; apps wrap it in a hook.
 export const roomStore = createStore<RoomSnapshot>(() => empty);
+
+const PERCENT = 100;
 
 const sameView = (a: PieceView, b: PieceView) =>
 	a.x === b.x &&
@@ -132,6 +135,14 @@ export function connectRoom(
 
 /** Closes the open room, if it's still `conn`, and resets the store. */
 export function disconnectRoom(conn: RoomConnection) {
+	const { state } = conn;
+	if (state && conn.status !== "done") {
+		const placed = state.pieces.filter((_, i) => isPlaced(state, i)).length;
+		track("room_left", {
+			pieces: state.pieces.length,
+			placed_percent: Math.round((placed / state.pieces.length) * PERCENT),
+		});
+	}
 	conn.close();
 	if (roomStore.getState().conn === conn) roomStore.setState(empty);
 }

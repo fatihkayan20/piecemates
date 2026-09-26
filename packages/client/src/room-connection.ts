@@ -1,6 +1,7 @@
 import {
 	apply,
 	type ClientMsg,
+	elapsed,
 	inPile,
 	isComplete,
 	type Player,
@@ -12,6 +13,7 @@ import {
 } from "@piecemates/game";
 import { track } from "@piecemates/telemetry";
 
+import { SECOND } from "./duration.ts";
 import { type Cue, cue, progress } from "./feedback.ts";
 
 export type RoomStatus = "connecting" | "playing" | "done" | "disconnected";
@@ -111,6 +113,8 @@ export class RoomConnection {
 					msg.by === this.me && msg.msg.type === "drop" ? msg.msg.piece : null;
 				const before = mine === null ? 0 : progress(this.state, mine);
 				apply(this.state, msg.by, msg.msg);
+				if (msg.by === this.me && msg.msg.type === "bag:create")
+					track("bag_created", {});
 				// Only a drop that joins pieces or places them makes a sound.
 				if (mine !== null && progress(this.state, mine) > before)
 					heard = "snap";
@@ -136,7 +140,12 @@ export class RoomConnection {
 		}
 		if (msg.type === "applied" && !wasDone && this.status === "done") {
 			heard = "win";
-			track("puzzle_solved", { pieces: this.state?.pieces.length ?? 0 });
+			if (this.state)
+				track("puzzle_solved", {
+					pieces: this.state.pieces.length,
+					seconds: Math.round(elapsed(this.state.clock, Date.now()) / SECOND),
+					players: this.players.length,
+				});
 		}
 		if (heard) cue(heard);
 		this.onEvent(msg);

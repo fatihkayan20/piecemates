@@ -17,6 +17,15 @@ export type NewRoom = {
 	cols: number;
 };
 
+/** A non-2xx answer; the status lets Sentry skip the ones the user caused. */
+export class ApiError extends Error {
+	readonly status: number;
+	constructor(status: number, message: string) {
+		super(message);
+		this.status = status;
+	}
+}
+
 /** The server's HTTP routes. Each app passes in how it authenticates. */
 export function createApi(opts: {
 	serverUrl: string;
@@ -35,7 +44,8 @@ export function createApi(opts: {
 				...(await opts.authHeaders?.()),
 			},
 		});
-		if (!res.ok) throw new Error((await res.text()) || res.statusText);
+		if (!res.ok)
+			throw new ApiError(res.status, (await res.text()) || res.statusText);
 		return res.json() as Promise<T>;
 	}
 

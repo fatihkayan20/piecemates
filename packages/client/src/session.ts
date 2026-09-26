@@ -1,6 +1,9 @@
+import { identify } from "@piecemates/telemetry";
+
+type Signed = { data: { user: { id: string } } | null };
 type AnonymousAuthClient = {
-	getSession: () => Promise<{ data: unknown }>;
-	signIn: { anonymous: () => Promise<unknown> };
+	getSession: () => Promise<Signed>;
+	signIn: { anonymous: () => Promise<Signed> };
 };
 
 /**
@@ -12,7 +15,9 @@ export function createEnsureSession(authClient: AnonymousAuthClient) {
 	return () => {
 		ready ??= (async () => {
 			const { data } = await authClient.getSession();
-			if (!data) await authClient.signIn.anonymous();
+			const user =
+				data?.user ?? (await authClient.signIn.anonymous()).data?.user;
+			if (user) identify(user.id);
 		})().catch((error) => {
 			ready = undefined;
 			throw error;
