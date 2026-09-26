@@ -4,14 +4,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Urgent or easy fixes Prio 1
 
-- [ ] **Before deploying Sentry and PostHog**:
-  - Server: set `SENTRY_DSN` where `alchemy deploy` runs (it's read into the Worker's bindings).
-  - Web: `VITE_SENTRY_DSN`, `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST=https://eu.i.posthog.com` and `SENTRY_AUTH_TOKEN` (uploads source maps on build) in the web build env.
-  - Native: `EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_POSTHOG_KEY`, `EXPO_PUBLIC_POSTHOG_HOST` and `SENTRY_AUTH_TOKEN` (EAS secret) for release builds.
-  - Make a new Sentry auth token; the current one was pasted in a chat.
-  - In PostHog, filter dashboards on `app = piecemates`; the project is shared with another app.
-  - Traces are kept at 100% (`TRACES_SAMPLE_RATE` in `@piecemates/telemetry`); lower it when traffic grows.
-
 ## Polish and user engagement features Prio 2
 
 - [ ] **i18n**: translations on web and native.
@@ -55,6 +47,14 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Expo SDK 58**: upgrade, then delete `apps/native/plugins/with-ios-scene.js`.
 - [ ] **Cloudflare overview**: usage, limits and monitoring for Workers, Durable Objects, D1 and R2 on the free plan.
 - [ ] **AI playtest once more**: play one large puzzle the way a person would, to find issues and improvements. An orchestrator starts two sub-agents, one driving iOS and one driving web, each with its own focus (e.g. bagging edge pieces vs. building the middle). They only get the app and what it does, and report back as users.
+
+- [ ] **Before deploying Sentry and PostHog**:
+  - Server: set `SENTRY_DSN` where `alchemy deploy` runs (it's read into the Worker's bindings).
+  - Web: `VITE_SENTRY_DSN`, `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST=https://eu.i.posthog.com` and `SENTRY_AUTH_TOKEN` (uploads source maps on build) in the web build env.
+  - Native: `EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_POSTHOG_KEY`, `EXPO_PUBLIC_POSTHOG_HOST` and `SENTRY_AUTH_TOKEN` (EAS secret) for release builds.
+  - Make a new Sentry auth token; the current one was pasted in a chat.
+  - In PostHog, filter dashboards on `app = piecemates`; the project is shared with another app.
+  - Traces are kept at 100% (`TRACES_SAMPLE_RATE` in `@piecemates/telemetry`); lower it when traffic grows.
 - [ ] **First deploy**: `pnpm run deploy`, set `CORS_ORIGIN` to the deployed web origin, then deploy again. Host the web app and server on sibling subdomains (`app.` / `api.`) so the auth cookie works for WebSockets.
 
 ## Done
