@@ -9,17 +9,19 @@ import { BAG_COLORS } from "@puzzle/client";
 
 const SWATCH = { size: 36, spacing: 14, dimmed: 0.35 };
 
-/** The bag colours as SwiftUI circles; the picked one is fully opaque. */
+/** Colours as SwiftUI circles (bag colours by default); the picked one is fully opaque. */
 export function ColorSwatches({
 	value,
 	onChange,
+	colors = BAG_COLORS,
 }: {
 	value: string;
 	onChange: (color: string) => void;
+	colors?: string[];
 }) {
 	return (
 		<HStack spacing={SWATCH.spacing}>
-			{BAG_COLORS.map((c) => (
+			{colors.map((c) => (
 				<Circle
 					key={c}
 					modifiers={[
