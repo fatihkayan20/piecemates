@@ -12,7 +12,6 @@ import { Piece } from "./piece";
 export function BoardCanvas({ room }: { room: RoomInfo }) {
 	const image = useImage(room.imageUrl);
 	const grid = useRoom((r) => r.grid);
-	const pieces = useRoom((r) => r.pieces);
 	const order = useRoom((r) => r.order);
 	const drag = useRoom((r) => r.drag);
 	const cameraTransform = useDerivedValue(() => [
@@ -28,18 +27,10 @@ export function BoardCanvas({ room }: { room: RoomInfo }) {
 	const paths = piecePaths(room.seed, grid);
 
 	const piece = (i: number, at?: { x: number; y: number }) => {
-		const view = pieces[i];
 		const path = paths[i];
-		if (!view || !path) return null;
+		if (!path) return null;
 		return (
-			<Piece
-				key={i}
-				index={i}
-				view={at ? { ...view, ...at, visible: true } : view}
-				grid={grid}
-				image={image}
-				path={path}
-			/>
+			<Piece key={i} index={i} at={at} grid={grid} image={image} path={path} />
 		);
 	};
 

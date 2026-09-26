@@ -1,4 +1,4 @@
-import { BOARD_STYLE, type Grid, type PieceView } from "@piecemates/client";
+import { BOARD_STYLE, type Grid } from "@piecemates/client";
 import { cellOf } from "@piecemates/game";
 import {
 	Group,
@@ -8,25 +8,33 @@ import {
 	type SkPath,
 } from "@shopify/react-native-skia";
 
-/** One piece: the image clipped to its outline, at `view`'s position. */
+import { useRoom } from "@/hooks/use-room";
+
+/**
+ * One piece: the image clipped to its outline. It reads its own spot from the
+ * store, so a move re-renders only the pieces that moved. `at` draws it there
+ * instead, while I drag it.
+ */
 export function Piece({
 	index,
-	view,
+	at,
 	grid,
 	image,
 	path,
 }: {
 	index: number;
-	view: PieceView;
+	at?: { x: number; y: number };
 	grid: Grid;
 	image: SkImage;
 	path: SkPath;
 }) {
-	if (!view.visible) return null;
+	const view = useRoom((r) => r.pieces[index]);
+	if (!view || !(at || view.visible)) return null;
+	const { x, y } = at ?? view;
 	const { row, col } = cellOf(grid, index);
 	return (
 		<Group
-			transform={[{ translateX: view.x }, { translateY: view.y }]}
+			transform={[{ translateX: x }, { translateY: y }]}
 			opacity={view.held ? BOARD_STYLE.heldOpacity : 1}
 		>
 			<Group clip={path}>
