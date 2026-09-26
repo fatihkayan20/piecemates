@@ -20,6 +20,12 @@ import {
 } from "@puzzle/game";
 import { Button } from "@puzzle/ui/components/button";
 import {
+	Dialog,
+	DialogContent,
+	DialogTitle,
+	DialogTrigger,
+} from "@puzzle/ui/components/dialog";
+import {
 	Application,
 	Container,
 	type FederatedPointerEvent,
@@ -315,6 +321,19 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 						{status === "done" ? "Solved! 🎉" : status}
 					</span>
 				)}
+				<Dialog>
+					<DialogTrigger render={<Button size="sm" variant="outline" />}>
+						Image
+					</DialogTrigger>
+					<DialogContent className="sm:max-w-3xl">
+						<DialogTitle>Reference image</DialogTitle>
+						<img
+							src={room.imageUrl}
+							alt="The finished puzzle"
+							className="max-h-[75vh] w-full object-contain"
+						/>
+					</DialogContent>
+				</Dialog>
 				<Button size="sm" onClick={() => conn?.tidy()}>
 					Tidy pile
 				</Button>
