@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { PuzzleBoard } from "@/components/puzzle-board";
-import { getRoom } from "@/lib/api";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/room/$code")({
-	loader: ({ params }) => getRoom(params.code),
+	loader: ({ params }) => api.getRoom(params.code),
 	component: RoomComponent,
 	errorComponent: ({ error }) => (
 		<p className="p-4">

@@ -1,3 +1,4 @@
+import { SAMPLE_IMAGES } from "@puzzle/client";
 import { type GridOption, gridOptions } from "@puzzle/game";
 import { Button } from "@puzzle/ui/components/button";
 import { Input } from "@puzzle/ui/components/input";
@@ -5,43 +6,41 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { createRoom } from "@/lib/api";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
 	component: HomeComponent,
 });
 
-// ponytail: fixed samples until Unsplash search lands (step 7).
-const SAMPLES = [
-	"photo-1506744038136-46273834b3fb",
-	"photo-1501785888041-af3ef285b470",
-	"photo-1470071459604-3b5ec3a7fe05",
-].map((id) => `https://images.unsplash.com/${id}?w=1600&q=80`);
-
-type Picked = { url: string; w: number; h: number; options: GridOption[] };
+type PickedImage = {
+	url: string;
+	width: number;
+	height: number;
+	options: GridOption[];
+};
 
 function HomeComponent() {
 	const navigate = useNavigate();
-	const [picked, setPicked] = useState<Picked>();
+	const [picked, setPicked] = useState<PickedImage>();
 	const [code, setCode] = useState("");
 	const [busy, setBusy] = useState(false);
 
-	const pick = (url: string, img: HTMLImageElement) => {
-		const w = img.naturalWidth;
-		const h = img.naturalHeight;
-		setPicked({ url, w, h, options: gridOptions(w, h) });
+	const pickImage = (url: string, img: HTMLImageElement) => {
+		const width = img.naturalWidth;
+		const height = img.naturalHeight;
+		setPicked({ url, width, height, options: gridOptions(width, height) });
 	};
 
-	const create = async (o: GridOption) => {
+	const createPuzzle = async (grid: GridOption) => {
 		if (!picked) return;
 		setBusy(true);
 		try {
-			const room = await createRoom({
+			const room = await api.createRoom({
 				imageUrl: picked.url,
-				imageW: picked.w,
-				imageH: picked.h,
-				rows: o.rows,
-				cols: o.cols,
+				imageW: picked.width,
+				imageH: picked.height,
+				rows: grid.rows,
+				cols: grid.cols,
 			});
 			await navigate({ to: "/room/$code", params: { code: room.code } });
 		} catch (e) {
@@ -79,14 +78,14 @@ function HomeComponent() {
 			<section className="grid gap-3">
 				<h2 className="font-medium">New puzzle</h2>
 				<div className="grid grid-cols-3 gap-2">
-					{SAMPLES.map((url) => (
+					{SAMPLE_IMAGES.map((url) => (
 						<button
 							key={url}
 							type="button"
 							aria-pressed={picked?.url === url}
 							className="overflow-hidden rounded border-2 border-transparent aria-pressed:border-primary"
 							onClick={(e) =>
-								pick(
+								pickImage(
 									url,
 									e.currentTarget.querySelector("img") as HTMLImageElement,
 								)
@@ -103,14 +102,14 @@ function HomeComponent() {
 				</div>
 				{picked && (
 					<div className="flex flex-wrap gap-2">
-						{picked.options.map((o) => (
+						{picked.options.map((grid) => (
 							<Button
-								key={o.count}
+								key={grid.count}
 								variant="outline"
 								disabled={busy}
-								onClick={() => create(o)}
+								onClick={() => createPuzzle(grid)}
 							>
-								{o.count} pieces
+								{grid.count} pieces
 							</Button>
 						))}
 					</div>

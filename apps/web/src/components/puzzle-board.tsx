@@ -1,11 +1,18 @@
 import {
-	apply,
-	type ClientMsg,
-	generate,
-	isComplete,
-	type Player,
+	type Camera,
+	fitCamera,
+	RoomConnection,
+	type RoomInfo,
+	tableBounds,
+	zoomAt,
+} from "@puzzle/client";
+import {
+	cellOf,
+	generateEdges,
+	groupOf,
+	lockedByOther,
+	MAX_PLAYERS,
 	piecePath,
-	type ServerMsg,
 	type State,
 } from "@puzzle/game";
 import { Button } from "@puzzle/ui/components/button";
@@ -18,11 +25,17 @@ import {
 	Matrix,
 	Texture,
 } from "pixi.js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef } from "react";
 
-import { type RoomInfo, roomSocketUrl } from "@/lib/api";
+import { openRoomSocket } from "@/lib/api";
 
-type Status = "connecting" | "playing" | "done" | "disconnected";
+type Drag = {
+	piece: number;
+	members: number[];
+	/** Where the pointer grabbed the piece, relative to its top-left. */
+	grabX: number;
+	grabY: number;
+};
 
 async function loadTexture(url: string) {
 	const img = new Image();
@@ -34,15 +47,13 @@ async function loadTexture(url: string) {
 
 export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const host = useRef<HTMLDivElement>(null);
-	const send = useRef<(msg: ClientMsg) => void>(() => {});
-	const [players, setPlayers] = useState<Player[]>([]);
-	const [status, setStatus] = useState<Status>("connecting");
+	const connection = useRef<RoomConnection | null>(null);
+	const [, rerender] = useReducer((n: number) => n + 1, 0);
 
 	useEffect(() => {
 		const el = host.current;
 		if (!el) return;
 		const app = new Application();
-		let ws: WebSocket | undefined;
 		let disposed = false;
 
 		const ready = (async () => {
@@ -56,200 +67,184 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 			if (disposed) return;
 			el.appendChild(app.canvas);
 			const texture = await loadTexture(room.imageUrl);
-			if (disposed) return;
+			const socket = await openRoomSocket(room.code);
+			if (disposed) return socket.close();
 
+			// The world container is the table; its position and scale are the camera.
 			const world = new Container({ sortableChildren: true });
 			app.stage.addChild(world);
 			app.stage.eventMode = "static";
 			app.stage.hitArea = app.screen;
 
-			let state: State | undefined;
-			let me = "";
-			let gfx: Graphics[] = [];
-			let top = 0;
-			let drag: {
-				piece: number;
-				members: number[];
-				offX: number;
-				offY: number;
-			} | null = null;
-			let pan: { x: number; y: number } | null = null;
+			let pieceGraphics: Graphics[] = [];
+			let topZ = 0;
+			let drag: Drag | null = null;
+			let panGrab: { x: number; y: number } | null = null;
 
-			const build = (s: State) => {
-				const { rows, cols, w, h } = s;
-				const edges = generate(room.seed, rows, cols);
-				const k = texture.width / (cols * w); // texture px per table unit
+			const conn = new RoomConnection(socket, (event) => {
+				const state = conn.state;
+				if (event.type === "state" && pieceGraphics.length === 0 && state) {
+					drawPieces(state);
+					setCamera(fitCamera(tableBounds(state), app.screen));
+				} else if (
+					event.type === "rejected" &&
+					event.msg.type === "lock" &&
+					event.msg.piece === drag?.piece
+				) {
+					drag = null;
+				}
+				syncPieces();
+				rerender();
+			});
+			connection.current = conn;
+
+			const camera = (): Camera => ({
+				x: world.x,
+				y: world.y,
+				scale: world.scale.x,
+			});
+			const setCamera = (c: Camera) => {
+				world.scale.set(c.scale);
+				world.position.set(c.x, c.y);
+			};
+
+			const drawPieces = (state: State) => {
+				const { rows, cols, w, h } = state;
+				const edges = generateEdges(room.seed, rows, cols);
+				const texturePxPerUnit = texture.width / (cols * w);
 				world.addChild(
 					new Graphics()
 						.rect(0, 0, cols * w, rows * h)
 						.stroke({ width: 2, color: 0xffffff, alpha: 0.15 }),
 				);
-				gfx = edges.map((e, i) => {
-					const r = Math.floor(i / cols);
-					const c = i % cols;
+				pieceGraphics = edges.map((pieceEdges, i) => {
+					const { row, col } = cellOf(state, i);
 					const g = new Graphics()
-						.path(new GraphicsPath(piecePath(e, w, h)))
+						.path(new GraphicsPath(piecePath(pieceEdges, w, h)))
 						.fill({
 							texture,
 							textureSpace: "global",
 							matrix: new Matrix()
-								.scale(1 / k, 1 / k)
-								.translate(-c * w, -r * h),
+								.scale(1 / texturePxPerUnit, 1 / texturePxPerUnit)
+								.translate(-col * w, -row * h),
 						})
 						.stroke({ width: 1, color: 0x000000, alpha: 0.4 });
 					g.eventMode = "static";
 					g.cursor = "grab";
-					g.on("pointerdown", (ev) => startDrag(i, ev));
+					g.on("pointerdown", (e) => startDrag(i, e));
 					world.addChild(g);
 					return g;
 				});
 			};
 
-			// Fit everything (board + pile) on screen.
-			const fit = () => {
-				const b = world.getLocalBounds();
-				const scale =
-					Math.min(app.screen.width / b.width, app.screen.height / b.height) *
-					0.9;
-				world.scale.set(scale);
-				world.position.set(
-					(app.screen.width - b.width * scale) / 2 - b.x * scale,
-					(app.screen.height - b.height * scale) / 2 - b.y * scale,
-				);
-			};
-
-			const sync = () => {
+			/** Moves every piece to its state position, except the ones being dragged. */
+			const syncPieces = () => {
+				const state = conn.state;
 				if (!state) return;
-				for (const [i, p] of state.pieces.entries()) {
-					const g = gfx[i];
+				for (const [i, piece] of state.pieces.entries()) {
+					const g = pieceGraphics[i];
 					if (!g || drag?.members.includes(i)) continue;
-					g.position.set(p.x, p.y);
-					g.visible = p.bag === null;
-					const holder = state.locks[p.group];
-					const theirs = holder !== undefined && holder !== me;
+					g.position.set(piece.x, piece.y);
+					g.visible = piece.bag === null;
+					const theirs = lockedByOther(state, i, conn.me);
 					g.alpha = theirs ? 0.5 : 1;
 					g.eventMode = theirs ? "none" : "static";
 				}
 			};
 
 			const startDrag = (i: number, e: FederatedPointerEvent) => {
-				const p = state?.pieces[i];
-				if (!state || !p) return;
+				const piece = conn.state?.pieces[i];
+				if (!conn.state || !piece) return;
 				e.stopPropagation();
-				const members = state.pieces.flatMap((q, j) =>
-					q.group === p.group ? [j] : [],
-				);
+				const members = groupOf(conn.state, i);
 				const at = world.toLocal(e.global);
-				drag = { piece: i, members, offX: at.x - p.x, offY: at.y - p.y };
-				top++;
-				for (const m of members) if (gfx[m]) gfx[m].zIndex = top;
-				send.current({ type: "lock", piece: i });
+				drag = {
+					piece: i,
+					members,
+					grabX: at.x - piece.x,
+					grabY: at.y - piece.y,
+				};
+				topZ++;
+				for (const m of members)
+					if (pieceGraphics[m]) pieceGraphics[m].zIndex = topZ;
+				conn.send({ type: "lock", piece: i });
 			};
 
 			app.stage.on("pointerdown", (e) => {
-				pan = { x: e.global.x - world.x, y: e.global.y - world.y };
+				panGrab = { x: e.global.x - world.x, y: e.global.y - world.y };
 			});
 			app.stage.on("globalpointermove", (e) => {
+				const state = conn.state;
 				if (drag && state) {
 					const at = world.toLocal(e.global);
 					const origin = state.pieces[drag.piece] as State["pieces"][number];
-					const dx = at.x - drag.offX - origin.x;
-					const dy = at.y - drag.offY - origin.y;
+					const dx = at.x - drag.grabX - origin.x;
+					const dy = at.y - drag.grabY - origin.y;
 					for (const m of drag.members) {
-						const p = state.pieces[m];
-						if (p) gfx[m]?.position.set(p.x + dx, p.y + dy);
+						const piece = state.pieces[m];
+						if (piece)
+							pieceGraphics[m]?.position.set(piece.x + dx, piece.y + dy);
 					}
-				} else if (pan) {
-					world.position.set(e.global.x - pan.x, e.global.y - pan.y);
+				} else if (panGrab) {
+					world.position.set(e.global.x - panGrab.x, e.global.y - panGrab.y);
 				}
 			});
-			const end = () => {
+			const endPointer = () => {
 				if (drag) {
-					const g = gfx[drag.piece];
+					const g = pieceGraphics[drag.piece];
 					// Positions update when the server echoes the drop back.
-					if (g)
-						send.current({ type: "drop", piece: drag.piece, x: g.x, y: g.y });
+					if (g) conn.send({ type: "drop", piece: drag.piece, x: g.x, y: g.y });
 					drag = null;
 				}
-				pan = null;
+				panGrab = null;
 			};
-			app.stage.on("pointerup", end);
-			app.stage.on("pointerupoutside", end);
+			app.stage.on("pointerup", endPointer);
+			app.stage.on("pointerupoutside", endPointer);
 
 			app.canvas.addEventListener(
 				"wheel",
 				(e) => {
 					e.preventDefault();
-					const pt = { x: e.offsetX, y: e.offsetY };
-					const before = world.toLocal(pt);
-					world.scale.set(
-						Math.min(
-							4,
-							Math.max(0.05, world.scale.x * Math.exp(-e.deltaY * 0.001)),
-						),
-					);
-					const after = world.toGlobal(before);
-					world.position.set(
-						world.x + pt.x - after.x,
-						world.y + pt.y - after.y,
+					setCamera(
+						zoomAt(camera(), e.offsetX, e.offsetY, Math.exp(-e.deltaY * 0.001)),
 					);
 				},
 				{ passive: false },
 			);
 
-			// ponytail: no auto-reconnect; the page shows "disconnected" and a reload rejoins.
-			ws = new WebSocket(roomSocketUrl(room.code));
-			send.current = (msg) => {
-				if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
-			};
-			ws.onclose = () => !disposed && setStatus("disconnected");
-			ws.onmessage = (ev) => {
-				const msg = JSON.parse(ev.data) as ServerMsg;
-				if (msg.type === "state") {
-					const first = !state;
-					state = msg.state;
-					me = msg.you;
-					if (first) build(state);
-					sync();
-					if (first) fit();
-					// Lets browser automation find pieces on screen during development.
-					if (import.meta.env.DEV) {
-						Object.assign(window, {
-							__puzzle: {
-								state,
-								world,
-								at: (i: number) => {
-									const g = gfx[i];
-									if (!g) return null;
-									const b = g.getBounds();
-									return {
-										x: (b.x + b.width / 2) / app.screen.width,
-										y: (b.y + b.height / 2) / app.screen.height,
-									};
-								},
-							},
-						});
-					}
-					setStatus(isComplete(state) ? "done" : "playing");
-				} else if (msg.type === "applied" && state) {
-					apply(state, msg.by, msg.msg);
-					if (msg.msg.type === "drop" && isComplete(state)) setStatus("done");
-				} else if (msg.type === "rejected") {
-					if (drag && msg.msg.type === "lock" && msg.msg.piece === drag.piece)
-						drag = null;
-				} else if (msg.type === "presence") {
-					setPlayers(msg.players);
-				}
-				sync();
-			};
+			// Lets browser automation find pieces on screen during development.
+			if (import.meta.env.DEV) {
+				Object.assign(window, {
+					__puzzle: {
+						get state() {
+							return conn.state;
+						},
+						world,
+						at: (i: number) => {
+							const g = pieceGraphics[i];
+							if (!g) return null;
+							const b = g.getBounds();
+							return {
+								x: (b.x + b.width / 2) / app.screen.width,
+								y: (b.y + b.height / 2) / app.screen.height,
+							};
+						},
+					},
+				});
+			}
 		})();
 
 		return () => {
 			disposed = true;
-			ws?.close();
+			connection.current?.close();
+			connection.current = null;
 			void ready.finally(() => app.destroy(true, { children: true }));
 		};
 	}, [room]);
+
+	const conn = connection.current;
+	const players = conn?.players ?? [];
+	const status = conn?.status ?? "connecting";
 
 	return (
 		<div className="relative h-full min-h-0 overflow-hidden">
@@ -259,7 +254,8 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 					Room {room.code}
 				</span>
 				<span className="rounded bg-black/60 px-2 py-1">
-					{players.length} / 4 · {players.map((p) => p.name).join(", ")}
+					{players.length} / {MAX_PLAYERS} ·{" "}
+					{players.map((p) => p.name).join(", ")}
 				</span>
 				{status !== "playing" && (
 					<span className="rounded bg-black/60 px-2 py-1">
@@ -269,7 +265,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				<Button
 					className="pointer-events-auto ml-auto"
 					size="sm"
-					onClick={() => send.current({ type: "tidy" })}
+					onClick={() => conn?.send({ type: "tidy" })}
 				>
 					Tidy pile
 				</Button>
