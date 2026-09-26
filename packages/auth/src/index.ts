@@ -2,7 +2,10 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { expo } from "@better-auth/expo";
 import type { Database } from "@puzzle/db";
 import * as schema from "@puzzle/db/schema/auth";
+import { rooms } from "@puzzle/db/schema/game";
 import { betterAuth } from "better-auth";
+import { anonymous } from "better-auth/plugins";
+import { eq, sql } from "drizzle-orm";
 
 export type AuthConfig = {
   BETTER_AUTH_URL: string;
@@ -37,7 +40,20 @@ export function createAuth(
         httpOnly: true,
       },
     },
-    plugins: [expo()],
+    plugins: [
+      expo(),
+      anonymous({
+        // Runs before the guest user is deleted (which would cascade their rooms away).
+        onLinkAccount: async ({ anonymousUser, newUser }) => {
+          const from = anonymousUser.user.id;
+          const to = newUser.user.id;
+          await database.update(rooms).set({ ownerId: to }).where(eq(rooms.ownerId, from));
+          await database.run(
+            sql`UPDATE OR IGNORE room_players SET user_id = ${to} WHERE user_id = ${from}`,
+          );
+        },
+      }),
+    ],
   });
 }
 

@@ -5,6 +5,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AppThemeProvider } from "@/contexts/app-theme-context";
+import { ensureSession } from "@/lib/auth-client";
+
+void ensureSession();
 
 export const unstable_settings = {
   initialRouteName: "(drawer)",
