@@ -5,6 +5,7 @@ import { Button } from "@puzzle/ui/components/button";
 import { useRoom } from "@/hooks/use-room";
 
 import { ReferenceImage } from "./reference-image";
+import { ShareRoom } from "./share-room";
 
 /** Room code, players, status, the reference image and Tidy. */
 export function BoardToolbar({ room }: { room: RoomInfo }) {
@@ -14,9 +15,7 @@ export function BoardToolbar({ room }: { room: RoomInfo }) {
 
 	return (
 		<>
-			<span className="ml-auto shrink-0 rounded bg-black/60 px-2 py-1 font-mono">
-				Room {room.code}
-			</span>
+			<ShareRoom code={room.code} />
 			<span className="shrink-0 rounded bg-black/60 px-2 py-1">
 				{players.length} / {MAX_PLAYERS} ·{" "}
 				{players.map((p) => p.name).join(", ")}
