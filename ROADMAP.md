@@ -4,7 +4,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Urgent or easy fixes Prio 1
 
-- [ ] **Share and deep links**: a share action for the room link; `puzzle://room/CODE` and web links (`/room/CODE`) open the room in the app when it's installed (universal links / app links), or on the web otherwise.
 
 ## Polish and user engagement features Prio 2
 
@@ -28,6 +27,8 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Later
 
+- [ ] **Universal links and app links**: `https://<web>/room/CODE` opens the app when it's installed. Needs the production web domain, an `apple-app-site-association` (with the Apple Team ID, a paid account) and `assetlinks.json` served from it, plus `associatedDomains` / `intentFilters` in `app.json`. Set `EXPO_PUBLIC_WEB_URL` for production builds.
+- [ ] **Bottom bar overflow on native**: a status note ("disconnected") pushes Tidy pile off screen.
 - [ ] **Replace `with-ios-scene.js`**: try `expo-build-properties` instead of the custom plugin.
 - [ ] **Reconnect**: the room socket reconnects on its own after a drop (web and native), instead of showing "disconnected".
 - [ ] **Nicknames and player colours**: guests pick a name, and pieces locked by others are tinted in that player's colour instead of only dimmed.
@@ -62,3 +63,4 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] Reference image: an Image button opens the full picture in a popup (shadcn dialog on web, fading modal on native). `d93ac75` `88fd227`
 - [x] Repo rules in `AGENTS.md`, enforced by biome and grit plugins; boards, bag bars and game rules split into small modules around a shared zustand room store. `fe11e50`..`673bbcc`
 - [x] Sticky "+ Bag" button: pinned outside the scrolling chip row. `db8c605` `81573cd`
+- [x] Share and deep links: the room code shares/copies the web link; `puzzle://room/CODE` opens the room in the app. `31bf93b`..`488664d`
