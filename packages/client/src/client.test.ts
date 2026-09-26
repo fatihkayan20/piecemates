@@ -4,12 +4,14 @@ import { test } from "node:test";
 import { createState, type ServerMsg, tableRect } from "@puzzle/game";
 
 import {
+	CONFETTI_COUNT,
 	type Cue,
 	clampCamera,
 	fitCamera,
 	formatDuration,
 	loadCues,
 	loadSettings,
+	makeConfetti,
 	RoomConnection,
 	type RoomEvent,
 	setBackground,
@@ -143,4 +145,11 @@ test("settings load from and save to the given storage", async () => {
 	assert.equal(settingsStore.getState().background, "#111");
 	setBackground("#222");
 	assert.match(saved.get("puzzle-settings") ?? "", /#222/);
+});
+
+test("confetti starts across the width in every bag colour", () => {
+	const pieces = makeConfetti();
+	assert.equal(pieces.length, CONFETTI_COUNT);
+	assert.ok(pieces.every((p) => p.x >= 0 && p.x <= 1 && p.duration > 0));
+	assert.equal(new Set(pieces.map((p) => p.color)).size, 6);
 });
