@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@puzzle/ui/components/button";
-import { cn } from "@puzzle/ui/lib/utils";
+import { Button } from "@piecemates/ui/components/button";
+import { cn } from "@piecemates/ui/lib/utils";
 import {
   MessageScroller as MessageScrollerPrimitive,
   useMessageScroller,

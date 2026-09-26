@@ -1,4 +1,4 @@
-import { formatDuration } from "@puzzle/client";
+import { formatDuration } from "@piecemates/client";
 import { PartyPopper } from "lucide-react";
 
 import { useElapsed } from "@/hooks/use-elapsed";

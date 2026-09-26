@@ -1,4 +1,4 @@
-import { loadSettings } from "@puzzle/client";
+import { loadSettings } from "@piecemates/client";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
 

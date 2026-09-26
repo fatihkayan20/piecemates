@@ -1,5 +1,5 @@
-import { createAuth as createConfiguredAuth } from "@puzzle/auth";
-import { type Database, createDb } from "@puzzle/db";
+import { createAuth as createConfiguredAuth } from "@piecemates/auth";
+import { type Database, createDb } from "@piecemates/db";
 
 import { ENV } from "./env.server";
 

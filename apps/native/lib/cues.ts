@@ -1,5 +1,5 @@
-import type { Cue, CuePlayer } from "@puzzle/client";
-import { loadCues } from "@puzzle/client";
+import type { Cue, CuePlayer } from "@piecemates/client";
+import { loadCues } from "@piecemates/client";
 import {
 	type AudioPlayer,
 	createAudioPlayer,

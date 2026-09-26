@@ -1,4 +1,4 @@
-import { BOARD_STYLE, type RoomInfo } from "@puzzle/client";
+import { BOARD_STYLE, type RoomInfo } from "@piecemates/client";
 import { Canvas, Group, Rect, useImage } from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
 

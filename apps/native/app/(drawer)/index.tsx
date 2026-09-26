@@ -1,5 +1,5 @@
-import { SAMPLE_IMAGES } from "@puzzle/client";
-import { type GridOption, gridOptions } from "@puzzle/game";
+import { SAMPLE_IMAGES } from "@piecemates/client";
+import { type GridOption, gridOptions } from "@piecemates/game";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Image, Pressable, Text, TextInput, View } from "react-native";

@@ -13,7 +13,7 @@
     "rootDirs": ["."],
     "paths": {
       "@/*": ["./src/*"],
-      "@puzzle/ui/*": ["../../packages/ui/src/*"]
+      "@piecemates/ui/*": ["../../packages/ui/src/*"]
     }
   }
 }

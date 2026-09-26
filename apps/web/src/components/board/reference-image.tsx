@@ -1,11 +1,11 @@
-import type { RoomInfo } from "@puzzle/client";
-import { Button } from "@puzzle/ui/components/button";
+import type { RoomInfo } from "@piecemates/client";
+import { Button } from "@piecemates/ui/components/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogTitle,
 	DialogTrigger,
-} from "@puzzle/ui/components/dialog";
+} from "@piecemates/ui/components/dialog";
 
 /** The Image button and a dialog with the finished picture. */
 export function ReferenceImage({ room }: { room: RoomInfo }) {

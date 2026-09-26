@@ -9,7 +9,7 @@ import {
 	type State,
 	tidyPositions,
 	visibleIn,
-} from "@puzzle/game";
+} from "@piecemates/game";
 
 import { type Cue, cue, progress } from "./feedback.ts";
 

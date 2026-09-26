@@ -1,4 +1,4 @@
-import { registerDropTarget } from "@puzzle/client";
+import { registerDropTarget } from "@piecemates/client";
 
 import { useRoom } from "./use-room";
 

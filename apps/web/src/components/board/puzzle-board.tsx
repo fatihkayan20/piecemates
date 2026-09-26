@@ -1,4 +1,4 @@
-import { BOARD_SCHEMES, type RoomInfo } from "@puzzle/client";
+import { BOARD_SCHEMES, type RoomInfo } from "@piecemates/client";
 import { useRef } from "react";
 
 import { BagBar } from "@/components/bags/bag-bar";

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { formatDuration } from "@puzzle/client";
+import { formatDuration } from "@piecemates/client";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { withUniwind } from "uniwind";

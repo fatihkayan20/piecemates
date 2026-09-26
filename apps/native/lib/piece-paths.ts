@@ -1,5 +1,5 @@
-import type { Grid } from "@puzzle/client";
-import { generateEdges, piecePath } from "@puzzle/game";
+import type { Grid } from "@piecemates/client";
+import { generateEdges, piecePath } from "@piecemates/game";
 import { Skia, type SkPath } from "@shopify/react-native-skia";
 
 // The store keeps one Grid object per puzzle, so it's a stable cache key.

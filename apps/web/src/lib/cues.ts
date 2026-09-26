@@ -1,4 +1,4 @@
-import { type Cue, type CuePlayer, loadCues } from "@puzzle/client";
+import { type Cue, type CuePlayer, loadCues } from "@piecemates/client";
 
 import snap from "@/assets/sounds/snap.wav";
 import win from "@/assets/sounds/win.wav";

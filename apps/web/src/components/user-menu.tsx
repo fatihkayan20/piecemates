@@ -1,4 +1,4 @@
-import { Button } from "@puzzle/ui/components/button";
+import { Button } from "@piecemates/ui/components/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -7,8 +7,8 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "@puzzle/ui/components/dropdown-menu";
-import { Skeleton } from "@puzzle/ui/components/skeleton";
+} from "@piecemates/ui/components/dropdown-menu";
+import { Skeleton } from "@piecemates/ui/components/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";

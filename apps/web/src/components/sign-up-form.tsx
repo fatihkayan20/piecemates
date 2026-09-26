@@ -1,7 +1,7 @@
-import { PASSWORD_MIN } from "@puzzle/client";
-import { Button } from "@puzzle/ui/components/button";
-import { Input } from "@puzzle/ui/components/input";
-import { Label } from "@puzzle/ui/components/label";
+import { PASSWORD_MIN } from "@piecemates/client";
+import { Button } from "@piecemates/ui/components/button";
+import { Input } from "@piecemates/ui/components/input";
+import { Label } from "@piecemates/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";

@@ -1,4 +1,4 @@
-import { groupOf, isPlaced, lockedByOther, type Point } from "@puzzle/game";
+import { groupOf, isPlaced, lockedByOther, type Point } from "@piecemates/game";
 
 import { DROP_TABLE } from "./drop-targets.ts";
 import type { RoomConnection, RoomEvent } from "./room-connection.ts";

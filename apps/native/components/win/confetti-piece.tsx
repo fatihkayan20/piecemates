@@ -1,4 +1,4 @@
-import type { ConfettiPiece as Piece } from "@puzzle/client";
+import type { ConfettiPiece as Piece } from "@piecemates/client";
 import { useWindowDimensions } from "react-native";
 import Animated from "react-native-reanimated";
 

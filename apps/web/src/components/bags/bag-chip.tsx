@@ -1,4 +1,4 @@
-import type { BagChip as Bag } from "@puzzle/client";
+import type { BagChip as Bag } from "@piecemates/client";
 
 import { useDropTarget } from "@/hooks/use-drop-target";
 

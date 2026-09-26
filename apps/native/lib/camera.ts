@@ -7,8 +7,8 @@ import {
 	resizeCamera,
 	roomStore,
 	zoomAt,
-} from "@puzzle/client";
-import { tableRect } from "@puzzle/game";
+} from "@piecemates/client";
+import { tableRect } from "@piecemates/game";
 import { makeMutable } from "react-native-reanimated";
 
 // One board is on screen at a time, so its camera is a module singleton.

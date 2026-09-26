@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { createState, type ServerMsg } from "@puzzle/game";
+import { createState, type ServerMsg } from "@piecemates/game";
 
 import {
 	canPickUp,

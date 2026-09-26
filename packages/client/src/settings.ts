@@ -66,8 +66,8 @@ export function loadSettings(platform: StateStorage) {
 
 /** Picks a table colour; anything outside `BACKGROUNDS` is ignored. */
 export function setBackground(color: string) {
-  const background = BACKGROUNDS.find((b) => b === color);
-  if (background) settingsStore.setState({ background });
+	const background = BACKGROUNDS.find((b) => b === color);
+	if (background) settingsStore.setState({ background });
 }
 export const setSounds = (sounds: boolean) =>
 	settingsStore.setState({ sounds });

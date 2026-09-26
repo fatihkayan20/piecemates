@@ -1,4 +1,4 @@
-import { Toaster } from "@puzzle/ui/components/sonner";
+import { Toaster } from "@piecemates/ui/components/sonner";
 import {
 	createRootRouteWithContext,
 	HeadContent,

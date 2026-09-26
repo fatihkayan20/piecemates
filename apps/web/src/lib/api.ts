@@ -1,4 +1,4 @@
-import { createApi } from "@puzzle/client";
+import { createApi } from "@piecemates/client";
 
 import { ENV } from "../env.public";
 import { ensureSession } from "./auth-client";

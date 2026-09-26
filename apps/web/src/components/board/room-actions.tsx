@@ -1,4 +1,4 @@
-import type { RoomInfo } from "@puzzle/client";
+import type { RoomInfo } from "@piecemates/client";
 
 import { PlayersSheet } from "./players-sheet";
 import { SettingsSheet } from "./settings-sheet";

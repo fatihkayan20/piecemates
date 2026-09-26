@@ -1,4 +1,4 @@
-import { formatDuration } from "@puzzle/client";
+import { formatDuration } from "@piecemates/client";
 import { Timer } from "lucide-react";
 
 import { chip } from "@/components/bags/bag-styles";

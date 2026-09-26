@@ -9,9 +9,9 @@
     "env:generate": "varlock codegen"
   },
   "dependencies": {
-    "@puzzle/auth": "workspace:*",
-    "@puzzle/db": "workspace:*",
-    "@puzzle/game": "workspace:*",
+    "@piecemates/auth": "workspace:*",
+    "@piecemates/db": "workspace:*",
+    "@piecemates/game": "workspace:*",
     "drizzle-orm": "catalog:",
     "better-auth": "catalog:",
     "hono": "^4.13.7",
@@ -20,8 +20,8 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:",
-    "@puzzle/config": "workspace:*",
-    "@puzzle/infra": "workspace:*",
+    "@piecemates/config": "workspace:*",
+    "@piecemates/infra": "workspace:*",
     "@types/node": "catalog:",
     "tsdown": "^0.23.0",
     "typescript": "^6.0.3"

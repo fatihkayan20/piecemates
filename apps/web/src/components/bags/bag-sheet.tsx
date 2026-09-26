@@ -1,14 +1,14 @@
-import { newBag, newBagId } from "@puzzle/client";
-import { BAG_NAME_MAX } from "@puzzle/game";
-import { Button } from "@puzzle/ui/components/button";
-import { Input } from "@puzzle/ui/components/input";
+import { newBag, newBagId } from "@piecemates/client";
+import { BAG_NAME_MAX } from "@piecemates/game";
+import { Button } from "@piecemates/ui/components/button";
+import { Input } from "@piecemates/ui/components/input";
 import {
 	Sheet,
 	SheetContent,
 	SheetFooter,
 	SheetHeader,
 	SheetTitle,
-} from "@puzzle/ui/components/sheet";
+} from "@piecemates/ui/components/sheet";
 import { useState } from "react";
 
 import { useRoom } from "@/hooks/use-room";

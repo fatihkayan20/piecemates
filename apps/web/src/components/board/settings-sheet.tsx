@@ -3,16 +3,16 @@ import {
 	setBackground,
 	setHaptics,
 	setSounds,
-} from "@puzzle/client";
-import { Checkbox } from "@puzzle/ui/components/checkbox";
-import { Label } from "@puzzle/ui/components/label";
+} from "@piecemates/client";
+import { Checkbox } from "@piecemates/ui/components/checkbox";
+import { Label } from "@piecemates/ui/components/label";
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 	SheetTrigger,
-} from "@puzzle/ui/components/sheet";
+} from "@piecemates/ui/components/sheet";
 import { Settings } from "lucide-react";
 
 import { ColorSwatches } from "@/components/bags/color-swatches";

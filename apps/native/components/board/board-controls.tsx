@@ -1,4 +1,4 @@
-import type { RoomInfo } from "@puzzle/client";
+import type { RoomInfo } from "@piecemates/client";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 

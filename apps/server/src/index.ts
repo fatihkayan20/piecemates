@@ -1,5 +1,5 @@
-import { roomPlayers, rooms } from "@puzzle/db/schema/game";
-import { CELL_WIDTH, MAX_PIECES } from "@puzzle/game";
+import { roomPlayers, rooms } from "@piecemates/db/schema/game";
+import { CELL_WIDTH, MAX_PIECES } from "@piecemates/game";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";

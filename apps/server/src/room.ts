@@ -1,7 +1,7 @@
 /// <reference path="../cloudflare-env.d.ts" />
 import { DurableObject } from "cloudflare:workers";
-import { createDb } from "@puzzle/db";
-import { rooms } from "@puzzle/db/schema/game";
+import { createDb } from "@piecemates/db";
+import { rooms } from "@piecemates/db/schema/game";
 import {
 	apply,
 	ClientMsg,
@@ -13,7 +13,7 @@ import {
 	resume,
 	type ServerMsg,
 	type State,
-} from "@puzzle/game";
+} from "@piecemates/game";
 import { eq } from "drizzle-orm";
 
 /** The player a socket belongs to, stored on it when it connected. */

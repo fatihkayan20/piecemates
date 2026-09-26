@@ -1,5 +1,5 @@
-import { roomUrl } from "@puzzle/client";
-import { Button } from "@puzzle/ui/components/button";
+import { roomUrl } from "@piecemates/client";
+import { Button } from "@piecemates/ui/components/button";
 import { Share } from "lucide-react";
 import { toast } from "sonner";
 

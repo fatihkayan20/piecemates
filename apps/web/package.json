@@ -12,9 +12,9 @@
     "env:generate": "varlock codegen"
   },
   "dependencies": {
-    "@puzzle/client": "workspace:*",
-    "@puzzle/game": "workspace:*",
-    "@puzzle/ui": "workspace:*",
+    "@piecemates/client": "workspace:*",
+    "@piecemates/game": "workspace:*",
+    "@piecemates/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-form": "catalog:",
     "@tanstack/react-router": "^1.170.32",
@@ -30,7 +30,7 @@
     "zustand": "catalog:"
   },
   "devDependencies": {
-    "@puzzle/config": "workspace:*",
+    "@piecemates/config": "workspace:*",
     "@tanstack/react-router-devtools": "^1.167.1",
     "@tanstack/router-plugin": "^1.168.35",
     "@types/node": "catalog:",

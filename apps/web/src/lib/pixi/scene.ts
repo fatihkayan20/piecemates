@@ -1,5 +1,5 @@
-import { BOARD_STYLE, type Grid, type RoomSnapshot } from "@puzzle/client";
-import { cellOf, generateEdges, piecePath } from "@puzzle/game";
+import { BOARD_STYLE, type Grid, type RoomSnapshot } from "@piecemates/client";
+import { cellOf, generateEdges, piecePath } from "@piecemates/game";
 import {
 	type Container,
 	Graphics,

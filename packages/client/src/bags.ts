@@ -1,4 +1,4 @@
-import type { Bag } from "@puzzle/game";
+import type { Bag } from "@piecemates/game";
 
 import { BAG_COLORS } from "./samples.ts";
 

@@ -1,4 +1,4 @@
-import type { BagChip } from "@puzzle/client";
+import type { BagChip } from "@piecemates/client";
 import { Text, View } from "react-native";
 
 /** A bag's colour, name and piece count. */

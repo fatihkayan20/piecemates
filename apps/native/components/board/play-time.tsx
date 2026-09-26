@@ -1,4 +1,4 @@
-import { formatDuration } from "@puzzle/client";
+import { formatDuration } from "@piecemates/client";
 import { Text, View } from "react-native";
 
 import { chip } from "@/components/bags/bag-styles";

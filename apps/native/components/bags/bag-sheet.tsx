@@ -15,8 +15,8 @@ import {
 	padding,
 	presentationDragIndicator,
 } from "@expo/ui/swift-ui/modifiers";
-import { newBag, newBagId } from "@puzzle/client";
-import { BAG_NAME_MAX } from "@puzzle/game";
+import { newBag, newBagId } from "@piecemates/client";
+import { BAG_NAME_MAX } from "@piecemates/game";
 import { useState } from "react";
 
 import { useRoom } from "@/hooks/use-room";

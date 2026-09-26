@@ -1,4 +1,4 @@
-import { type ConfettiPiece, makeConfetti } from "@puzzle/client";
+import { type ConfettiPiece, makeConfetti } from "@piecemates/client";
 import { useState } from "react";
 
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";

@@ -1,7 +1,7 @@
-import { SAMPLE_IMAGES } from "@puzzle/client";
-import { type GridOption, gridOptions } from "@puzzle/game";
-import { Button } from "@puzzle/ui/components/button";
-import { Input } from "@puzzle/ui/components/input";
+import { SAMPLE_IMAGES } from "@piecemates/client";
+import { type GridOption, gridOptions } from "@piecemates/game";
+import { Button } from "@piecemates/ui/components/button";
+import { Input } from "@piecemates/ui/components/input";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";

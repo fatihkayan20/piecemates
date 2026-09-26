@@ -1,5 +1,5 @@
-import type { RoomInfo } from "@puzzle/client";
-import { Button } from "@puzzle/ui/components/button";
+import type { RoomInfo } from "@piecemates/client";
+import { Button } from "@piecemates/ui/components/button";
 
 import { useRoom } from "@/hooks/use-room";
 

@@ -1,5 +1,5 @@
-import { type BagChip, DROP_TABLE } from "@puzzle/client";
-import { Button } from "@puzzle/ui/components/button";
+import { type BagChip, DROP_TABLE } from "@piecemates/client";
+import { Button } from "@piecemates/ui/components/button";
 
 import { useDropTarget } from "@/hooks/use-drop-target";
 import { useRoom } from "@/hooks/use-room";

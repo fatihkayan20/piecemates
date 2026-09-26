@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@puzzle/ui/components/button";
-import { Input } from "@puzzle/ui/components/input";
-import { Textarea } from "@puzzle/ui/components/textarea";
-import { cn } from "@puzzle/ui/lib/utils";
+import { Button } from "@piecemates/ui/components/button";
+import { Input } from "@piecemates/ui/components/input";
+import { Textarea } from "@piecemates/ui/components/textarea";
+import { cn } from "@piecemates/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 

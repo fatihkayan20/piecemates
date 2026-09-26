@@ -1,4 +1,4 @@
-import { makeConfetti } from "@puzzle/client";
+import { makeConfetti } from "@piecemates/client";
 import { useState } from "react";
 import { View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";

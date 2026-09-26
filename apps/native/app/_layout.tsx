@@ -1,5 +1,5 @@
 import "@/global.css";
-import { loadSettings } from "@puzzle/client";
+import { loadSettings } from "@piecemates/client";
 import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { HeroUINativeProvider } from "heroui-native";

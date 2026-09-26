@@ -54,7 +54,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] Room Durable Object with WebSockets, max 4 players, state saved per room. `9da65f9`
 - [x] Web board (PixiJS): drag, lock, drop, snap, pan, wheel zoom, tidy. `2092713`
 - [x] iOS dev build and native board (Skia), in sync with web. `cab20bb`, `4a98d6d`
-- [x] Shared `@puzzle/client` package (API, session, room connection, camera) and clearer names across game, web and native. `13cfea8`…`90e4917`
+- [x] Shared `@piecemates/client` package (API, session, room connection, camera) and clearer names across game, web and native. `13cfea8`…`90e4917`
 - [x] Table with the pile around the board, drops kept on the table, zoom and pan limits, local-only tidy. `221299e`…`f28ef01`
 - [x] Bags: a shared bag bar on web and iOS, drop a piece or group on a bag, a per-device bag view (the bag plus the puzzle so far), groups kept inside bags, take-out zone, create/edit sheet (shadcn on web, Expo UI on iOS). `00f3463`…`5d391c1`
 - [x] Sticky edges: a frame piece dropped near its spot on the board sticks there with its group; a bag piece that sticks leaves its bag. `d575c83`

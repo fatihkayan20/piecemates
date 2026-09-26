@@ -1,5 +1,5 @@
-import { BOARD_STYLE, type Grid, type PieceView } from "@puzzle/client";
-import { cellOf } from "@puzzle/game";
+import { BOARD_STYLE, type Grid, type PieceView } from "@piecemates/client";
+import { cellOf } from "@piecemates/game";
 import {
 	Group,
 	Image,

@@ -1,5 +1,5 @@
 import { expoClient } from "@better-auth/expo/client";
-import { createEnsureSession } from "@puzzle/client";
+import { createEnsureSession } from "@piecemates/client";
 import { anonymousClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import Constants from "expo-constants";

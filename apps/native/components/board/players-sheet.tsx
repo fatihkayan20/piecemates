@@ -15,8 +15,8 @@ import {
 	padding,
 	presentationDragIndicator,
 } from "@expo/ui/swift-ui/modifiers";
-import { roomUrl } from "@puzzle/client";
-import { MAX_PLAYERS } from "@puzzle/game";
+import { roomUrl } from "@piecemates/client";
+import { MAX_PLAYERS } from "@piecemates/game";
 import { useState } from "react";
 
 import { useRoom } from "@/hooks/use-room";

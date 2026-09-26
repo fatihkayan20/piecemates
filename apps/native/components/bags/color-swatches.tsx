@@ -5,7 +5,7 @@ import {
 	onTapGesture,
 	opacity,
 } from "@expo/ui/swift-ui/modifiers";
-import { BAG_COLORS } from "@puzzle/client";
+import { BAG_COLORS } from "@piecemates/client";
 
 const SWATCH = { size: 36, spacing: 14, dimmed: 0.35 };
 

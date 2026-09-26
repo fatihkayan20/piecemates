@@ -1,8 +1,8 @@
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { expo } from "@better-auth/expo";
-import type { Database } from "@puzzle/db";
-import * as schema from "@puzzle/db/schema/auth";
-import { rooms } from "@puzzle/db/schema/game";
+import type { Database } from "@piecemates/db";
+import * as schema from "@piecemates/db/schema/auth";
+import { rooms } from "@piecemates/db/schema/game";
 import { betterAuth } from "better-auth";
 import { anonymous } from "better-auth/plugins";
 import { eq, sql } from "drizzle-orm";

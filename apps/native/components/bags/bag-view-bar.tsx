@@ -1,4 +1,4 @@
-import { type BagChip, DROP_TABLE } from "@puzzle/client";
+import { type BagChip, DROP_TABLE } from "@piecemates/client";
 import { Pressable, Text, View } from "react-native";
 
 import { useDropTarget } from "@/hooks/use-drop-target";

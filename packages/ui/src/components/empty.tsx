@@ -1,4 +1,4 @@
-import { cn } from "@puzzle/ui/lib/utils";
+import { cn } from "@piecemates/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
 function Empty({ className, ...props }: React.ComponentProps<"div">) {

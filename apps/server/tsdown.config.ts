@@ -6,7 +6,7 @@ export default defineConfig({
   outDir: "./dist",
   clean: true,
   deps: {
-    alwaysBundle: [/@puzzle\/.*/],
+    alwaysBundle: [/@piecemates\/.*/],
     neverBundle: ["cloudflare:workers"],
   },
 });

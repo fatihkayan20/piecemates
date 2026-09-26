@@ -1,4 +1,4 @@
-import { getErrorMessage, PASSWORD_MIN } from "@puzzle/client";
+import { getErrorMessage, PASSWORD_MIN } from "@piecemates/client";
 import { useForm } from "@tanstack/react-form";
 import {
 	Button,

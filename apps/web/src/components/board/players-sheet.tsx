@@ -1,4 +1,4 @@
-import { MAX_PLAYERS } from "@puzzle/game";
+import { MAX_PLAYERS } from "@piecemates/game";
 import {
 	Sheet,
 	SheetContent,
@@ -6,7 +6,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 	SheetTrigger,
-} from "@puzzle/ui/components/sheet";
+} from "@piecemates/ui/components/sheet";
 import { Users } from "lucide-react";
 
 import { useRoom } from "@/hooks/use-room";

@@ -1,4 +1,4 @@
-import { BOARD_SCHEMES } from "@puzzle/client";
+import { BOARD_SCHEMES } from "@piecemates/client";
 import { Stack } from "expo-router";
 import { useState } from "react";
 import { useSettings } from "@/hooks/use-settings";

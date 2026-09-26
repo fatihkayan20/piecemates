@@ -3,7 +3,7 @@ import {
 	disconnectRoom,
 	type RoomConnection,
 	roomStore,
-} from "@puzzle/client";
+} from "@piecemates/client";
 import { useEffect } from "react";
 import { openRoomSocket } from "@/lib/api";
 import { camera, fitToView } from "@/lib/camera";
@@ -20,7 +20,8 @@ export function useRoomSocket(code: string) {
 			});
 		});
 		// Lets device automation find pieces on screen during development.
-		if (__DEV__) Object.assign(globalThis, { __puzzle: { roomStore, camera } });
+		if (__DEV__)
+			Object.assign(globalThis, { __puzzle: { roomStore, camera } });
 		return () => {
 			closed = true;
 			if (conn) disconnectRoom(conn);

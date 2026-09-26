@@ -94,7 +94,7 @@
 						},
 						"patterns": [
 							{
-								"group": ["@puzzle/*/src", "@puzzle/*/src/**"],
+								"group": ["@piecemates/*/src", "@piecemates/*/src/**"],
 								"message": "Import a package through its public API (index.ts / exports), not its files."
 							}
 						]

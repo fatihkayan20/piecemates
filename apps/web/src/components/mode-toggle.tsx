@@ -1,10 +1,10 @@
-import { Button } from "@puzzle/ui/components/button";
+import { Button } from "@piecemates/ui/components/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from "@puzzle/ui/components/dropdown-menu";
+} from "@piecemates/ui/components/dropdown-menu";
 import { Moon, Sun } from "lucide-react";
 
 import { useTheme } from "@/components/theme-provider";

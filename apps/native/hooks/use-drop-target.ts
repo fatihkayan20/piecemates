@@ -1,4 +1,4 @@
-import { registerDropTarget } from "@puzzle/client";
+import { registerDropTarget } from "@piecemates/client";
 import { useEffect, useRef } from "react";
 import type { View } from "react-native";
 

@@ -1,4 +1,4 @@
-import { BOARD_SCHEMES, type RoomInfo } from "@puzzle/client";
+import { BOARD_SCHEMES, type RoomInfo } from "@piecemates/client";
 import { useHeaderHeight } from "expo-router/build/react-navigation";
 import { View } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";

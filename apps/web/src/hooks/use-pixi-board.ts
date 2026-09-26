@@ -4,7 +4,7 @@ import {
 	type RoomConnection,
 	type RoomInfo,
 	roomStore,
-} from "@puzzle/client";
+} from "@piecemates/client";
 import { Application, Container, type Graphics } from "pixi.js";
 import { type RefObject, useEffect } from "react";
 

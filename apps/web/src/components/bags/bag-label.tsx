@@ -1,4 +1,4 @@
-import type { BagChip } from "@puzzle/client";
+import type { BagChip } from "@piecemates/client";
 
 /** A bag's colour, name and piece count. */
 export function BagLabel({ bag }: { bag: BagChip }) {

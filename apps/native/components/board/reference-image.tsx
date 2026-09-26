@@ -1,4 +1,4 @@
-import type { RoomInfo } from "@puzzle/client";
+import type { RoomInfo } from "@piecemates/client";
 import { useState } from "react";
 import { Image, Modal, Pressable, Text } from "react-native";
 

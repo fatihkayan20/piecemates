@@ -5,7 +5,7 @@ import {
 	lockedByOther,
 	type Player,
 	type State,
-} from "@puzzle/game";
+} from "@piecemates/game";
 import { createStore } from "zustand/vanilla";
 
 import { beginDrag, type Drag, endsDrag } from "./drag.ts";

@@ -1,4 +1,4 @@
-import { elapsed } from "@puzzle/game";
+import { elapsed } from "@piecemates/game";
 import { useEffect, useState } from "react";
 
 import { useRoom } from "@/hooks/use-room";

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mock, test } from "node:test";
 
-import { createState, type ServerMsg, tableRect } from "@puzzle/game";
+import { createState, type ServerMsg, tableRect } from "@piecemates/game";
 
 import {
 	CONFETTI_COUNT,
@@ -146,7 +146,11 @@ test("settings load from and save to the given storage", async () => {
 	});
 	assert.equal(settingsStore.getState().background, "#111");
 	setBackground("#222");
-	assert.equal(settingsStore.getState().background, "#111", "not a table colour");
+	assert.equal(
+		settingsStore.getState().background,
+		"#111",
+		"not a table colour",
+	);
 	setBackground("#14532d");
 	assert.match(saved.get("puzzle-settings") ?? "", /#14532d/);
 });

@@ -1,4 +1,4 @@
-import { BAG_COLORS } from "@puzzle/client";
+import { BAG_COLORS } from "@piecemates/client";
 
 /** Colours as round buttons (bag colours by default); the picked one gets a ring. */
 export function ColorSwatches({

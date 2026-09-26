@@ -7,8 +7,8 @@ import {
 	resizeCamera,
 	roomStore,
 	zoomAt,
-} from "@puzzle/client";
-import { tableRect } from "@puzzle/game";
+} from "@piecemates/client";
+import { tableRect } from "@piecemates/game";
 import type { Container, Rectangle } from "pixi.js";
 
 /** How fast the wheel zooms, per pixel of scroll. */

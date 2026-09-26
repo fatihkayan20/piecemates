@@ -10,7 +10,7 @@ import {
 	setBackground,
 	setHaptics,
 	setSounds,
-} from "@puzzle/client";
+} from "@piecemates/client";
 import { useState } from "react";
 
 import { ColorSwatches } from "@/components/bags/color-swatches";

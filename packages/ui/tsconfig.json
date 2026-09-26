@@ -1,11 +1,11 @@
 {
-  "extends": "@puzzle/config/tsconfig.base.json",
+  "extends": "@piecemates/config/tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": [],
     "paths": {
-      "@puzzle/ui/*": ["./src/*"]
+      "@piecemates/ui/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

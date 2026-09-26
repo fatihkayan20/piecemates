@@ -12,11 +12,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@puzzle/ui/components",
-    "utils": "@puzzle/ui/lib/utils",
-    "hooks": "@puzzle/ui/hooks",
-    "lib": "@puzzle/ui/lib",
-    "ui": "@puzzle/ui/components"
+    "components": "@piecemates/ui/components",
+    "utils": "@piecemates/ui/lib/utils",
+    "hooks": "@piecemates/ui/hooks",
+    "lib": "@piecemates/ui/lib",
+    "ui": "@piecemates/ui/components"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

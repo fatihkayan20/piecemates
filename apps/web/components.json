@@ -13,8 +13,8 @@
   "iconLibrary": "lucide",
   "aliases": {
     "components": "@/components",
-    "utils": "@puzzle/ui/lib/utils",
-    "ui": "@puzzle/ui/components",
+    "utils": "@piecemates/ui/lib/utils",
+    "ui": "@piecemates/ui/components",
     "lib": "@/lib",
     "hooks": "@/hooks"
   },

@@ -1,3 +1,3 @@
 {
-  "extends": "@puzzle/config/tsconfig.base.json"
+  "extends": "@piecemates/config/tsconfig.base.json"
 }

@@ -1,4 +1,4 @@
-import type { RoomInfo } from "@puzzle/client";
+import type { RoomInfo } from "@piecemates/client";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";

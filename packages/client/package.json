@@ -1,5 +1,5 @@
 {
-	"name": "@puzzle/client",
+	"name": "@piecemates/client",
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts"
@@ -9,11 +9,11 @@
 		"test": "node --test src/*.test.ts"
 	},
 	"dependencies": {
-		"@puzzle/game": "workspace:*",
+		"@piecemates/game": "workspace:*",
 		"zustand": "catalog:"
 	},
 	"devDependencies": {
-		"@puzzle/config": "workspace:*",
+		"@piecemates/config": "workspace:*",
 		"typescript": "^6.0.3"
 	}
 }

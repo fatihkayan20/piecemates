@@ -1,4 +1,4 @@
-import { type Settings, settingsStore } from "@puzzle/client";
+import { type Settings, settingsStore } from "@piecemates/client";
 import { useStore } from "zustand";
 
 /** Reads my view settings. */

@@ -1,4 +1,4 @@
-import type { Rect } from "@puzzle/game";
+import type { Rect } from "@piecemates/game";
 
 /** Maps table units to screen pixels: screen = (x, y) + scale * table. */
 export type Camera = { x: number; y: number; scale: number };

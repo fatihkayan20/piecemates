@@ -6,7 +6,7 @@ import {
 	roomStore,
 	setHoveredTarget,
 	startDrag,
-} from "@puzzle/client";
+} from "@piecemates/client";
 import type {
 	Application,
 	Container,

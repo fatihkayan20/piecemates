@@ -1,4 +1,4 @@
-import { groupOf, isPlaced, type State } from "@puzzle/game";
+import { groupOf, isPlaced, type State } from "@piecemates/game";
 
 import { settingsStore } from "./settings.ts";
 

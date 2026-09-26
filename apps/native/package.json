@@ -19,8 +19,8 @@
     "@expo/ui": "~57.0.20",
     "@expo/vector-icons": "^15.0.2",
     "@gorhom/bottom-sheet": "^5.2.14",
-    "@puzzle/client": "workspace:*",
-    "@puzzle/game": "workspace:*",
+    "@piecemates/client": "workspace:*",
+    "@piecemates/game": "workspace:*",
     "@shopify/react-native-skia": "2.6.2",
     "@tanstack/react-form": "catalog:",
     "@varlock/expo-integration": "1.2.1",
@@ -60,7 +60,7 @@
     "zustand": "catalog:"
   },
   "devDependencies": {
-    "@puzzle/config": "workspace:*",
+    "@piecemates/config": "workspace:*",
     "@types/node": "catalog:",
     "@types/react": "~19.2.18",
     "babel-preset-expo": "~57.0.10",
