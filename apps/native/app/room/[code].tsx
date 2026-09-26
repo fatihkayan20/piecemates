@@ -1,9 +1,10 @@
+import type { RoomInfo } from "@puzzle/client";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { PuzzleBoard } from "@/components/puzzle-board";
-import { getRoom, type RoomInfo } from "@/lib/api";
+import { api } from "@/lib/api";
 
 export default function RoomScreen() {
 	const { code } = useLocalSearchParams<{ code: string }>();
@@ -11,7 +12,7 @@ export default function RoomScreen() {
 	const [error, setError] = useState<string>();
 
 	useEffect(() => {
-		getRoom(code).then(setRoom, (e: Error) => setError(e.message));
+		api.getRoom(code).then(setRoom, (e: Error) => setError(e.message));
 	}, [code]);
 
 	return (

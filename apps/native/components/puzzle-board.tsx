@@ -1,11 +1,18 @@
 import {
-	apply,
-	type ClientMsg,
-	generate,
-	isComplete,
-	type Player,
+	type Camera,
+	fitCamera,
+	RoomConnection,
+	type RoomInfo,
+	tableBounds,
+	zoomAt,
+} from "@puzzle/client";
+import {
+	cellOf,
+	generateEdges,
+	groupOf,
+	lockedByOther,
+	MAX_PLAYERS,
 	piecePath,
-	type ServerMsg,
 	type State,
 } from "@puzzle/game";
 import {
@@ -25,146 +32,123 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useDerivedValue, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { authHeaders, type RoomInfo, roomSocketUrl } from "@/lib/api";
+import { openRoomSocket } from "@/lib/api";
 
-type Status = "connecting" | "playing" | "done" | "disconnected";
 type Drag = { piece: number; members: Set<number> };
 
 export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const image = useImage(room.imageUrl);
 	const insets = useSafeAreaInsets();
 	const [, rerender] = useReducer((n: number) => n + 1, 0);
-	const [players, setPlayers] = useState<Player[]>([]);
-	const [status, setStatus] = useState<Status>("connecting");
 	const [drag, setDrag] = useState<Drag | null>(null);
 
-	const state = useRef<State | null>(null);
-	const me = useRef("");
-	const ws = useRef<WebSocket | null>(null);
-	const order = useRef<number[]>([]); // draw order, last = on top
-	const size = useRef({ width: 0, height: 0 });
-	const target = useRef<number | null>(null);
+	const connection = useRef<RoomConnection | null>(null);
+	const drawOrder = useRef<number[]>([]); // last = on top
+	const viewport = useRef({ width: 0, height: 0 });
+	const touchedPiece = useRef<number | null>(null);
 	const dragRef = useRef<Drag | null>(null);
 	dragRef.current = drag;
-
-	// Camera: screen = t + s * world. Dragged group: world offset.
-	const tx = useSharedValue(0);
-	const ty = useSharedValue(0);
-	const sc = useSharedValue(1);
-	const dx = useSharedValue(0);
-	const dy = useSharedValue(0);
-	const camera = useDerivedValue(() => [
-		{ translateX: tx.value },
-		{ translateY: ty.value },
-		{ scale: sc.value },
-	]);
-	const dragOffset = useDerivedValue(() => [
-		{ translateX: dx.value },
-		{ translateY: dy.value },
-	]);
-
+	// Kept in a ref (not useMemo) so Fast Refresh can't leave it empty.
 	const paths = useRef<SkPath[]>([]).current;
 
-	const send = (msg: ClientMsg) => {
-		if (ws.current?.readyState === WebSocket.OPEN)
-			ws.current.send(JSON.stringify(msg));
-	};
+	// Camera: screen = camera + scale * table. The dragged group gets an extra offset in table units.
+	const cameraX = useSharedValue(0);
+	const cameraY = useSharedValue(0);
+	const cameraScale = useSharedValue(1);
+	const dragX = useSharedValue(0);
+	const dragY = useSharedValue(0);
+	const cameraTransform = useDerivedValue(() => [
+		{ translateX: cameraX.value },
+		{ translateY: cameraY.value },
+		{ scale: cameraScale.value },
+	]);
+	const dragTransform = useDerivedValue(() => [
+		{ translateX: dragX.value },
+		{ translateY: dragY.value },
+	]);
 
-	const fit = (s: State) => {
-		const { width, height } = size.current;
-		if (!width) return;
-		const xs = s.pieces.map((p) => p.x);
-		const ys = s.pieces.map((p) => p.y);
-		const minX = Math.min(0, ...xs);
-		const minY = Math.min(0, ...ys);
-		const bw = Math.max(s.cols * s.w, ...xs.map((x) => x + s.w)) - minX;
-		const bh = Math.max(s.rows * s.h, ...ys.map((y) => y + s.h)) - minY;
-		const scale = Math.min(width / bw, height / bh) * 0.9;
-		sc.value = scale;
-		tx.value = (width - bw * scale) / 2 - minX * scale;
-		ty.value = (height - bh * scale) / 2 - minY * scale;
+	const camera = (): Camera => ({
+		x: cameraX.value,
+		y: cameraY.value,
+		scale: cameraScale.value,
+	});
+	const setCamera = (c: Camera) => {
+		cameraX.value = c.x;
+		cameraY.value = c.y;
+		cameraScale.value = c.scale;
+	};
+	const fitToView = (state: State) => {
+		if (viewport.current.width)
+			setCamera(fitCamera(tableBounds(state), viewport.current));
 	};
 
 	const endDrag = () => {
 		setDrag(null);
-		dx.value = 0;
-		dy.value = 0;
+		dragX.value = 0;
+		dragY.value = 0;
+	};
+
+	const buildPaths = (state: State) => {
+		const edges = generateEdges(room.seed, state.rows, state.cols);
+		for (const pieceEdges of edges) {
+			paths.push(
+				Skia.Path.MakeFromSVGString(
+					piecePath(pieceEdges, state.w, state.h),
+				) as SkPath,
+			);
+		}
+		drawOrder.current = edges.map((_, i) => i);
 	};
 
 	useEffect(() => {
 		let closed = false;
-		void authHeaders().then((headers) => {
-			if (closed) return;
-			// React Native's WebSocket accepts headers as a third argument.
-			const socket = new (
-				WebSocket as unknown as new (
-					url: string,
-					protocols: undefined,
-					opts: { headers: Record<string, string> },
-				) => WebSocket
-			)(roomSocketUrl(room.code), undefined, { headers });
-			ws.current = socket;
-			connect(socket);
+		void openRoomSocket(room.code).then((socket) => {
+			if (closed) return socket.close();
+			const conn = new RoomConnection(socket, (event) => {
+				const state = conn.state;
+				if (event.type === "state" && state) {
+					const first = paths.length === 0;
+					if (first) buildPaths(state);
+					if (first) fitToView(state);
+				} else if (event.type === "applied") {
+					const dragging = dragRef.current;
+					if (
+						event.by === conn.me &&
+						event.msg.type === "drop" &&
+						dragging?.piece === event.msg.piece
+					)
+						endDrag();
+				} else if (event.type === "rejected") {
+					if (event.msg.type === "lock" || event.msg.type === "drop") endDrag();
+				}
+				rerender();
+			});
+			connection.current = conn;
 		});
 		return () => {
 			closed = true;
-			ws.current?.close();
+			connection.current?.close();
+			connection.current = null;
 		};
 	}, [room]);
 
-	const connect = (socket: WebSocket) => {
-		socket.onclose = () => setStatus("disconnected");
-		socket.onmessage = (ev) => {
-			const msg = JSON.parse(ev.data) as ServerMsg;
-			if (msg.type === "state") {
-				const first = !state.current;
-				state.current = msg.state;
-				me.current = msg.you;
-				if (paths.length === 0) {
-					const edges = generate(room.seed, msg.state.rows, msg.state.cols);
-					for (const e of edges) {
-						paths.push(
-							Skia.Path.MakeFromSVGString(
-								piecePath(e, msg.state.w, msg.state.h),
-							) as SkPath,
-						);
-					}
-					order.current = edges.map((_, i) => i);
-				}
-				if (first) fit(msg.state);
-				setStatus(isComplete(msg.state) ? "done" : "playing");
-			} else if (msg.type === "applied" && state.current) {
-				apply(state.current, msg.by, msg.msg);
-				const d = dragRef.current;
-				if (
-					msg.by === me.current &&
-					msg.msg.type === "drop" &&
-					d?.piece === msg.msg.piece
-				)
-					endDrag();
-				if (msg.msg.type === "drop" && isComplete(state.current))
-					setStatus("done");
-			} else if (msg.type === "rejected") {
-				if (msg.msg.type === "lock" || msg.msg.type === "drop") endDrag();
-			} else if (msg.type === "presence") {
-				setPlayers(msg.players);
-			}
-			rerender();
-		};
-	};
+	const conn = connection.current;
+	const state = conn?.state ?? null;
+	const send: RoomConnection["send"] = (msg) => connection.current?.send(msg);
 
-	const hitTest = (x: number, y: number) => {
-		const s = state.current;
-		if (!s) return null;
-		const wx = (x - tx.value) / sc.value;
-		const wy = (y - ty.value) / sc.value;
-		for (let k = order.current.length - 1; k >= 0; k--) {
-			const i = order.current[k] as number;
-			const p = s.pieces[i];
-			if (!p || p.bag !== null) continue;
-			const holder = s.locks[p.group];
-			if (holder !== undefined && holder !== me.current) continue;
-			if (paths[i]?.contains(wx - p.x, wy - p.y)) return i;
+	/** Topmost piece I may pick up at a screen point. */
+	const pieceAt = (x: number, y: number) => {
+		const conn = connection.current;
+		const state = conn?.state;
+		if (!state || !conn) return null;
+		const tableX = (x - cameraX.value) / cameraScale.value;
+		const tableY = (y - cameraY.value) / cameraScale.value;
+		for (let k = drawOrder.current.length - 1; k >= 0; k--) {
+			const i = drawOrder.current[k] as number;
+			const piece = state.pieces[i];
+			if (!piece || piece.bag !== null || lockedByOther(state, i, conn.me))
+				continue;
+			if (paths[i]?.contains(tableX - piece.x, tableY - piece.y)) return i;
 		}
 		return null;
 	};
@@ -174,70 +158,74 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 		.runOnJS(true)
 		.maxPointers(1)
 		.onBegin((e) => {
-			target.current = dragRef.current ? null : hitTest(e.x, e.y);
+			touchedPiece.current = dragRef.current ? null : pieceAt(e.x, e.y);
 		})
 		.onStart(() => {
-			const s = state.current;
-			const i = target.current;
-			if (!s || i === null) return;
-			const group = s.pieces[i]?.group;
-			const members = new Set(
-				s.pieces.flatMap((q, j) => (q.group === group ? [j] : [])),
-			);
-			order.current = [
-				...order.current.filter((j) => !members.has(j)),
+			const i = touchedPiece.current;
+			const state = connection.current?.state;
+			if (!state || i === null) return;
+			const members = new Set(groupOf(state, i));
+			drawOrder.current = [
+				...drawOrder.current.filter((j) => !members.has(j)),
 				...members,
 			];
-			dx.value = 0;
-			dy.value = 0;
+			dragX.value = 0;
+			dragY.value = 0;
 			setDrag({ piece: i, members });
 			send({ type: "lock", piece: i });
 		})
 		.onChange((e) => {
-			if (target.current !== null) {
-				// translation counts from the first touch, so the piece doesn't lag by the activation slop.
-				dx.value = e.translationX / sc.value;
-				dy.value = e.translationY / sc.value;
+			if (touchedPiece.current !== null) {
+				// Translation counts from the first touch, so the piece doesn't lag by the activation slop.
+				dragX.value = e.translationX / cameraScale.value;
+				dragY.value = e.translationY / cameraScale.value;
 			} else {
-				tx.value += e.changeX;
-				ty.value += e.changeY;
+				cameraX.value += e.changeX;
+				cameraY.value += e.changeY;
 			}
 		})
-		.onEnd(() => {
-			const i = target.current;
-			const p = i === null ? undefined : state.current?.pieces[i];
-			if (i !== null && p) {
-				// Keep the group where it was dropped until the server echoes the drop.
-				send({ type: "drop", piece: i, x: p.x + dx.value, y: p.y + dy.value });
+		.onEnd((e) => {
+			const i = touchedPiece.current;
+			const piece =
+				i === null ? undefined : connection.current?.state?.pieces[i];
+			if (i !== null && piece) {
+				// Use the final translation; the last move may not have reached onChange.
+				dragX.value = e.translationX / cameraScale.value;
+				dragY.value = e.translationY / cameraScale.value;
+				// The group stays where it was dropped until the server echoes the drop.
+				send({
+					type: "drop",
+					piece: i,
+					x: piece.x + dragX.value,
+					y: piece.y + dragY.value,
+				});
 			}
-			target.current = null;
+			touchedPiece.current = null;
 		});
 
 	const pinch = Gesture.Pinch()
 		.runOnJS(true)
-		.onChange((e) => {
-			const s = Math.min(4, Math.max(0.05, sc.value * e.scaleChange));
-			const k = s / sc.value;
-			tx.value = e.focalX - (e.focalX - tx.value) * k;
-			ty.value = e.focalY - (e.focalY - ty.value) * k;
-			sc.value = s;
-		});
+		.onChange((e) =>
+			setCamera(zoomAt(camera(), e.focalX, e.focalY, e.scaleChange)),
+		);
 
-	const s = state.current;
 	// Lets device automation find pieces on screen during development.
 	if (__DEV__) {
 		Object.assign(globalThis, {
 			__puzzle: {
-				state: s,
-				size: size.current,
-				hitTest,
+				state,
+				viewport: viewport.current,
+				pieceAt,
 				paths,
 				send,
-				ws: () => ws.current?.readyState,
-				cam: () => ({ tx: tx.value, ty: ty.value, sc: sc.value }),
+				camera,
 			},
 		});
 	}
+
+	const players = conn?.players ?? [];
+	const status = conn?.status ?? "connecting";
+	const me = conn?.me ?? "";
 
 	return (
 		<View className="flex-1 bg-[#1c1917]">
@@ -245,42 +233,42 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				<View
 					className="flex-1"
 					onLayout={(e: LayoutChangeEvent) => {
-						size.current = e.nativeEvent.layout;
-						if (s) fit(s);
+						viewport.current = e.nativeEvent.layout;
+						if (state) fitToView(state);
 					}}
 				>
-					{s && image && (
+					{state && image && (
 						<Canvas style={{ flex: 1 }}>
-							<Group transform={camera}>
+							<Group transform={cameraTransform}>
 								<Rect
 									x={0}
 									y={0}
-									width={s.cols * s.w}
-									height={s.rows * s.h}
+									width={state.cols * state.w}
+									height={state.rows * state.h}
 									style="stroke"
 									strokeWidth={2}
 									color="rgba(255,255,255,0.15)"
 								/>
-								{order.current.map((i) =>
+								{drawOrder.current.map((i) =>
 									drag?.members.has(i) ? null : (
 										<Piece
 											key={i}
-											i={i}
-											s={s}
-											me={me.current}
+											index={i}
+											state={state}
+											me={me}
 											image={image}
 											path={paths[i]}
 										/>
 									),
 								)}
-								<Group transform={dragOffset}>
+								<Group transform={dragTransform}>
 									{drag &&
 										[...drag.members].map((i) => (
 											<Piece
 												key={i}
-												i={i}
-												s={s}
-												me={me.current}
+												index={i}
+												state={state}
+												me={me}
 												image={image}
 												path={paths[i]}
 											/>
@@ -301,7 +289,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 					{room.code}
 				</Text>
 				<Text className="rounded bg-black/60 px-2 py-1 text-white">
-					{players.length} / 4
+					{players.length} / {MAX_PLAYERS}
 					{status !== "playing"
 						? ` · ${status === "done" ? "Solved! 🎉" : status}`
 						: ""}
@@ -319,36 +307,33 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 }
 
 function Piece({
-	i,
-	s,
+	index,
+	state,
 	me,
 	image,
 	path,
 }: {
-	i: number;
-	s: State;
+	index: number;
+	state: State;
 	me: string;
 	image: SkImage;
 	path?: SkPath;
 }) {
-	const p = s.pieces[i];
-	if (!p || !path || p.bag !== null) return null;
-	const holder = s.locks[p.group];
-	const theirs = holder !== undefined && holder !== me;
-	const r = Math.floor(i / s.cols);
-	const c = i % s.cols;
+	const piece = state.pieces[index];
+	if (!piece || !path || piece.bag !== null) return null;
+	const { row, col } = cellOf(state, index);
 	return (
 		<Group
-			transform={[{ translateX: p.x }, { translateY: p.y }]}
-			opacity={theirs ? 0.5 : 1}
+			transform={[{ translateX: piece.x }, { translateY: piece.y }]}
+			opacity={lockedByOther(state, index, me) ? 0.5 : 1}
 		>
 			<Group clip={path}>
 				<Image
 					image={image}
-					x={-c * s.w}
-					y={-r * s.h}
-					width={s.cols * s.w}
-					height={s.rows * s.h}
+					x={-col * state.w}
+					y={-row * state.h}
+					width={state.cols * state.w}
+					height={state.rows * state.h}
 					fit="fill"
 				/>
 			</Group>
