@@ -1,7 +1,9 @@
 import {
 	type Camera,
 	clampCamera,
+	debounce,
 	fitCamera,
+	RESIZE_DEBOUNCE_MS,
 	resizeCamera,
 	roomStore,
 	zoomAt,
@@ -45,7 +47,15 @@ export function fitToView() {
 	if (bounds && viewport.width) setCamera(fitCamera(bounds, viewport));
 }
 
-/** Fits the first layout; later ones (rotation) keep the zoom and centre point. */
+/** The viewport the camera last followed, so a burst of layouts moves it once. */
+let followed = { ...viewport };
+const follow = debounce(() => {
+	const bounds = table();
+	if (bounds) setCamera(resizeCamera(getCamera(), bounds, followed, viewport));
+	followed = { ...viewport };
+}, RESIZE_DEBOUNCE_MS);
+
+/** Fits the first layout; later ones (rotation, bars changing) keep the zoom and centre point. */
 export function setViewport({
 	width,
 	height,
@@ -53,12 +63,11 @@ export function setViewport({
 	width: number;
 	height: number;
 }) {
-	const bounds = table();
-	const from = { ...viewport };
+	const first = !viewport.width;
 	Object.assign(viewport, { width, height });
-	if (bounds && from.width)
-		setCamera(resizeCamera(getCamera(), bounds, from, viewport));
-	else fitToView();
+	if (!first) return follow();
+	followed = { ...viewport };
+	fitToView();
 }
 
 export const panBy = (dx: number, dy: number) => {
