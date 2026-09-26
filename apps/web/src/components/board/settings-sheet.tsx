@@ -1,4 +1,11 @@
-import { BACKGROUNDS, setBackground } from "@puzzle/client";
+import {
+	BACKGROUNDS,
+	setBackground,
+	setHaptics,
+	setSounds,
+} from "@puzzle/client";
+import { Checkbox } from "@puzzle/ui/components/checkbox";
+import { Label } from "@puzzle/ui/components/label";
 import {
 	Sheet,
 	SheetContent,
@@ -16,6 +23,8 @@ import { iconButton } from "./icon-button";
 /** The gear button and my own view settings, saved on this device. */
 export function SettingsSheet() {
 	const background = useSettings((s) => s.background);
+	const sounds = useSettings((s) => s.sounds);
+	const haptics = useSettings((s) => s.haptics);
 
 	return (
 		<Sheet>
@@ -33,6 +42,14 @@ export function SettingsSheet() {
 						value={background}
 						onChange={setBackground}
 					/>
+					<Label className="text-sm">
+						<Checkbox checked={sounds} onCheckedChange={setSounds} />
+						Sounds
+					</Label>
+					<Label className="text-sm">
+						<Checkbox checked={haptics} onCheckedChange={setHaptics} />
+						Haptics
+					</Label>
 				</div>
 			</SheetContent>
 		</Sheet>
