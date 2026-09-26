@@ -11,6 +11,8 @@
   "dependencies": {
     "@puzzle/auth": "workspace:*",
     "@puzzle/db": "workspace:*",
+    "@puzzle/game": "workspace:*",
+    "drizzle-orm": "catalog:",
     "better-auth": "catalog:",
     "hono": "^4.13.7",
     "varlock": "catalog:",
