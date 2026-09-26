@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoom } from "@/hooks/use-room";
 
 import { ReferenceImage } from "./reference-image";
+import { ShareRoom } from "./share-room";
 
 /** Padding under the controls, on top of the home indicator inset. */
 const BOTTOM_GAP = 12;
@@ -26,9 +27,7 @@ export function BoardControls({ room }: { room: RoomInfo }) {
 			className="flex-row items-center gap-2 p-3"
 			style={{ paddingBottom: insets.bottom + BOTTOM_GAP }}
 		>
-			<Text className="rounded bg-black/60 px-2 py-1 font-mono text-white">
-				{room.code}
-			</Text>
+			<ShareRoom code={room.code} />
 			<Text className="rounded bg-black/60 px-2 py-1 text-white">
 				{players} / {MAX_PLAYERS}
 				{note}
