@@ -11,16 +11,15 @@ import { Settings } from "lucide-react";
 import { ColorSwatches } from "@/components/bags/color-swatches";
 import { useSettings } from "@/hooks/use-settings";
 
+import { iconButton } from "./icon-button";
+
 /** The gear button and my own view settings, saved on this device. */
 export function SettingsSheet() {
 	const background = useSettings((s) => s.background);
 
 	return (
 		<Sheet>
-			<SheetTrigger
-				aria-label="Settings"
-				className="shrink-0 rounded bg-black/60 p-1.5 hover:bg-black/80"
-			>
+			<SheetTrigger aria-label="Settings" className={iconButton}>
 				<Settings className="size-4" />
 			</SheetTrigger>
 			<SheetContent side="bottom">
