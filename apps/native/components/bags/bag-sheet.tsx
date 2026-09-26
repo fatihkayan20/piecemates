@@ -1,0 +1,99 @@
+import {
+	BottomSheet,
+	Button,
+	Host,
+	HStack,
+	Spacer,
+	Text,
+	TextField,
+	useNativeState,
+	VStack,
+} from "@expo/ui/swift-ui";
+import {
+	buttonStyle,
+	font,
+	padding,
+	presentationDragIndicator,
+} from "@expo/ui/swift-ui/modifiers";
+import { newBag, newBagId } from "@puzzle/client";
+import { BAG_NAME_MAX } from "@puzzle/game";
+import { useState } from "react";
+
+import { useRoom } from "@/hooks/use-room";
+
+import { ColorSwatches } from "./color-swatches";
+
+const SHEET = { spacing: 20, padding: 24, titleSize: 20 };
+
+/** Creates a bag (`editing` null) or renames, recolours or deletes one. */
+export function BagSheet({
+	editing,
+	onClose,
+}: {
+	editing: string | null;
+	onClose: () => void;
+}) {
+	const conn = useRoom((r) => r.conn);
+	const bags = useRoom((r) => r.bags);
+	const initial = bags.find((b) => b.id === editing) ?? newBag(bags.length);
+	const nameField = useNativeState(initial.name);
+	const [name, setName] = useState(initial.name);
+	const [color, setColor] = useState(initial.color);
+	const [open, setOpen] = useState(true);
+
+	const save = () => {
+		const bag = editing ?? newBagId();
+		const type = editing ? "bag:update" : "bag:create";
+		conn?.send({ type, bag, name: name.trim() || "Bag", color });
+		setOpen(false);
+	};
+	const remove = () => {
+		if (editing) conn?.send({ type: "bag:delete", bag: editing });
+		setOpen(false);
+	};
+
+	return (
+		<Host matchContents>
+			<BottomSheet
+				isPresented={open}
+				onIsPresentedChange={setOpen}
+				onDismiss={onClose}
+				fitToContents
+			>
+				<VStack
+					alignment="leading"
+					spacing={SHEET.spacing}
+					modifiers={[
+						padding({ all: SHEET.padding }),
+						presentationDragIndicator("visible"),
+					]}
+				>
+					<Text
+						modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
+					>
+						{editing ? "Edit bag" : "New bag"}
+					</Text>
+					<TextField
+						text={nameField}
+						placeholder="Name"
+						maxLength={BAG_NAME_MAX}
+						onTextChange={setName}
+					/>
+					<ColorSwatches value={color} onChange={setColor} />
+					<HStack>
+						{editing && (
+							// biome-ignore lint/a11y/useValidAriaRole: SwiftUI's button role, not ARIA.
+							<Button role="destructive" label="Delete bag" onPress={remove} />
+						)}
+						<Spacer />
+						<Button
+							label={editing ? "Save" : "Create"}
+							modifiers={[buttonStyle("borderedProminent")]}
+							onPress={save}
+						/>
+					</HStack>
+				</VStack>
+			</BottomSheet>
+		</Host>
+	);
+}

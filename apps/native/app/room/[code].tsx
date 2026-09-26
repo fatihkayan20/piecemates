@@ -3,7 +3,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
-import { PuzzleBoard } from "@/components/puzzle-board";
+import { PuzzleBoard } from "@/components/board/puzzle-board";
 import { api } from "@/lib/api";
 
 export default function RoomScreen() {
