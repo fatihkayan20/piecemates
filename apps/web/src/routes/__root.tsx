@@ -5,6 +5,7 @@ import {
 	Outlet,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import i18next from "i18next";
 
 import { Header } from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -18,11 +19,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 	head: () => ({
 		meta: [
 			{
-				title: "Piecemates",
+				title: i18next.t("app.name"),
 			},
 			{
 				name: "description",
-				content: "Build jigsaw puzzles together, on the web and on your phone.",
+				content: i18next.t("app.description"),
 			},
 		],
 		links: [

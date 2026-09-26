@@ -6,19 +6,21 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@piecemates/ui/components/dialog";
+import { useTranslation } from "react-i18next";
 
 /** The Image button and a dialog with the finished picture. */
 export function ReferenceImage({ room }: { room: RoomInfo }) {
+	const { t } = useTranslation();
 	return (
 		<Dialog>
 			<DialogTrigger render={<Button size="sm" variant="outline" />}>
-				Image
+				{t("room.image")}
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-3xl">
-				<DialogTitle>Reference image</DialogTitle>
+				<DialogTitle>{t("room.referenceImage")}</DialogTitle>
 				<img
 					src={room.imageUrl}
-					alt="The finished puzzle"
+					alt={t("room.finishedPuzzle")}
 					className="max-h-[75vh] w-full object-contain"
 				/>
 			</DialogContent>

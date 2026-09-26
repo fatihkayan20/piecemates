@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { ModeToggle } from "./mode-toggle";
 import { UserMenu } from "./user-menu";
 
 export function Header() {
+	const { t } = useTranslation();
 	const links = [
-		{ to: "/", label: "Home" },
-		{ to: "/dashboard", label: "Dashboard" },
+		{ to: "/", label: t("nav.home") },
+		{ to: "/dashboard", label: t("nav.dashboard") },
 	] as const;
 
 	return (

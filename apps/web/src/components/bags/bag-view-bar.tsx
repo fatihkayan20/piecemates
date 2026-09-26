@@ -1,5 +1,6 @@
 import { type BagChip, DROP_TABLE } from "@piecemates/client";
 import { Button } from "@piecemates/ui/components/button";
+import { useTranslation } from "react-i18next";
 
 import { useDropTarget } from "@/hooks/use-drop-target";
 import { useRoom } from "@/hooks/use-room";
@@ -15,12 +16,13 @@ export function BagViewBar({
 	bag: BagChip;
 	onEdit: () => void;
 }) {
+	const { t } = useTranslation();
 	const conn = useRoom((r) => r.conn);
 	const takeOut = useDropTarget(DROP_TABLE);
 	return (
 		<>
 			<Button size="sm" variant="outline" onClick={() => conn?.setView(null)}>
-				← Table
+				{t("bags.backToTable")}
 			</Button>
 			<button type="button" className={chip} onClick={onEdit}>
 				<BagLabel bag={bag} />
@@ -29,7 +31,7 @@ export function BagViewBar({
 				ref={takeOut.ref}
 				className={`${chip} ${dashed} ${ring(takeOut.hovered)}`}
 			>
-				Drop here to take out
+				{t("bags.takeOut")}
 			</div>
 		</>
 	);

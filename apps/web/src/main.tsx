@@ -1,7 +1,8 @@
-import { loadSettings } from "@piecemates/client";
+import { loadSettings, startI18n } from "@piecemates/client";
 import { reactErrorHandler } from "@sentry/react";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
+import { initReactI18next } from "react-i18next";
 
 import { Loader } from "./components/loader";
 import { ensureSession } from "./lib/auth-client";
@@ -32,6 +33,7 @@ if (!rootElement) {
 startTelemetry(router);
 void ensureSession();
 void loadSettings(localStorage);
+startI18n(navigator.languages, initReactI18next);
 
 if (!rootElement.innerHTML) {
 	// Errors React catches (route error screens included) still reach Sentry.

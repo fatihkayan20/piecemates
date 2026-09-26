@@ -10,10 +10,12 @@ import {
 } from "@piecemates/ui/components/dropdown-menu";
 import { Skeleton } from "@piecemates/ui/components/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { authClient } from "@/lib/auth-client";
 
 export function UserMenu() {
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const { data: session, isPending } = authClient.useSession();
 
@@ -24,7 +26,7 @@ export function UserMenu() {
 	if (!session) {
 		return (
 			<Link to="/login">
-				<Button variant="outline">Sign In</Button>
+				<Button variant="outline">{t("account.signIn")}</Button>
 			</Link>
 		);
 	}
@@ -36,7 +38,7 @@ export function UserMenu() {
 			</DropdownMenuTrigger>
 			<DropdownMenuContent className="bg-card">
 				<DropdownMenuGroup>
-					<DropdownMenuLabel>My Account</DropdownMenuLabel>
+					<DropdownMenuLabel>{t("account.myAccount")}</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem>{session.user.email}</DropdownMenuItem>
 					<DropdownMenuItem
@@ -53,7 +55,7 @@ export function UserMenu() {
 							});
 						}}
 					>
-						Sign Out
+						{t("account.signOut")}
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>

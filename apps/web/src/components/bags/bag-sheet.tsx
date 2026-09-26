@@ -10,6 +10,7 @@ import {
 	SheetTitle,
 } from "@piecemates/ui/components/sheet";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useRoom } from "@/hooks/use-room";
 
@@ -23,6 +24,7 @@ export function BagSheet({
 	editing: string | null | undefined;
 	onClose: () => void;
 }) {
+	const { t } = useTranslation();
 	const conn = useRoom((r) => r.conn);
 	const bags = useRoom((r) => r.bags);
 	const initial = bags.find((b) => b.id === editing) ?? newBag(bags.length);
@@ -32,7 +34,7 @@ export function BagSheet({
 	const save = () => {
 		const bag = editing ?? newBagId();
 		const type = editing ? "bag:update" : "bag:create";
-		conn?.send({ type, bag, name: name.trim() || "Bag", color });
+		conn?.send({ type, bag, name: name.trim() || t("bags.unnamed"), color });
 		onClose();
 	};
 	const remove = () => {
@@ -54,11 +56,13 @@ export function BagSheet({
 					}}
 				>
 					<SheetHeader className="p-0">
-						<SheetTitle>{editing ? "Edit bag" : "New bag"}</SheetTitle>
+						<SheetTitle>
+							{editing ? t("bags.editBag") : t("bags.newBag")}
+						</SheetTitle>
 					</SheetHeader>
 					<Input
 						autoFocus
-						aria-label="Name"
+						aria-label={t("bags.name")}
 						maxLength={BAG_NAME_MAX}
 						value={name}
 						onChange={(e) => setName(e.target.value)}
@@ -72,10 +76,12 @@ export function BagSheet({
 								className="mr-auto"
 								onClick={remove}
 							>
-								Delete bag
+								{t("bags.delete")}
 							</Button>
 						)}
-						<Button type="submit">{editing ? "Save" : "Create"}</Button>
+						<Button type="submit">
+							{editing ? t("bags.save") : t("bags.create")}
+						</Button>
 					</SheetFooter>
 				</form>
 			</SheetContent>

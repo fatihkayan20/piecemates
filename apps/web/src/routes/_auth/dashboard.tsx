@@ -1,16 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/_auth/dashboard")({
-  component: RouteComponent,
+	component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { session } = Route.useRouteContext();
+	const { t } = useTranslation();
+	const { session } = Route.useRouteContext();
 
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Welcome {session.data?.user.name}</p>
-    </div>
-  );
+	return (
+		<div>
+			<h1>{t("nav.dashboard")}</h1>
+			<p>{t("account.welcome", { name: session.data?.user.name ?? "" })}</p>
+		</div>
+	);
 }

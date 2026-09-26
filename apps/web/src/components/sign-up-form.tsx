@@ -4,6 +4,7 @@ import { Input } from "@piecemates/ui/components/input";
 import { Label } from "@piecemates/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import z from "zod";
 
@@ -11,11 +12,14 @@ import { authClient } from "@/lib/auth-client";
 
 import { Loader } from "./loader";
 
+const NAME_MIN = 2;
+
 export function SignUpForm({
 	onSwitchToSignIn,
 }: {
 	onSwitchToSignIn: () => void;
 }) {
+	const { t } = useTranslation();
 	const navigate = useNavigate({
 		from: "/",
 	});
@@ -39,7 +43,7 @@ export function SignUpForm({
 						navigate({
 							to: "/dashboard",
 						});
-						toast.success("Sign up successful");
+						toast.success(t("account.signedUp"));
 					},
 					onError: (error) => {
 						toast.error(error.error.message || error.error.statusText);
@@ -49,13 +53,15 @@ export function SignUpForm({
 		},
 		validators: {
 			onSubmit: z.object({
-				name: z.string().min(2, "Name must be at least 2 characters"),
-				email: z.email("Invalid email address"),
+				name: z
+					.string()
+					.min(NAME_MIN, t("account.nameTooShort", { min: NAME_MIN })),
+				email: z.email(t("account.invalidEmail")),
 				password: z
 					.string()
 					.min(
 						PASSWORD_MIN,
-						`Password must be at least ${PASSWORD_MIN} characters`,
+						t("account.passwordTooShort", { min: PASSWORD_MIN }),
 					),
 			}),
 		},
@@ -67,7 +73,9 @@ export function SignUpForm({
 
 	return (
 		<div className="mx-auto mt-10 w-full max-w-md p-6">
-			<h1 className="mb-6 text-center font-bold text-3xl">Create Account</h1>
+			<h1 className="mb-6 text-center font-bold text-3xl">
+				{t("account.createAccount")}
+			</h1>
 
 			<form
 				onSubmit={(e) => {
@@ -81,7 +89,7 @@ export function SignUpForm({
 					<form.Field name="name">
 						{(field) => (
 							<div className="space-y-2">
-								<Label htmlFor={field.name}>Name</Label>
+								<Label htmlFor={field.name}>{t("account.name")}</Label>
 								<Input
 									id={field.name}
 									name={field.name}
@@ -103,7 +111,7 @@ export function SignUpForm({
 					<form.Field name="email">
 						{(field) => (
 							<div className="space-y-2">
-								<Label htmlFor={field.name}>Email</Label>
+								<Label htmlFor={field.name}>{t("account.email")}</Label>
 								<Input
 									id={field.name}
 									name={field.name}
@@ -126,7 +134,7 @@ export function SignUpForm({
 					<form.Field name="password">
 						{(field) => (
 							<div className="space-y-2">
-								<Label htmlFor={field.name}>Password</Label>
+								<Label htmlFor={field.name}>{t("account.password")}</Label>
 								<Input
 									id={field.name}
 									name={field.name}
@@ -157,7 +165,7 @@ export function SignUpForm({
 							className="w-full"
 							disabled={!canSubmit || isSubmitting}
 						>
-							{isSubmitting ? "Submitting..." : "Sign Up"}
+							{isSubmitting ? t("account.submitting") : t("account.signUp")}
 						</Button>
 					)}
 				</form.Subscribe>
@@ -169,7 +177,7 @@ export function SignUpForm({
 					onClick={onSwitchToSignIn}
 					className="text-indigo-600 hover:text-indigo-800"
 				>
-					Already have an account? Sign In
+					{t("account.haveAccount")}
 				</Button>
 			</div>
 		</div>

@@ -4,6 +4,7 @@ import { Button } from "@piecemates/ui/components/button";
 import { Input } from "@piecemates/ui/components/input";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { api } from "@/lib/api";
@@ -20,6 +21,7 @@ type PickedImage = {
 };
 
 function HomeComponent() {
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const [picked, setPicked] = useState<PickedImage>();
 	const [code, setCode] = useState("");
@@ -43,8 +45,8 @@ function HomeComponent() {
 				cols: grid.cols,
 			});
 			await navigate({ to: "/room/$code", params: { code: room.code } });
-		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "Could not create room");
+		} catch {
+			toast.error(t("home.createFailed"));
 			setBusy(false);
 		}
 	};
@@ -52,7 +54,7 @@ function HomeComponent() {
 	return (
 		<div className="container mx-auto grid max-w-3xl content-start gap-8 px-4 py-6">
 			<section className="grid gap-3">
-				<h2 className="font-medium">Join a room</h2>
+				<h2 className="font-medium">{t("home.joinRoom")}</h2>
 				<form
 					className="flex gap-2"
 					onSubmit={(e) => {
@@ -65,18 +67,18 @@ function HomeComponent() {
 					}}
 				>
 					<Input
-						aria-label="Room code"
+						aria-label={t("home.roomCode")}
 						placeholder="ABCD2345"
 						value={code}
 						onChange={(e) => setCode(e.target.value)}
 						className="font-mono uppercase"
 					/>
-					<Button type="submit">Join</Button>
+					<Button type="submit">{t("home.join")}</Button>
 				</form>
 			</section>
 
 			<section className="grid gap-3">
-				<h2 className="font-medium">New puzzle</h2>
+				<h2 className="font-medium">{t("home.newPuzzle")}</h2>
 				<div className="grid grid-cols-3 gap-2">
 					{SAMPLE_IMAGES.map((url) => (
 						<button
@@ -107,7 +109,7 @@ function HomeComponent() {
 								disabled={busy}
 								onClick={() => createPuzzle(grid)}
 							>
-								{grid.count} pieces
+								{t("home.pieces", { count: grid.count })}
 							</Button>
 						))}
 					</div>

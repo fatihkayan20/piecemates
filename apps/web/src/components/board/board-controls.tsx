@@ -1,5 +1,6 @@
 import type { RoomInfo } from "@piecemates/client";
 import { Button } from "@piecemates/ui/components/button";
+import { useTranslation } from "react-i18next";
 
 import { useRoom } from "@/hooks/use-room";
 
@@ -8,6 +9,7 @@ import { ReferenceImage } from "./reference-image";
 
 /** Play time, the reference image and Tidy, under the table. */
 export function BoardControls({ room }: { room: RoomInfo }) {
+	const { t } = useTranslation();
 	const conn = useRoom((r) => r.conn);
 
 	return (
@@ -15,7 +17,7 @@ export function BoardControls({ room }: { room: RoomInfo }) {
 			<PlayTime />
 			<ReferenceImage room={room} />
 			<Button size="sm" onClick={() => conn?.tidy()}>
-				Tidy pile
+				{t("room.tidy")}
 			</Button>
 		</div>
 	);
