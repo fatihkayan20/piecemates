@@ -1,4 +1,5 @@
 import {
+	type Camera,
 	canPickUp,
 	type DropRect,
 	dropTargetAt,
@@ -11,7 +12,14 @@ import {
 import { useRef } from "react";
 import { Gesture } from "react-native-gesture-handler";
 
-import { camera, dragOffset, panBy, toTable, zoomBy } from "@/lib/camera";
+import {
+	camera,
+	dragOffset,
+	getCamera,
+	panBy,
+	pinchTo,
+	toTable,
+} from "@/lib/camera";
 import { piecePaths } from "@/lib/piece-paths";
 
 /** Topmost piece I may pick up at a screen point. */
@@ -32,6 +40,10 @@ function pieceAt(seed: number, x: number, y: number) {
 export function useBoardGestures(seed: number) {
 	const touched = useRef<number | null>(null);
 	const targets = useRef(new Map<string, DropRect>());
+	/** The camera and focal point when the pinch began; the pinch is measured from them. */
+	const pinching = useRef<{ camera: Camera; x: number; y: number } | null>(
+		null,
+	);
 
 	/** Follows the finger; translation counts from the first touch, so the piece doesn't lag. */
 	const follow = (e: {
@@ -62,8 +74,10 @@ export function useBoardGestures(seed: number) {
 			startDrag(touched.current);
 		})
 		.onChange((e) => {
-			if (touched.current === null) panBy(e.changeX, e.changeY);
-			else setHoveredTarget(follow(e));
+			// A pinch moves the camera itself, following the fingers.
+			if (touched.current === null) {
+				if (!pinching.current) panBy(e.changeX, e.changeY);
+			} else setHoveredTarget(follow(e));
 		})
 		.onEnd((e) => {
 			const { conn, drag } = roomStore.getState();
@@ -78,7 +92,17 @@ export function useBoardGestures(seed: number) {
 
 	const pinch = Gesture.Pinch()
 		.runOnJS(true)
-		.onChange((e) => zoomBy(e.focalX, e.focalY, e.scaleChange));
+		.onStart((e) => {
+			pinching.current = { camera: getCamera(), x: e.focalX, y: e.focalY };
+		})
+		.onUpdate((e) => {
+			const start = pinching.current;
+			if (start)
+				pinchTo(start.camera, start, { x: e.focalX, y: e.focalY }, e.scale);
+		})
+		.onFinalize(() => {
+			pinching.current = null;
+		});
 
 	return Gesture.Simultaneous(pan, pinch);
 }

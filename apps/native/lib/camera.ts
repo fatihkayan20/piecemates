@@ -1,12 +1,13 @@
 import {
 	type Camera,
+	type CameraControl,
 	clampCamera,
 	debounce,
-	fitCamera,
+	pinchCamera,
 	RESIZE_DEBOUNCE_MS,
 	resizeCamera,
 	roomStore,
-	zoomAt,
+	startCamera,
 } from "@piecemates/client";
 import { tableRect } from "@piecemates/game";
 import { makeMutable } from "react-native-reanimated";
@@ -41,11 +42,12 @@ export function setCamera(next: Camera) {
 	camera.scale.value = c.scale;
 }
 
-/** Shows the whole table. */
-export function fitToView() {
-	const bounds = table();
-	if (bounds && viewport.width) setCamera(fitCamera(bounds, viewport));
-}
+/** How the room moves this camera (see `followRoom`). */
+export const cameraControl: CameraControl = {
+	get: getCamera,
+	set: setCamera,
+	viewport: () => viewport,
+};
 
 /** The viewport the camera last followed, so a burst of layouts moves it once. */
 let followed = { ...viewport };
@@ -55,7 +57,7 @@ const follow = debounce(() => {
 	followed = { ...viewport };
 }, RESIZE_DEBOUNCE_MS);
 
-/** Fits the first layout; later ones (rotation, bars changing) keep the zoom and centre point. */
+/** Starts the view on the first layout; later ones (rotation, bars changing) keep the zoom and centre point. */
 export function setViewport({
 	width,
 	height,
@@ -67,7 +69,9 @@ export function setViewport({
 	Object.assign(viewport, { width, height });
 	if (!first) return follow();
 	followed = { ...viewport };
-	fitToView();
+	// Usually the room loads after this layout, and `followRoom` starts the view.
+	const state = roomStore.getState().conn?.state;
+	if (state) setCamera(startCamera(tableRect(state), state, viewport));
 }
 
 export const panBy = (dx: number, dy: number) => {
@@ -75,10 +79,12 @@ export const panBy = (dx: number, dy: number) => {
 	setCamera({ ...c, x: c.x + dx, y: c.y + dy });
 };
 
-export function zoomBy(focusX: number, focusY: number, factor: number) {
+type Point = { x: number; y: number };
+
+/** Sets the camera for a pinch that began at `from` with the camera at `start`. */
+export function pinchTo(start: Camera, from: Point, to: Point, scale: number) {
 	const bounds = table();
-	if (bounds)
-		setCamera(zoomAt(getCamera(), focusX, focusY, factor, bounds, viewport));
+	if (bounds) setCamera(pinchCamera(start, from, to, scale, bounds, viewport));
 }
 
 /** A screen point in table units. */
