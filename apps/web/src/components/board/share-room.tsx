@@ -18,7 +18,7 @@ export function ShareRoom({ code }: { code: string }) {
 		<button
 			type="button"
 			title="Copy room link"
-			className="ml-auto shrink-0 rounded bg-black/60 px-2 py-1 font-mono hover:bg-black/80"
+			className="shrink-0 rounded bg-black/60 px-2 py-1 font-mono hover:bg-black/80"
 			onClick={share}
 		>
 			Room {code} ⧉

@@ -1,3 +1,4 @@
+import { loadSettings } from "@puzzle/client";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
 
@@ -26,6 +27,7 @@ if (!rootElement) {
 }
 
 void ensureSession();
+void loadSettings(localStorage);
 
 if (!rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement);

@@ -1,16 +1,18 @@
 import { BAG_COLORS } from "@puzzle/client";
 
-/** The bag colours as round buttons; the picked one gets a ring. */
+/** Colours as round buttons (bag colours by default); the picked one gets a ring. */
 export function ColorSwatches({
 	value,
 	onChange,
+	colors = BAG_COLORS,
 }: {
 	value: string;
 	onChange: (color: string) => void;
+	colors?: string[];
 }) {
 	return (
 		<div className="flex gap-2">
-			{BAG_COLORS.map((c) => (
+			{colors.map((c) => (
 				<button
 					key={c}
 					type="button"

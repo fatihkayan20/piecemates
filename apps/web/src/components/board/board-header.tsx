@@ -1,34 +1,33 @@
 import type { RoomInfo } from "@puzzle/client";
 import { MAX_PLAYERS } from "@puzzle/game";
-import { Button } from "@puzzle/ui/components/button";
 
 import { useRoom } from "@/hooks/use-room";
 
-import { ReferenceImage } from "./reference-image";
+import { SettingsSheet } from "./settings-sheet";
 import { ShareRoom } from "./share-room";
 
-/** Room code, players, status, the reference image and Tidy. */
-export function BoardToolbar({ room }: { room: RoomInfo }) {
-	const conn = useRoom((r) => r.conn);
+/** Room code, players and status, and the settings gear. */
+export function BoardHeader({ room }: { room: RoomInfo }) {
 	const players = useRoom((r) => r.players);
 	const status = useRoom((r) => r.status);
+	const note =
+		status === "playing"
+			? ""
+			: ` · ${status === "done" ? "Solved! 🎉" : status}`;
 
 	return (
-		<>
+		<div className="flex items-center gap-2 px-3 pt-3 text-sm">
 			<ShareRoom code={room.code} />
-			<span className="shrink-0 rounded bg-black/60 px-2 py-1">
-				{players.length} / {MAX_PLAYERS} ·{" "}
-				{players.map((p) => p.name).join(", ")}
+			<span
+				className="min-w-0 truncate rounded bg-black/60 px-2 py-1"
+				title={players.map((p) => p.name).join(", ")}
+			>
+				{players.length} / {MAX_PLAYERS}
+				{note}
 			</span>
-			{status !== "playing" && (
-				<span className="rounded bg-black/60 px-2 py-1">
-					{status === "done" ? "Solved! 🎉" : status}
-				</span>
-			)}
-			<ReferenceImage room={room} />
-			<Button size="sm" onClick={() => conn?.tidy()}>
-				Tidy pile
-			</Button>
-		</>
+			<div className="ml-auto">
+				<SettingsSheet />
+			</div>
+		</div>
 	);
 }

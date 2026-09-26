@@ -1,0 +1,41 @@
+import { BACKGROUNDS, setBackground } from "@puzzle/client";
+import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@puzzle/ui/components/sheet";
+import { Settings } from "lucide-react";
+
+import { ColorSwatches } from "@/components/bags/color-swatches";
+import { useSettings } from "@/hooks/use-settings";
+
+/** The gear button and my own view settings, saved on this device. */
+export function SettingsSheet() {
+	const background = useSettings((s) => s.background);
+
+	return (
+		<Sheet>
+			<SheetTrigger
+				aria-label="Settings"
+				className="shrink-0 rounded bg-black/60 p-1.5 hover:bg-black/80"
+			>
+				<Settings className="size-4" />
+			</SheetTrigger>
+			<SheetContent side="bottom">
+				<div className="mx-auto flex w-full max-w-md flex-col gap-4 p-4">
+					<SheetHeader className="p-0">
+						<SheetTitle>Settings</SheetTitle>
+					</SheetHeader>
+					<p className="text-muted-foreground text-sm">Background</p>
+					<ColorSwatches
+						colors={BACKGROUNDS}
+						value={background}
+						onChange={setBackground}
+					/>
+				</div>
+			</SheetContent>
+		</Sheet>
+	);
+}
