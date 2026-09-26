@@ -6,8 +6,11 @@ import { createState, type ServerMsg, tableRect } from "@puzzle/game";
 import {
 	clampCamera,
 	fitCamera,
+	loadSettings,
 	RoomConnection,
 	type RoomEvent,
+	setBackground,
+	settingsStore,
 	zoomAt,
 } from "./index.ts";
 
@@ -109,4 +112,18 @@ test("connection applies server messages and tracks status", () => {
 
 	socket.onclose?.({} as CloseEvent);
 	assert.equal(room.status, "disconnected");
+});
+
+test("settings load from and save to the given storage", async () => {
+	const saved = new Map([
+		["puzzle-settings", JSON.stringify({ state: { background: "#111" } })],
+	]);
+	await loadSettings({
+		getItem: (k) => saved.get(k) ?? null,
+		setItem: (k, v) => void saved.set(k, v),
+		removeItem: (k) => void saved.delete(k),
+	});
+	assert.equal(settingsStore.getState().background, "#111");
+	setBackground("#222");
+	assert.match(saved.get("puzzle-settings") ?? "", /#222/);
 });

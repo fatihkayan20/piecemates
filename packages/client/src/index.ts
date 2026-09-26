@@ -10,3 +10,4 @@ export * from "./room-connection.ts";
 export * from "./room-store.ts";
 export * from "./samples.ts";
 export * from "./session.ts";
+export * from "./settings.ts";
