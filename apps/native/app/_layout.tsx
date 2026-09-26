@@ -10,29 +10,31 @@ import { ensureSession } from "@/lib/auth-client";
 void ensureSession();
 
 export const unstable_settings = {
-  initialRouteName: "(drawer)",
+	initialRouteName: "(drawer)",
 };
 
 function StackLayout() {
-  return (
-    <Stack screenOptions={{}}>
-      <Stack.Screen name="(drawer)" options={{ headerShown: false, title: "Home" }} />
-      <Stack.Screen name="modal" options={{ title: "Modal", presentation: "modal" }} />
-      <Stack.Screen name="room/[code]" />
-    </Stack>
-  );
+	return (
+		<Stack screenOptions={{}}>
+			<Stack.Screen
+				name="(drawer)"
+				options={{ headerShown: false, title: "Home" }}
+			/>
+			<Stack.Screen name="room/[code]" />
+		</Stack>
+	);
 }
 
 export default function Layout() {
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <KeyboardProvider>
-        <AppThemeProvider>
-          <HeroUINativeProvider>
-            <StackLayout />
-          </HeroUINativeProvider>
-        </AppThemeProvider>
-      </KeyboardProvider>
-    </GestureHandlerRootView>
-  );
+	return (
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<KeyboardProvider>
+				<AppThemeProvider>
+					<HeroUINativeProvider>
+						<StackLayout />
+					</HeroUINativeProvider>
+				</AppThemeProvider>
+			</KeyboardProvider>
+		</GestureHandlerRootView>
+	);
 }
