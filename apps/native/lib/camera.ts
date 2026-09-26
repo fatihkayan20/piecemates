@@ -2,6 +2,7 @@ import {
 	type Camera,
 	clampCamera,
 	fitCamera,
+	resizeCamera,
 	roomStore,
 	zoomAt,
 } from "@puzzle/client";
@@ -44,9 +45,20 @@ export function fitToView() {
 	if (bounds && viewport.width) setCamera(fitCamera(bounds, viewport));
 }
 
-export function setViewport(size: { width: number; height: number }) {
-	Object.assign(viewport, size);
-	fitToView();
+/** Fits the first layout; later ones (rotation) keep the zoom and centre point. */
+export function setViewport({
+	width,
+	height,
+}: {
+	width: number;
+	height: number;
+}) {
+	const bounds = table();
+	const from = { ...viewport };
+	Object.assign(viewport, { width, height });
+	if (bounds && from.width)
+		setCamera(resizeCamera(getCamera(), bounds, from, viewport));
+	else fitToView();
 }
 
 export const panBy = (dx: number, dy: number) => {
