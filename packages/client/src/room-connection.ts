@@ -121,6 +121,9 @@ export class RoomConnection {
 			case "presence":
 				this.players = msg.players;
 				break;
+			case "clock":
+				if (this.state) this.state.clock = msg.clock;
+				break;
 		}
 		this.visibleCache = null;
 		if (this.state) {

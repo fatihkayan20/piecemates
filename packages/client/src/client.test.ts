@@ -7,6 +7,7 @@ import {
 	type Cue,
 	clampCamera,
 	fitCamera,
+	formatDuration,
 	loadCues,
 	loadSettings,
 	RoomConnection,
@@ -119,6 +120,12 @@ test("connection applies server messages and tracks status", () => {
 	});
 	assert.equal(room.view, null, "deleted bag sends me back to the table");
 	assert.ok(sent.length === 1, "views and tidy send nothing");
+
+	const clock = { played: 65_000, since: null };
+	deliver({ type: "clock", clock });
+	assert.deepEqual(room.state?.clock, clock, "server clock replaces mine");
+	assert.equal(formatDuration(65_000), "1:05");
+	assert.equal(formatDuration(3_725_000), "1:02:05");
 
 	socket.onclose?.({} as CloseEvent);
 	assert.equal(room.status, "disconnected");

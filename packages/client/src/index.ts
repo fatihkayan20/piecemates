@@ -5,6 +5,7 @@ export * from "./board-style.ts";
 export * from "./camera.ts";
 export * from "./drag.ts";
 export * from "./drop-targets.ts";
+export * from "./duration.ts";
 export * from "./feedback.ts";
 export * from "./links.ts";
 export * from "./room-connection.ts";

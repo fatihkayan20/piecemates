@@ -1,5 +1,6 @@
 import {
 	type Bag,
+	type Clock,
 	isPlaced,
 	lockedByOther,
 	type Player,
@@ -45,6 +46,8 @@ export type RoomSnapshot = {
 	bags: BagChip[];
 	/** The drop target under my drag, to highlight it. */
 	hovered: string | null;
+	/** Play time; the object is replaced whenever the server changes it. */
+	clock: Clock | null;
 };
 
 const empty: RoomSnapshot = {
@@ -58,6 +61,7 @@ const empty: RoomSnapshot = {
 	view: null,
 	bags: [],
 	hovered: null,
+	clock: null,
 };
 
 // One room is open at a time, so the store is a singleton; apps wrap it in a hook.
@@ -91,6 +95,7 @@ function snapshot(conn: RoomConnection, prev: RoomSnapshot) {
 		players: conn.players,
 		status: conn.status,
 		view: conn.view,
+		clock: state.clock,
 	};
 }
 
