@@ -1,5 +1,7 @@
 import { roomPlayers, rooms } from "@piecemates/db/schema/game";
 import { CELL_WIDTH, MAX_PIECES } from "@piecemates/game";
+import { TRACE_HEADERS } from "@piecemates/telemetry";
+import * as Sentry from "@sentry/cloudflare";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -8,9 +10,14 @@ import { z } from "zod";
 
 import { ENV } from "./env.server";
 import { STATUS } from "./http";
+import { Room as RoomObject } from "./room";
+import { sentryFor } from "./sentry";
 import { createAuth, getDb } from "./services";
 
-export { Room } from "./room";
+export const Room = Sentry.instrumentDurableObjectWithSentry(
+	sentryFor,
+	RoomObject,
+);
 
 type Vars = { user: { id: string; name: string } };
 
@@ -22,10 +29,16 @@ app.use(
 	cors({
 		origin: ENV.CORS_ORIGIN,
 		allowMethods: ["GET", "POST", "OPTIONS"],
-		allowHeaders: ["Content-Type", "Authorization"],
+		allowHeaders: ["Content-Type", "Authorization", ...TRACE_HEADERS],
 		credentials: true,
 	}),
 );
+
+// Hono answers thrown errors itself, so Sentry has to be told about them.
+app.onError((error, c) => {
+	Sentry.captureException(error);
+	return c.text("Internal Server Error", STATUS.internalError);
+});
 
 app.on(["POST", "GET"], "/api/auth/*", async (c) =>
 	(await createAuth()).handler(c.req.raw),
@@ -129,4 +142,4 @@ app.get("/rooms/:code/ws", async (c) => {
 	);
 });
 
-export default app;
+export default Sentry.withSentry(sentryFor, app);

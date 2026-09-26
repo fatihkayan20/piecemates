@@ -21,6 +21,9 @@ export const server = Cloudflare.Worker("server", {
 		CORS_ORIGIN: Config.String("CORS_ORIGIN"),
 		BETTER_AUTH_SECRET: Config.Redacted("BETTER_AUTH_SECRET"),
 		BETTER_AUTH_URL: Cloudflare.Worker.URL,
+		NODE_ENV: Config.String("NODE_ENV").pipe(Config.withDefault("production")),
+		// Empty turns Sentry off.
+		SENTRY_DSN: Config.String("SENTRY_DSN").pipe(Config.withDefault("")),
 	},
 	dev: {
 		port: 3000,
