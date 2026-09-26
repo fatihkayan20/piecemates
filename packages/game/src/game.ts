@@ -244,17 +244,50 @@ const NEIGHBOURS = [
 	[0, 1],
 ] as const;
 
+/** Whether a piece's cell touches the board's frame. */
+const onFrame = (state: State, index: number) => {
+	const { row, col } = cellOf(state, index);
+	return (
+		row === 0 || col === 0 || row === state.rows - 1 || col === state.cols - 1
+	);
+};
+
+/**
+ * Sticks `group` to the board if one of its frame pieces lies near its spot
+ * there. Returns whether the group moved.
+ */
+function stick(state: State, group: number, tolerance: number) {
+	for (const [index, p] of state.pieces.entries()) {
+		if (p.group !== group || !onFrame(state, index)) continue;
+		const { row, col } = cellOf(state, index);
+		const errX = col * state.w - p.x;
+		const errY = row * state.h - p.y;
+		// Already stuck (up to float drift from earlier moves).
+		if (Math.abs(errX) < 1e-6 && Math.abs(errY) < 1e-6) return false;
+		if (Math.abs(errX) > tolerance || Math.abs(errY) > tolerance) continue;
+		for (const m of piecesInGroup(state, group)) {
+			m.x += errX;
+			m.y += errY;
+		}
+		return true;
+	}
+	return false;
+}
+
 /**
  * Merges `group` into any unlocked, correctly placed neighbour group in the
- * same view, repeatedly. A bag group that joins the puzzle leaves the bag.
+ * same view, and sticks it to the board frame, repeatedly. A bag group that
+ * joins the puzzle or sticks to the frame leaves the bag.
  */
 function snap(state: State, group: number) {
 	const tolerance = 0.25 * Math.min(state.w, state.h);
 	const view = state.pieces.find((p) => p.group === group)?.bag ?? null;
 	const visible = visibleIn(state, view);
+	let stuck = false;
 	let merged = true;
 	while (merged) {
-		merged = false;
+		merged = stick(state, group, tolerance);
+		stuck ||= merged;
 		for (const [index, member] of state.pieces.entries()) {
 			if (member.group !== group) continue;
 			const { row, col } = cellOf(state, index);
@@ -295,7 +328,7 @@ function snap(state: State, group: number) {
 	}
 	// Joined the puzzle: the whole group is on the table now.
 	const members = piecesInGroup(state, group);
-	if (members.some((p) => p.bag === null))
+	if (stuck || members.some((p) => p.bag === null))
 		for (const p of members) p.bag = null;
 }
 

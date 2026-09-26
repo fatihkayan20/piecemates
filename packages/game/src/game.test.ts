@@ -199,3 +199,28 @@ test("pile rings the board, drops stay on the table, tidy is stable", () => {
 	const twice = tidyPositions(s, null, (i) => once.get(i) ?? at(i));
 	assert.deepEqual([...twice], [...once], "tidying again changes nothing");
 });
+
+test("frame pieces stick to their spot on the board and leave their bag", () => {
+	const s = createState({ seed: 1, rows: 3, cols: 3, w: 100, h: 100 });
+	const drop = (piece: number, x: number, y: number) => {
+		assert.ok(apply(s, "a", { type: "lock", piece }));
+		assert.ok(apply(s, "a", { type: "drop", piece, x, y }));
+	};
+
+	drop(2, 215, 10); // top-right corner, near (200, 0)
+	assert.deepEqual([s.pieces[2]?.x, s.pieces[2]?.y], [200, 0]);
+	drop(4, 110, 110); // the middle piece never sticks
+	assert.deepEqual([s.pieces[4]?.x, s.pieces[4]?.y], [110, 110]);
+	drop(0, 60, 0); // too far
+	assert.equal(s.pieces[0]?.x, 60);
+
+	assert.ok(
+		apply(s, "a", { type: "bag:create", bag: "b", name: "B", color: "" }),
+	);
+	assert.ok(apply(s, "a", { type: "bag:put", piece: 6, bag: "b" }));
+	drop(6, -10, 190); // bottom-left corner, near (0, 200)
+	assert.deepEqual(
+		[s.pieces[6]?.x, s.pieces[6]?.y, s.pieces[6]?.bag],
+		[0, 200, null],
+	);
+});
