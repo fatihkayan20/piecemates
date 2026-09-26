@@ -4,7 +4,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Next
 
-- [ ] **Sticky edges**: pieces snap to their correct spot on the board frame, not only to neighbours, so the finished puzzle fits the board area.
+- [ ] **Sticky edges**: pieces snap to their correct spot on the board frame, not only to neighbours, so the finished puzzle fits the board area. A bag piece that sticks to the frame counts as placed and leaves its bag, like one that snaps to a table piece.
 - [ ] **Reference image button**: show the full image to help solve the puzzle (overlay or popup, web and native).
 - [ ] **Unsplash search**: a server route `GET /images/search` keeps the API key server-side and handles attribution plus the required download-tracking call. Replaces the hardcoded sample images on both home screens.
 - [ ] **Room settings**: a settings button and sheet on web and native for personal view options (e.g. background colour).

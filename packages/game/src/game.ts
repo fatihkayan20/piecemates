@@ -185,15 +185,11 @@ export function apply(state: State, by: string, msg: Msg): boolean {
 				msg.x - piece.x,
 				msg.y - piece.y,
 			);
-			const group = piecesInGroup(state, piece.group);
-			for (const member of group) {
+			for (const member of piecesInGroup(state, piece.group)) {
 				member.x += dx;
 				member.y += dy;
 				member.touched = true;
 			}
-			// Placed on the board from a bag: it's part of the puzzle now.
-			if (group.some((p) => onBoard(state, p)))
-				for (const member of group) member.bag = null;
 			delete state.locks[piece.group];
 			snap(state, piece.group);
 			return true;

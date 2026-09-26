@@ -128,7 +128,7 @@ test("bags keep their groups and hand them to the puzzle on snap", () => {
 	assert.deepEqual(s.bags, {});
 });
 
-test("bag slots don't stack; placing on the board leaves the bag", () => {
+test("bag slots don't stack; a loose drop on the board stays in the bag", () => {
 	const s = createState({ seed: 2, rows: 3, cols: 3, w: 100, h: 100 });
 	apply(s, "a", { type: "bag:create", bag: "sky", name: "Sky", color: "#fff" });
 	apply(s, "a", { type: "bag:put", piece: 0, bag: "sky" });
@@ -143,10 +143,10 @@ test("bag slots don't stack; placing on the board leaves the bag", () => {
 		"next piece gets another slot",
 	);
 
+	// Trying a spot on the board isn't placing it: only joining a table piece is.
 	apply(s, "a", { type: "lock", piece: 1 });
 	apply(s, "a", { type: "drop", piece: 1, x: 100, y: 0 });
-	assert.equal(s.pieces[1]?.bag, null, "on the board = in the puzzle");
-	assert.equal(s.pieces[0]?.bag, "sky");
+	assert.equal(s.pieces[1]?.bag, "sky", "still in the bag");
 });
 
 test("protocol rejects bad input", () => {
