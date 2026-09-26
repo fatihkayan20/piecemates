@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { seededRandom } from "./shape.ts";
+import { clampToTable, type Point, pileSlots } from "./table.ts";
 
 // The room's Durable Object is the authority: it runs apply() and broadcasts
 // every accepted message in order. Clients run the same apply(), so state stays
@@ -51,7 +52,6 @@ export const ClientMsg = z.discriminatedUnion("type", [
 		bag: z.string(),
 		pieces: z.array(pieceIndex).min(1).max(1000),
 	}),
-	z.object({ type: z.literal("tidy") }),
 ]);
 export type ClientMsg = z.infer<typeof ClientMsg>;
 
@@ -82,19 +82,17 @@ export function createState(opts: {
 		bag: null,
 		touched: false,
 	}));
-	// tidy() lays pieces out in their current order, so shuffle the order first.
+	const state: State = { rows, cols, w, h, pieces, locks: {}, bags: {} };
+	// Shuffle the pieces into the pile slots around the board.
 	const order = pieces.map((_, i) => i);
 	for (let i = order.length - 1; i > 0; i--) {
 		const j = Math.floor(random() * (i + 1));
 		[order[i], order[j]] = [order[j] as number, order[i] as number];
 	}
-	order.forEach((index, slot) => {
-		const piece = pieces[index] as Piece;
-		piece.x = slot;
-		piece.y = 0;
+	const slots = pileSlots(state);
+	order.forEach((index, k) => {
+		Object.assign(pieces[index] as Piece, slots[k] as Point);
 	});
-	const state: State = { rows, cols, w, h, pieces, locks: {}, bags: {} };
-	tidy(state);
 	return state;
 }
 
@@ -124,9 +122,6 @@ export function apply(state: State, by: string, msg: Msg): boolean {
 	switch (msg.type) {
 		case "leave":
 			release(state, by);
-			return true;
-		case "tidy":
-			tidy(state);
 			return true;
 		case "bag:create":
 			if (msg.bag in state.bags) return false;
@@ -167,8 +162,13 @@ export function apply(state: State, by: string, msg: Msg): boolean {
 		case "drop": {
 			const piece = state.pieces[msg.piece];
 			if (!piece || state.locks[piece.group] !== by) return false;
-			const dx = msg.x - piece.x;
-			const dy = msg.y - piece.y;
+			const members = groupOf(state, msg.piece);
+			const { x: dx, y: dy } = clampToTable(
+				state,
+				members,
+				msg.x - piece.x,
+				msg.y - piece.y,
+			);
 			for (const member of piecesInGroup(state, piece.group)) {
 				member.x += dx;
 				member.y += dy;
@@ -227,30 +227,17 @@ function snap(state: State, group: number) {
 						p.y += errY;
 					}
 				}
-				for (const p of state.pieces) if (p.group === other) p.group = group;
+				for (const p of state.pieces) {
+					if (p.group !== other) continue;
+					p.group = group;
+					p.touched = true; // no longer part of the pile
+				}
 				merged = true;
 				break;
 			}
 			if (merged) break;
 		}
 	}
-}
-
-/** Lays out untouched loose pieces in a grid below the board, keeping their current order. */
-export function tidy(state: State) {
-	const cellW = state.w * 1.6;
-	const cellH = state.h * 1.6;
-	const perRow = Math.max(1, Math.ceil((state.cols * state.w) / cellW));
-	const top = state.rows * state.h + state.h;
-	const loose = state.pieces
-		.filter(
-			(p) => !p.touched && p.bag === null && state.locks[p.group] === undefined,
-		)
-		.sort((a, b) => a.y - b.y || a.x - b.x);
-	loose.forEach((piece, i) => {
-		piece.x = (i % perRow) * cellW;
-		piece.y = top + Math.floor(i / perRow) * cellH;
-	});
 }
 
 export function isComplete(state: State) {

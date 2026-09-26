@@ -9,6 +9,8 @@ import {
 	gridOptions,
 	isComplete,
 	piecePath,
+	tableRect,
+	tidyPositions,
 } from "./index.ts";
 
 test("neighbouring edges interlock and borders are flat", () => {
@@ -72,7 +74,7 @@ test("locks, drop, snap, completion", () => {
 	assert.ok(isComplete(s));
 });
 
-test("leave releases locks; bags hold single pieces; tidy skips touched", () => {
+test("leave releases locks; bags hold single pieces", () => {
 	const s = createState({ seed: 7, rows: 2, cols: 2, w: 10, h: 10 });
 	apply(s, "a", { type: "lock", piece: 3 });
 	apply(s, "a", { type: "leave" });
@@ -85,10 +87,6 @@ test("leave releases locks; bags hold single pieces; tidy skips touched", () => 
 		apply(s, "a", { type: "bag:put", bag: "nope", pieces: [2] }),
 		false,
 	);
-
-	const before = { ...s.pieces[0] };
-	apply(s, "a", { type: "tidy" });
-	assert.deepEqual(s.pieces[0], before, "bagged piece untouched by tidy");
 });
 
 test("protocol rejects bad input", () => {
@@ -106,4 +104,38 @@ test("protocol rejects bad input", () => {
 		false,
 		"leave is server-only",
 	);
+});
+
+test("pile rings the board, drops stay on the table, tidy is stable", () => {
+	const s = createState({ seed: 3, rows: 20, cols: 30, w: 100, h: 90 });
+	const board = { w: 30 * 100, h: 20 * 90 };
+	const t = tableRect(s);
+	for (const p of s.pieces) {
+		const onBoard =
+			p.x + 100 > 0 && p.x < board.w && p.y + 90 > 0 && p.y < board.h;
+		assert.ok(!onBoard, "pile starts off the board");
+		const gapX = Math.max(-(p.x + 100), p.x - board.w);
+		const gapY = Math.max(-(p.y + 90), p.y - board.h);
+		assert.ok(Math.max(gapX, gapY) >= 2 * 1.6 * 90, "free space by the board");
+		assert.ok(p.x >= t.x && p.y >= t.y, "inside the table");
+		assert.ok(p.x + 100 <= t.x + t.width && p.y + 90 <= t.y + t.height);
+	}
+	const spots = new Set(s.pieces.map((p) => `${p.x},${p.y}`));
+	assert.equal(spots.size, s.pieces.length, "one piece per slot");
+	assert.ok(
+		s.pieces.some((p) => p.y < 0),
+		"pieces above the board too",
+	);
+
+	assert.ok(apply(s, "a", { type: "lock", piece: 7 }));
+	assert.ok(apply(s, "a", { type: "drop", piece: 7, x: 1e6, y: -1e6 }));
+	const p7 = s.pieces[7];
+	assert.equal(p7?.x, t.x + t.width - 100, "clamped to the right edge");
+	assert.equal(p7?.y, t.y, "clamped to the top edge");
+
+	const at = (i: number) => s.pieces[i] as { x: number; y: number };
+	const once = tidyPositions(s, at);
+	assert.ok(!once.has(7), "touched pieces stay put");
+	const twice = tidyPositions(s, (i) => once.get(i) ?? at(i));
+	assert.deepEqual([...twice], [...once], "tidying again changes nothing");
 });
