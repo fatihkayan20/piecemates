@@ -28,6 +28,7 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/with-ios-scene.js",
       [
         "expo-splash-screen",
         {
