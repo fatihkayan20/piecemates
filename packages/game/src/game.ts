@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 import { seededRandom } from "./shape.ts";
-import { clampToTable, freeSlot, type Point, pileSlots } from "./table.ts";
+import {
+	clampToTable,
+	freeSlot,
+	onBoard,
+	type Point,
+	pileSlots,
+} from "./table.ts";
 
 // The room's Durable Object is the authority: it runs apply() and broadcasts
 // every accepted message in order. Clients run the same apply(), so state stays
@@ -179,11 +185,15 @@ export function apply(state: State, by: string, msg: Msg): boolean {
 				msg.x - piece.x,
 				msg.y - piece.y,
 			);
-			for (const member of piecesInGroup(state, piece.group)) {
+			const group = piecesInGroup(state, piece.group);
+			for (const member of group) {
 				member.x += dx;
 				member.y += dy;
 				member.touched = true;
 			}
+			// Placed on the board from a bag: it's part of the puzzle now.
+			if (group.some((p) => onBoard(state, p)))
+				for (const member of group) member.bag = null;
 			delete state.locks[piece.group];
 			snap(state, piece.group);
 			return true;
@@ -214,18 +224,12 @@ export function visibleIn(state: State, view: string | null): Set<number> {
 	const sizes = new Map<number, number>();
 	for (const p of state.pieces)
 		sizes.set(p.group, (sizes.get(p.group) ?? 0) + 1);
-	const boardW = state.cols * state.w;
-	const boardH = state.rows * state.h;
 	const visible = new Set<number>();
 	state.pieces.forEach((p, i) => {
 		const puzzle =
 			view !== null &&
 			p.bag === null &&
-			((sizes.get(p.group) ?? 0) > 1 ||
-				(p.x + state.w / 2 > 0 &&
-					p.x + state.w / 2 < boardW &&
-					p.y + state.h / 2 > 0 &&
-					p.y + state.h / 2 < boardH));
+			((sizes.get(p.group) ?? 0) > 1 || onBoard(state, p));
 		if (p.bag === view || puzzle) visible.add(i);
 	});
 	return visible;

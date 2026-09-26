@@ -90,20 +90,33 @@ export const inPile = (state: State, index: number, view: string | null) => {
 	);
 };
 
-/** First pile slot in a view that no other loose piece of that view sits in. */
+/**
+ * First pile slot in a view that no piece of that view covers, loose or moved
+ * (a moved piece left on a slot still blocks it).
+ */
 export function freeSlot(
 	state: State,
 	view: string | null,
 	except: Point,
 ): Point {
 	const slots = pileSlots(state);
-	const taken = new Set(
-		state.pieces
-			.filter((p) => p !== except && p.bag === view && !p.touched)
-			.map((p) => `${p.x},${p.y}`),
-	);
-	return slots.find((s) => !taken.has(`${s.x},${s.y}`)) ?? (slots[0] as Point);
+	const others = state.pieces.filter((p) => p !== except && p.bag === view);
+	// ponytail: slots x pieces scan, fine for 1000 pieces on one put.
+	const covered = (s: Point) =>
+		others.some(
+			(p) => Math.abs(p.x - s.x) < state.w && Math.abs(p.y - s.y) < state.h,
+		);
+	return slots.find((s) => !covered(s)) ?? (slots[0] as Point);
 }
+
+/** Whether a piece's centre lies on the board, i.e. it has been placed in the puzzle. */
+export const onBoard = (state: State, p: Point) => {
+	const cx = p.x + state.w / 2;
+	const cy = p.y + state.h / 2;
+	return (
+		cx > 0 && cx < state.cols * state.w && cy > 0 && cy < state.rows * state.h
+	);
+};
 
 /**
  * New positions for a view's pile pieces: packed into the first free slots, keeping
