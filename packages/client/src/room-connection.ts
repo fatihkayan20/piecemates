@@ -1,14 +1,17 @@
 import {
 	apply,
 	type ClientMsg,
+	inPile,
 	isComplete,
 	type Player,
+	type Point,
 	type ServerMsg,
 	type State,
+	tidyPositions,
 } from "@puzzle/game";
 
 export type RoomStatus = "connecting" | "playing" | "done" | "disconnected";
-export type RoomEvent = ServerMsg | { type: "closed" };
+export type RoomEvent = ServerMsg | { type: "closed" } | { type: "tidied" };
 
 /**
  * Keeps a local copy of the room state in sync over one WebSocket. The board
@@ -19,6 +22,8 @@ export class RoomConnection {
 	me = "";
 	players: Player[] = [];
 	status: RoomStatus = "connecting";
+	/** Where my own tidy put pile pieces. Only this device sees these. */
+	private pilePositions = new Map<number, Point>();
 	private socket: WebSocket;
 	private onEvent: (event: RoomEvent) => void;
 
@@ -36,6 +41,21 @@ export class RoomConnection {
 	send(msg: ClientMsg) {
 		if (this.socket.readyState === WebSocket.OPEN)
 			this.socket.send(JSON.stringify(msg));
+	}
+
+	/** Where to draw a piece: my tidied spot while it's still in the pile, else the shared one. */
+	position(index: number): Point {
+		const piece = this.state?.pieces[index];
+		const local = this.pilePositions.get(index);
+		if (!piece) return { x: 0, y: 0 };
+		return local && this.state && inPile(this.state, index) ? local : piece;
+	}
+
+	/** Packs the pile pieces around the board, for this device only. */
+	tidy() {
+		if (!this.state) return;
+		this.pilePositions = tidyPositions(this.state, (i) => this.position(i));
+		this.onEvent({ type: "tidied" });
 	}
 
 	/** Closes without firing any more events. */

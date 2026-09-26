@@ -1,33 +1,16 @@
-import type { State } from "@puzzle/game";
+import type { Rect } from "@puzzle/game";
 
 /** Maps table units to screen pixels: screen = (x, y) + scale * table. */
 export type Camera = { x: number; y: number; scale: number };
-export type Rect = { x: number; y: number; width: number; height: number };
+type Viewport = { width: number; height: number };
 
-const MIN_SCALE = 0.05;
 const MAX_SCALE = 4;
-
-/** The board plus every piece lying on the table (bagged pieces are hidden). */
-export function tableBounds(state: State): Rect {
-	let minX = 0;
-	let minY = 0;
-	let maxX = state.cols * state.w;
-	let maxY = state.rows * state.h;
-	for (const piece of state.pieces) {
-		if (piece.bag !== null) continue;
-		minX = Math.min(minX, piece.x);
-		minY = Math.min(minY, piece.y);
-		maxX = Math.max(maxX, piece.x + state.w);
-		maxY = Math.max(maxY, piece.y + state.h);
-	}
-	return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
-}
 
 /** Centres `bounds` in the viewport, filling `margin` of it. */
 export function fitCamera(
 	bounds: Rect,
-	viewport: { width: number; height: number },
-	margin = 0.9,
+	viewport: Viewport,
+	margin = 0.95,
 ): Camera {
 	const scale =
 		Math.min(viewport.width / bounds.width, viewport.height / bounds.height) *
@@ -39,18 +22,46 @@ export function fitCamera(
 	};
 }
 
-/** Zooms by `factor` keeping the screen point (focusX, focusY) fixed. */
+/**
+ * Zooms by `factor` keeping the screen point (focusX, focusY) fixed. Never
+ * zooms out further than showing the whole `table`.
+ */
 export function zoomAt(
 	camera: Camera,
 	focusX: number,
 	focusY: number,
 	factor: number,
+	table: Rect,
+	viewport: Viewport,
 ): Camera {
-	const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, camera.scale * factor));
+	const minScale = fitCamera(table, viewport).scale;
+	const scale = Math.min(MAX_SCALE, Math.max(minScale, camera.scale * factor));
 	const k = scale / camera.scale;
 	return {
 		scale,
 		x: focusX - (focusX - camera.x) * k,
 		y: focusY - (focusY - camera.y) * k,
+	};
+}
+
+/**
+ * Keeps the table on screen: centred on an axis where it fits, otherwise
+ * panning stops at its edges.
+ */
+export function clampCamera(
+	camera: Camera,
+	table: Rect,
+	viewport: Viewport,
+): Camera {
+	const axis = (pos: number, start: number, size: number, view: number) => {
+		const px = size * camera.scale;
+		if (px <= view) return (view - px) / 2 - start * camera.scale;
+		const max = -start * camera.scale;
+		return Math.min(max, Math.max(view - px + max, pos));
+	};
+	return {
+		scale: camera.scale,
+		x: axis(camera.x, table.x, table.width, viewport.width),
+		y: axis(camera.y, table.y, table.height, viewport.height),
 	};
 }
