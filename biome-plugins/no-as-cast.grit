@@ -1,6 +1,6 @@
 language js
 
-`$value as $type` as $cast where {
-	not $type <: r"const",
+TsAsExpression() as $cast where {
+	not $cast <: r"[\s\S]*as\s+const",
 	register_diagnostic(span=$cast, message="No `as` casts in app code: parse at the boundary (zod) or fix the types.")
 }
