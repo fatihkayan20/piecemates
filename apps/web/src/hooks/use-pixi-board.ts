@@ -1,6 +1,7 @@
 import {
 	connectRoom,
 	disconnectRoom,
+	followRoom,
 	type RoomConnection,
 	type RoomInfo,
 	roomStore,
@@ -52,13 +53,14 @@ export function usePixiBoard(
 				if (pieces.length === 0 && snap.grid) {
 					pieces = drawPieces(world, texture, room.seed, snap.grid);
 					attachPointer(app, world, pieces, camera);
-					camera.fit();
 				}
 				syncPieces(pieces, snap);
 			});
+			const unfollow = followRoom(camera);
 			// A resize still waiting must not touch the world once it's destroyed.
 			unsubscribe = () => {
 				unsubscribeStore();
+				unfollow();
 				camera.resize.cancel();
 			};
 			conn = connectRoom(socket);

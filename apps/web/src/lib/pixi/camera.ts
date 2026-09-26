@@ -2,7 +2,6 @@ import {
 	type Camera,
 	clampCamera,
 	debounce,
-	fitCamera,
 	RESIZE_DEBOUNCE_MS,
 	resizeCamera,
 	roomStore,
@@ -33,11 +32,7 @@ export function createCamera(world: Container, screen: Rectangle) {
 	return {
 		get,
 		set,
-		/** Shows the whole table. */
-		fit: () => {
-			const bounds = table();
-			if (bounds) set(fitCamera(bounds, screen));
-		},
+		viewport: () => screen,
 		/** Keeps the zoom and centre point when the canvas changes size. */
 		resize: debounce(() => {
 			const bounds = table();
