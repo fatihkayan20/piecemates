@@ -56,7 +56,7 @@ export default function Home() {
 				<View className="flex-row gap-2">
 					<TextInput
 						accessibilityLabel="Room code"
-						placeholder="ABC123"
+						placeholder="ABCD2345"
 						autoCapitalize="characters"
 						autoCorrect={false}
 						value={code}

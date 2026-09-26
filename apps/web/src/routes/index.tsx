@@ -66,7 +66,7 @@ function HomeComponent() {
 				>
 					<Input
 						aria-label="Room code"
-						placeholder="ABC123"
+						placeholder="ABCD2345"
 						value={code}
 						onChange={(e) => setCode(e.target.value)}
 						className="font-mono uppercase"
