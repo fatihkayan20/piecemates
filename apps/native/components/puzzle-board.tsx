@@ -30,7 +30,14 @@ import {
 	useImage,
 } from "@shopify/react-native-skia";
 import { useEffect, useReducer, useRef, useState } from "react";
-import { type LayoutChangeEvent, Pressable, Text, View } from "react-native";
+import {
+	type LayoutChangeEvent,
+	Modal,
+	Pressable,
+	Image as RNImage,
+	Text,
+	View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useDerivedValue, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -55,6 +62,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const [, rerender] = useReducer((n: number) => n + 1, 0);
 	const [drag, setDrag] = useState<Drag | null>(null);
 	const [hovered, setHovered] = useState<string | null>(null);
+	const [showImage, setShowImage] = useState(false);
 	const dropTargets = useRef<DropTargets>(new Map()).current;
 	const dropRects = useRef(new Map<string, DropRect>());
 
@@ -356,12 +364,49 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				</Text>
 				<Pressable
 					accessibilityRole="button"
-					className="ml-auto rounded bg-white px-3 py-1.5 active:opacity-70"
+					className="ml-auto rounded border border-white/40 px-3 py-1.5 active:opacity-70"
+					onPress={() => setShowImage(true)}
+				>
+					<Text className="font-medium text-white">Image</Text>
+				</Pressable>
+				<Pressable
+					accessibilityRole="button"
+					className="rounded bg-white px-3 py-1.5 active:opacity-70"
 					onPress={() => connection.current?.tidy()}
 				>
 					<Text className="font-medium text-black">Tidy pile</Text>
 				</Pressable>
 			</View>
+
+			<Modal
+				visible={showImage}
+				transparent
+				animationType="fade"
+				onRequestClose={() => setShowImage(false)}
+			>
+				{/* Tap anywhere to close. */}
+				<Pressable
+					accessibilityRole="button"
+					accessibilityLabel="Close reference image"
+					className="flex-1 items-center justify-center gap-4 bg-black/85 p-4"
+					onPress={() => setShowImage(false)}
+				>
+					<RNImage
+						source={{ uri: room.imageUrl }}
+						accessibilityLabel="The finished puzzle"
+						resizeMode="contain"
+						className="w-full"
+						style={{
+							aspectRatio: state
+								? (state.cols * state.w) / (state.rows * state.h)
+								: 1,
+						}}
+					/>
+					<Text className="rounded bg-white px-4 py-2 font-medium text-black">
+						Close
+					</Text>
+				</Pressable>
+			</Modal>
 		</View>
 	);
 }
