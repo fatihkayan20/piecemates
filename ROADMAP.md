@@ -8,7 +8,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Sticky edges**: pieces snap to their correct spot on the board frame, not only to neighbours, so the finished puzzle fits the board area.
 - [ ] **Reference image button**: show the full image to help solve the puzzle (overlay or popup, web and native).
 - [ ] **Unsplash search**: a server route `GET /images/search` keeps the API key server-side and handles attribution plus the required download-tracking call. Replaces the hardcoded sample images on both home screens.
-- [ ] **Local tidy**: "Tidy pile" rearranges only my own view, so it doesn't move pieces on other players' screens.
 - [ ] **Room settings**: a settings button and sheet on web and native for personal view options (e.g. background colour).
 - [ ] **Replace `with-ios-scene.js`**: try `expo-build-properties` instead of the custom plugin.
 - [ ] **Photo upload**: `POST /uploads` returns a direct upload URL for R2. The client resizes to about 2048px first (canvas on web, `expo-image-manipulator` on native). Add the R2 host to `ALLOWED_IMAGE_HOSTS` in `apps/server/src/index.ts`.
@@ -20,6 +19,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **"My puzzles" list**: rooms I created or joined, via `room_players` in D1, so I can resume them.
 - [ ] **Completion**: show a finished state and celebration when `isComplete` is true (the server already marks the room `done` in D1).
 - [ ] **Accounts**: add email and social login in Better Auth. Guest data already moves to the real account through `onLinkAccount`.
+- [ ] **Portrait phones**: the table has one shape for everyone, so a landscape puzzle leaves empty space above and below on a portrait phone. Consider laying the pile out to suit portrait screens.
 - [ ] **Performance at 1000 pieces**:
   - Native gestures run on the JS thread; move them to worklets if dragging stutters.
   - Consider Skia `Atlas` instead of one clip group per piece.
@@ -41,3 +41,4 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] Web board (PixiJS): drag, lock, drop, snap, pan, wheel zoom, tidy. `2092713`
 - [x] iOS dev build and native board (Skia), in sync with web. `cab20bb`, `4a98d6d`
 - [x] Shared `@puzzle/client` package (API, session, room connection, camera) and clearer names across game, web and native. `13cfea8`…`90e4917`
+- [x] Table with the pile around the board, drops kept on the table, zoom and pan limits, local-only tidy. `221299e`…`f28ef01`
