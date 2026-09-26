@@ -120,6 +120,19 @@ export function groupOf(state: State, index: number): number[] {
 	return state.pieces.flatMap((p, i) => (p.group === group ? [i] : []));
 }
 
+/** Error from a piece's correct spot on the board. */
+function homeError(state: State, index: number) {
+	const piece = state.pieces[index] as Piece;
+	const { row, col } = cellOf(state, index);
+	return { x: col * state.w - piece.x, y: row * state.h - piece.y };
+}
+
+/** Whether the piece sits in its correct spot (up to float drift), so it can't move any more. */
+export function isPlaced(state: State, index: number) {
+	const err = homeError(state, index);
+	return Math.abs(err.x) < 1e-6 && Math.abs(err.y) < 1e-6;
+}
+
 /** True when another player holds the piece's group. */
 export function lockedByOther(state: State, index: number, me: string) {
 	const piece = state.pieces[index];
@@ -156,7 +169,8 @@ export function apply(state: State, by: string, msg: Msg): boolean {
 				!piece ||
 				piece.bag === msg.bag ||
 				(msg.bag !== null && !(msg.bag in state.bags)) ||
-				lockedByOther(state, msg.piece, by)
+				lockedByOther(state, msg.piece, by) ||
+				isPlaced(state, msg.piece)
 			)
 				return false;
 			moveToView(state, piece.group, msg.bag);
@@ -164,7 +178,12 @@ export function apply(state: State, by: string, msg: Msg): boolean {
 		}
 		case "lock": {
 			const piece = state.pieces[msg.piece];
-			if (!piece || lockedByOther(state, msg.piece, by)) return false;
+			if (
+				!piece ||
+				lockedByOther(state, msg.piece, by) ||
+				isPlaced(state, msg.piece)
+			)
+				return false;
 			release(state, by); // one piece per hand
 			state.locks[piece.group] = by;
 			return true;
@@ -259,15 +278,12 @@ const onFrame = (state: State, index: number) => {
 function stick(state: State, group: number, tolerance: number) {
 	for (const [index, p] of state.pieces.entries()) {
 		if (p.group !== group || !onFrame(state, index)) continue;
-		const { row, col } = cellOf(state, index);
-		const errX = col * state.w - p.x;
-		const errY = row * state.h - p.y;
-		// Already stuck (up to float drift from earlier moves).
-		if (Math.abs(errX) < 1e-6 && Math.abs(errY) < 1e-6) return false;
-		if (Math.abs(errX) > tolerance || Math.abs(errY) > tolerance) continue;
+		if (isPlaced(state, index)) return false;
+		const err = homeError(state, index);
+		if (Math.abs(err.x) > tolerance || Math.abs(err.y) > tolerance) continue;
 		for (const m of piecesInGroup(state, group)) {
-			m.x += errX;
-			m.y += errY;
+			m.x += err.x;
+			m.y += err.y;
 		}
 		return true;
 	}

@@ -209,6 +209,12 @@ test("frame pieces stick to their spot on the board and leave their bag", () => 
 
 	drop(2, 215, 10); // top-right corner, near (200, 0)
 	assert.deepEqual([s.pieces[2]?.x, s.pieces[2]?.y], [200, 0]);
+	assert.equal(apply(s, "a", { type: "lock", piece: 2 }), false, "placed");
+	assert.equal(
+		apply(s, "a", { type: "bag:put", piece: 2, bag: null }),
+		false,
+		"placed",
+	);
 	drop(4, 110, 110); // the middle piece never sticks
 	assert.deepEqual([s.pieces[4]?.x, s.pieces[4]?.y], [110, 110]);
 	drop(0, 60, 0); // too far
