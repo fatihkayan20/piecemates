@@ -9,7 +9,7 @@ export function PlayTime() {
 	const ms = useElapsed();
 
 	return (
-		<span className={`${chip} mr-auto text-sm text-white tabular-nums`}>
+		<span className={`${chip} mr-auto text-sm tabular-nums`}>
 			<Timer className="size-4" />
 			{formatDuration(ms)}
 		</span>

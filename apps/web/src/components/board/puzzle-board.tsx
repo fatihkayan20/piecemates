@@ -1,4 +1,4 @@
-import type { RoomInfo } from "@puzzle/client";
+import { BOARD_SCHEMES, type RoomInfo } from "@puzzle/client";
 import { useRef } from "react";
 
 import { BagBar } from "@/components/bags/bag-bar";
@@ -20,7 +20,8 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 
 	return (
 		<div
-			className="relative flex h-full min-h-0 min-w-0 flex-col"
+			// The controls take the theme that reads on this table colour.
+			className={`${BOARD_SCHEMES[background] ?? "dark"} relative flex h-full min-h-0 min-w-0 flex-col text-foreground`}
 			style={{ backgroundColor: background }}
 		>
 			{/* Kept outside the canvas so the table never sits under the bars. */}

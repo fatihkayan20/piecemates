@@ -8,7 +8,7 @@ export function SolvedBar() {
 	const ms = useElapsed();
 
 	return (
-		<div className="flex items-center justify-center gap-2 p-3 font-medium text-white">
+		<div className="flex items-center justify-center gap-2 p-3 font-medium">
 			<PartyPopper className="size-5" />
 			Solved in {formatDuration(ms)}
 		</div>

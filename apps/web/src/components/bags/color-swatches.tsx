@@ -8,7 +8,7 @@ export function ColorSwatches({
 }: {
 	value: string;
 	onChange: (color: string) => void;
-	colors?: string[];
+	colors?: readonly string[];
 }) {
 	return (
 		<div className="flex gap-2">
