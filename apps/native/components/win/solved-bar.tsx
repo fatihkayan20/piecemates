@@ -6,6 +6,8 @@ import { withUniwind } from "uniwind";
 
 import { useElapsed } from "@/hooks/use-elapsed";
 
+import { WinCat } from "./win-cat";
+
 const StyledIonicons = withUniwind(Ionicons);
 /** Padding under the bar, on top of the home indicator inset (matches the controls). */
 const BOTTOM_GAP = 12;
@@ -21,6 +23,7 @@ export function SolvedBar() {
 			className="flex-row items-center justify-center gap-2 p-3"
 			style={{ paddingBottom: insets.bottom + BOTTOM_GAP }}
 		>
+			<WinCat />
 			<StyledIonicons
 				name="trophy"
 				size={ICON_SIZE}
