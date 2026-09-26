@@ -9,6 +9,8 @@ import {
 	isComplete,
 	MAX_PLAYERS,
 	type Player,
+	pause,
+	resume,
 	type ServerMsg,
 	type State,
 } from "@puzzle/game";
@@ -30,6 +32,8 @@ export class Room extends DurableObject<Env> {
 		ctx.blockConcurrencyWhile(async () => {
 			this.code = (await ctx.storage.get<string>("code")) ?? "";
 			this.state = await ctx.storage.get<State>("state");
+			// Rooms made before the clock existed.
+			if (this.state) this.state.clock ??= { played: 0, since: null };
 		});
 	}
 
@@ -63,6 +67,11 @@ export class Room extends DurableObject<Env> {
 			return new Response("Room is full", { status: 403 });
 		}
 
+		if (players.length === 0) {
+			resume(this.state, Date.now());
+			await this.ctx.storage.put("state", this.state);
+		}
+
 		const { 0: client, 1: server } = new WebSocketPair();
 		this.ctx.acceptWebSocket(server);
 		server.serializeAttachment({ id: userId, name } satisfies Player);
@@ -90,25 +99,42 @@ export class Room extends DurableObject<Env> {
 		await this.ctx.storage.put("state", this.state);
 		this.broadcast({ type: "applied", by, msg });
 
-		if (msg.type === "drop" && isComplete(this.state)) {
-			await createDb(this.env)
-				.update(rooms)
-				.set({ status: "done" })
-				.where(eq(rooms.code, this.code));
-		}
+		if (msg.type === "drop" && isComplete(this.state)) await this.stopClock();
 	}
 
 	override async webSocketClose(ws: WebSocket) {
 		const by = playerOf(ws).id;
 		ws.close();
 		// Same user may still be connected from another tab/device.
-		const stillHere = this.players().some((p) => p.id === by);
+		const players = this.players();
+		const stillHere = players.some((p) => p.id === by);
 		if (this.state && !stillHere) {
 			apply(this.state, by, { type: "leave" });
 			await this.ctx.storage.put("state", this.state);
 			this.broadcast({ type: "applied", by, msg: { type: "leave" } });
 		}
-		this.broadcast({ type: "presence", players: this.players() });
+		this.broadcast({ type: "presence", players });
+		if (players.length === 0) await this.stopClock();
+	}
+
+	/**
+	 * Pauses the clock when the room empties or is solved, and saves the time
+	 * for history. A socket lost without a close event keeps it running.
+	 */
+	private async stopClock() {
+		if (!this.state || this.state.clock.since === null) return;
+		const now = Date.now();
+		pause(this.state, now);
+		await this.ctx.storage.put("state", this.state);
+		this.broadcast({ type: "clock", clock: this.state.clock });
+		const done = isComplete(this.state);
+		await createDb(this.env)
+			.update(rooms)
+			.set({
+				playedMs: this.state.clock.played,
+				...(done && { status: "done", finishedAt: new Date(now) }),
+			})
+			.where(eq(rooms.code, this.code));
 	}
 
 	private players(): Player[] {
