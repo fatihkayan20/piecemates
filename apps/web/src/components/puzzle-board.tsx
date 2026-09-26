@@ -31,6 +31,8 @@ import { useEffect, useReducer, useRef } from "react";
 
 import { openRoomSocket } from "@/lib/api";
 
+import { BagBar, DROP_TABLE } from "./bag-bar";
+
 type Drag = {
 	piece: number;
 	members: number[];
@@ -96,6 +98,8 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 					event.msg.piece === drag?.piece
 				) {
 					drag = null;
+				} else if (event.type === "rejected" && event.msg.type === "bag:put") {
+					conn.send({ type: "unlock", piece: event.msg.piece });
 				}
 				syncPieces();
 				rerender();
@@ -149,12 +153,12 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 			const syncPieces = () => {
 				const state = conn.state;
 				if (!state) return;
-				for (const [i, piece] of state.pieces.entries()) {
+				for (const i of state.pieces.keys()) {
 					const g = pieceGraphics[i];
 					if (!g || drag?.members.includes(i)) continue;
 					const at = conn.position(i);
 					g.position.set(at.x, at.y);
-					g.visible = piece.bag === null;
+					g.visible = conn.visible(i);
 					const theirs = lockedByOther(state, i, conn.me);
 					g.alpha = theirs ? 0.5 : 1;
 					g.eventMode = theirs ? "none" : "static";
@@ -181,11 +185,26 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				conn.send({ type: "lock", piece: i });
 			};
 
+			/** The bag bar target under the pointer, if any (the pointer can leave the canvas mid-drag). */
+			let dropTarget: HTMLElement | null = null;
+			const hover = (e: FederatedPointerEvent) => {
+				const { clientX, clientY } = e.nativeEvent as PointerEvent;
+				const target =
+					document
+						.elementFromPoint(clientX, clientY)
+						?.closest<HTMLElement>("[data-drop]") ?? null;
+				if (target === dropTarget) return;
+				dropTarget?.removeAttribute("data-hover");
+				target?.setAttribute("data-hover", "");
+				dropTarget = target;
+			};
+
 			app.stage.on("pointerdown", (e) => {
 				panGrab = { x: e.global.x - world.x, y: e.global.y - world.y };
 			});
 			app.stage.on("globalpointermove", (e) => {
 				if (drag) {
+					hover(e);
 					const at = world.toLocal(e.global);
 					const origin = drag.starts.get(drag.piece) as Point;
 					const dx = at.x - drag.grabX - origin.x;
@@ -204,9 +223,20 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 			const endPointer = () => {
 				if (drag) {
 					const g = pieceGraphics[drag.piece];
+					const bag = dropTarget?.dataset.drop;
 					// Positions update when the server echoes the drop back.
-					if (g) conn.send({ type: "drop", piece: drag.piece, x: g.x, y: g.y });
+					if (bag !== undefined)
+						conn.send({
+							type: "bag:put",
+							piece: drag.piece,
+							bag: bag === DROP_TABLE ? null : bag,
+						});
+					else if (g)
+						conn.send({ type: "drop", piece: drag.piece, x: g.x, y: g.y });
 					drag = null;
+					dropTarget?.removeAttribute("data-hover");
+					dropTarget = null;
+					syncPieces();
 				}
 				panGrab = null;
 			};
@@ -270,10 +300,11 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 		<div className="flex h-full min-h-0 flex-col bg-[#1c1917]">
 			{/* Kept outside the canvas so the table never sits under the controls. */}
 			<div className="flex items-center gap-3 p-3 text-sm">
-				<span className="rounded bg-black/60 px-2 py-1 font-mono">
+				{conn && <BagBar conn={conn} />}
+				<span className="ml-auto shrink-0 rounded bg-black/60 px-2 py-1 font-mono">
 					Room {room.code}
 				</span>
-				<span className="rounded bg-black/60 px-2 py-1">
+				<span className="shrink-0 rounded bg-black/60 px-2 py-1">
 					{players.length} / {MAX_PLAYERS} ·{" "}
 					{players.map((p) => p.name).join(", ")}
 				</span>
@@ -282,7 +313,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 						{status === "done" ? "Solved! 🎉" : status}
 					</span>
 				)}
-				<Button className="ml-auto" size="sm" onClick={() => conn?.tidy()}>
+				<Button size="sm" onClick={() => conn?.tidy()}>
 					Tidy pile
 				</Button>
 			</div>
