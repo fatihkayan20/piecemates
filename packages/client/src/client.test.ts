@@ -84,6 +84,29 @@ test("connection applies server messages and tracks status", () => {
 	assert.deepEqual(other.pieces[1], shared, "shared state untouched");
 	assert.deepEqual(room.position(0), other.pieces[0], "held piece not moved");
 
+	// Views are local: a bag view shows the bag, a tidy there moves only its pile.
+	const bag = { bag: "sky", name: "Sky", color: "#38bdf8" };
+	deliver({ type: "applied", by: "b", msg: { type: "bag:create", ...bag } });
+	deliver({
+		type: "applied",
+		by: "b",
+		msg: { type: "bag:put", piece: 4, bag: "sky" },
+	});
+	assert.ok(room.visible(3) && !room.visible(4), "table view");
+	room.setView("sky");
+	assert.equal(events.at(-1)?.type, "view");
+	assert.ok(room.visible(4) && !room.visible(3), "bag view");
+	const tableSpot = room.position(3);
+	room.tidy();
+	assert.deepEqual(room.position(3), tableSpot, "table pile left alone");
+	deliver({
+		type: "applied",
+		by: "b",
+		msg: { type: "bag:delete", bag: "sky" },
+	});
+	assert.equal(room.view, null, "deleted bag sends me back to the table");
+	assert.ok(sent.length === 1, "views and tidy send nothing");
+
 	socket.onclose?.({} as CloseEvent);
 	assert.equal(room.status, "disconnected");
 });

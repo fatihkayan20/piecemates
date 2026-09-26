@@ -8,10 +8,15 @@ import {
 	type ServerMsg,
 	type State,
 	tidyPositions,
+	visibleIn,
 } from "@puzzle/game";
 
 export type RoomStatus = "connecting" | "playing" | "done" | "disconnected";
-export type RoomEvent = ServerMsg | { type: "closed" } | { type: "tidied" };
+export type RoomEvent =
+	| ServerMsg
+	| { type: "closed" }
+	| { type: "tidied" }
+	| { type: "view" };
 
 /**
  * Keeps a local copy of the room state in sync over one WebSocket. The board
@@ -22,8 +27,11 @@ export class RoomConnection {
 	me = "";
 	players: Player[] = [];
 	status: RoomStatus = "connecting";
+	/** The bag I'm looking at, or null for the table. Only this device sees it. */
+	view: string | null = null;
 	/** Where my own tidy put pile pieces. Only this device sees these. */
 	private pilePositions = new Map<number, Point>();
+	private visibleCache: Set<number> | null = null;
 	private socket: WebSocket;
 	private onEvent: (event: RoomEvent) => void;
 
@@ -48,13 +56,32 @@ export class RoomConnection {
 		const piece = this.state?.pieces[index];
 		const local = this.pilePositions.get(index);
 		if (!piece) return { x: 0, y: 0 };
-		return local && this.state && inPile(this.state, index) ? local : piece;
+		return local && this.state && inPile(this.state, index, piece.bag)
+			? local
+			: piece;
 	}
 
-	/** Packs the pile pieces around the board, for this device only. */
+	/** Whether a piece shows in my current view. */
+	visible(index: number) {
+		if (!this.state) return false;
+		this.visibleCache ??= visibleIn(this.state, this.view);
+		return this.visibleCache.has(index);
+	}
+
+	/** Switches to a bag, or back to the table (null). */
+	setView(view: string | null) {
+		this.view = view;
+		this.visibleCache = null;
+		this.onEvent({ type: "view" });
+	}
+
+	/** Packs my current view's pile around the board, for this device only. */
 	tidy() {
 		if (!this.state) return;
-		this.pilePositions = tidyPositions(this.state, (i) => this.position(i));
+		const tidied = tidyPositions(this.state, this.view, (i) =>
+			this.position(i),
+		);
+		for (const [i, p] of tidied) this.pilePositions.set(i, p);
 		this.onEvent({ type: "tidied" });
 	}
 
@@ -71,14 +98,27 @@ export class RoomConnection {
 				this.state = msg.state;
 				this.me = msg.you;
 				break;
-			case "applied":
-				if (this.state) apply(this.state, msg.by, msg.msg);
+			case "applied": {
+				if (!this.state) break;
+				const bags = this.state.pieces.map((p) => p.bag);
+				apply(this.state, msg.by, msg.msg);
+				// A piece that changed view lands in a new pile slot; forget my old tidy spot.
+				this.state.pieces.forEach((p, i) => {
+					if (p.bag !== bags[i]) this.pilePositions.delete(i);
+				});
 				break;
+			}
 			case "presence":
 				this.players = msg.players;
 				break;
 		}
-		if (this.state) this.status = isComplete(this.state) ? "done" : "playing";
+		this.visibleCache = null;
+		if (this.state) {
+			this.status = isComplete(this.state) ? "done" : "playing";
+			// Someone deleted the bag I was in.
+			if (this.view !== null && !(this.view in this.state.bags))
+				this.view = null;
+		}
 		this.onEvent(msg);
 	}
 }
