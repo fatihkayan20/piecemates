@@ -8,7 +8,7 @@ import * as SecureStore from "expo-secure-store";
 import { ENV } from "../src/env";
 
 // app.json sets one scheme; Expo's type also allows a list.
-const scheme = [Constants.expoConfig?.scheme].flat()[0] ?? "puzzle";
+const scheme = [Constants.expoConfig?.scheme].flat()[0] ?? "piecemates";
 
 export const authClient = createAuthClient({
 	baseURL: ENV.EXPO_PUBLIC_SERVER_URL,

@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "puzzle",
-    "slug": "puzzle",
+    "name": "Piecemates",
+    "slug": "piecemates",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "puzzle",
+    "scheme": "piecemates",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.puzzle"
+      "bundleIdentifier": "com.piecemates.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.puzzle"
+      "package": "com.piecemates.app"
     },
     "web": {
       "bundler": "metro",

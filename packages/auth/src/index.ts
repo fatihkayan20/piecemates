@@ -26,7 +26,7 @@ export function createAuth(
     trustedOrigins: [
       env.CORS_ORIGIN,
       ...desktopOrigins,
-      "puzzle://",
+      "piecemates://",
       "exp://",
       "http://localhost:8081",
     ],
