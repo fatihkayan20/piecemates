@@ -4,7 +4,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Urgent or easy fixes Prio 1
 
-- [ ] **Sticky "+ Bag" button**: pin the create-bag button so it doesn't scroll out of sight behind many bags.
 - [ ] **Share and deep links**: a share action for the room link; `puzzle://room/CODE` and web links (`/room/CODE`) open the room in the app when it's installed (universal links / app links), or on the web otherwise.
 
 ## Polish and user engagement features Prio 2
@@ -62,3 +61,4 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] Placed pieces are fixed: a group in its correct spot can't be picked up or bagged; grabbing it pans the camera. `6935266`
 - [x] Reference image: an Image button opens the full picture in a popup (shadcn dialog on web, fading modal on native). `d93ac75` `88fd227`
 - [x] Repo rules in `AGENTS.md`, enforced by biome and grit plugins; boards, bag bars and game rules split into small modules around a shared zustand room store. `fe11e50`..`673bbcc`
+- [x] Sticky "+ Bag" button: pinned outside the scrolling chip row. `db8c605` `81573cd`
