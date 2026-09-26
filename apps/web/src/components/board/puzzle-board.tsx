@@ -2,21 +2,25 @@ import type { RoomInfo } from "@puzzle/client";
 import { useRef } from "react";
 
 import { BagBar } from "@/components/bags/bag-bar";
+import { Confetti } from "@/components/win/confetti";
+import { SolvedBar } from "@/components/win/solved-bar";
 import { usePixiBoard } from "@/hooks/use-pixi-board";
+import { useRoom } from "@/hooks/use-room";
 import { useSettings } from "@/hooks/use-settings";
 
 import { BoardControls } from "./board-controls";
 import { RoomActions } from "./room-actions";
 
-/** A room: bags and room actions on top, the table, controls at the bottom. */
+/** A room: bags and room actions on top, the table, controls (or the win) at the bottom. */
 export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const host = useRef<HTMLDivElement>(null);
 	const background = useSettings((s) => s.background);
+	const solved = useRoom((r) => r.status === "done");
 	usePixiBoard(host, room);
 
 	return (
 		<div
-			className="flex h-full min-h-0 flex-col"
+			className="relative flex h-full min-h-0 flex-col"
 			style={{ backgroundColor: background }}
 		>
 			{/* Kept outside the canvas so the table never sits under the bars. */}
@@ -25,7 +29,8 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				<RoomActions room={room} />
 			</div>
 			<div ref={host} className="relative min-h-0 flex-1 overflow-hidden" />
-			<BoardControls room={room} />
+			{solved ? <SolvedBar /> : <BoardControls room={room} />}
+			{solved && <Confetti />}
 		</div>
 	);
 }
