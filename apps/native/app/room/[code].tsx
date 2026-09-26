@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { PuzzleBoard } from "@/components/board/puzzle-board";
-import { SettingsHeaderItem } from "@/components/board/settings-header-item";
+import { RoomHeaderItems } from "@/components/board/room-header-items";
 import { api } from "@/lib/api";
 
 export default function RoomScreen() {
@@ -19,7 +19,7 @@ export default function RoomScreen() {
 	return (
 		<>
 			<Stack.Screen options={{ title: `Room ${code}` }} />
-			<SettingsHeaderItem />
+			<RoomHeaderItems code={code} />
 			{room ? (
 				<PuzzleBoard room={room} />
 			) : (
