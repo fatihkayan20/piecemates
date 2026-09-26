@@ -16,7 +16,11 @@ export const BACKGROUNDS = [
 ];
 
 /** My own view options, kept on this device and never sent to the room. */
-export type Settings = { background: string };
+export type Settings = {
+	background: string;
+	sounds: boolean;
+	haptics: boolean;
+};
 
 /** Set by loadSettings; persist needs a storage from the start, so it goes through this. */
 let target: StateStorage | undefined;
@@ -27,12 +31,19 @@ const storage: StateStorage = {
 };
 
 export const settingsStore = createStore<Settings>()(
-	persist(() => ({ background: BACKGROUNDS[0] ?? "" }), {
-		name: "puzzle-settings",
-		storage: createJSONStorage(() => storage),
-		// Each app hands over its storage in loadSettings.
-		skipHydration: true,
-	}),
+	persist(
+		(): Settings => ({
+			background: BACKGROUNDS[0] ?? "",
+			sounds: true,
+			haptics: true,
+		}),
+		{
+			name: "puzzle-settings",
+			storage: createJSONStorage(() => storage),
+			// Each app hands over its storage in loadSettings.
+			skipHydration: true,
+		},
+	),
 );
 
 /** Reads saved settings from the platform's storage and saves changes there. */
@@ -43,3 +54,7 @@ export function loadSettings(platform: StateStorage) {
 
 export const setBackground = (background: string) =>
 	settingsStore.setState({ background });
+export const setSounds = (sounds: boolean) =>
+	settingsStore.setState({ sounds });
+export const setHaptics = (haptics: boolean) =>
+	settingsStore.setState({ haptics });

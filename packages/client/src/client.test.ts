@@ -4,12 +4,15 @@ import { test } from "node:test";
 import { createState, type ServerMsg, tableRect } from "@puzzle/game";
 
 import {
+	type Cue,
 	clampCamera,
 	fitCamera,
+	loadCues,
 	loadSettings,
 	RoomConnection,
 	type RoomEvent,
 	setBackground,
+	setHaptics,
 	settingsStore,
 	zoomAt,
 } from "./index.ts";
@@ -50,6 +53,10 @@ test("connection applies server messages and tracks status", () => {
 		close() {},
 	} as unknown as WebSocket;
 	const events: RoomEvent[] = [];
+	const sounds: Cue[] = [];
+	const buzzes: Cue[] = [];
+	loadCues({ sound: (c) => sounds.push(c), haptic: (c) => buzzes.push(c) });
+	setHaptics(false);
 	const room = new RoomConnection(socket, (e) => events.push(e));
 	const deliver = (msg: ServerMsg) =>
 		socket.onmessage?.({ data: JSON.stringify(msg) } as MessageEvent);
@@ -76,6 +83,9 @@ test("connection applies server messages and tracks status", () => {
 	});
 	assert.equal(room.status, "done");
 	assert.equal(events.length, 5);
+	assert.deepEqual(sounds, ["snap", "win"], "board snap, then the win");
+	assert.deepEqual(buzzes, [], "haptics off");
+	setHaptics(true);
 
 	const other = createState({ seed: 2, rows: 3, cols: 3, w: 100, h: 100 });
 	deliver({ type: "state", state: other, you: "a" });

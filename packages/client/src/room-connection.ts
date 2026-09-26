@@ -11,6 +11,8 @@ import {
 	visibleIn,
 } from "@puzzle/game";
 
+import { type Cue, cue, progress } from "./feedback.ts";
+
 export type RoomStatus = "connecting" | "playing" | "done" | "disconnected";
 export type RoomEvent =
 	| ServerMsg
@@ -93,6 +95,8 @@ export class RoomConnection {
 	}
 
 	private receive(msg: ServerMsg) {
+		const wasDone = this.status === "done";
+		let heard: Cue | undefined;
 		switch (msg.type) {
 			case "state":
 				this.state = msg.state;
@@ -101,7 +105,13 @@ export class RoomConnection {
 			case "applied": {
 				if (!this.state) break;
 				const bags = this.state.pieces.map((p) => p.bag);
+				const mine =
+					msg.by === this.me && msg.msg.type === "drop" ? msg.msg.piece : null;
+				const before = mine === null ? 0 : progress(this.state, mine);
 				apply(this.state, msg.by, msg.msg);
+				// Only a drop that joins pieces or places them makes a sound.
+				if (mine !== null && progress(this.state, mine) > before)
+					heard = "snap";
 				// A piece that changed view lands in a new pile slot; forget my old tidy spot.
 				this.state.pieces.forEach((p, i) => {
 					if (p.bag !== bags[i]) this.pilePositions.delete(i);
@@ -119,6 +129,9 @@ export class RoomConnection {
 			if (this.view !== null && !(this.view in this.state.bags))
 				this.view = null;
 		}
+		if (msg.type === "applied" && !wasDone && this.status === "done")
+			heard = "win";
+		if (heard) cue(heard);
 		this.onEvent(msg);
 	}
 }
