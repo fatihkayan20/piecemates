@@ -10,6 +10,7 @@ import {
 	cellOf,
 	generateEdges,
 	groupOf,
+	isPlaced,
 	lockedByOther,
 	MAX_PLAYERS,
 	type Point,
@@ -161,7 +162,8 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 					g.visible = conn.visible(i);
 					const theirs = lockedByOther(state, i, conn.me);
 					g.alpha = theirs ? 0.5 : 1;
-					g.eventMode = theirs ? "none" : "static";
+					// Placed pieces let the pointer through, to the pieces under them or the camera.
+					g.eventMode = theirs || isPlaced(state, i) ? "none" : "static";
 				}
 			};
 
