@@ -19,8 +19,9 @@ export function BagBar() {
 	if (!conn) return null;
 
 	return (
-		<View>
+		<View className="flex-row items-center">
 			<ScrollView
+				className="shrink"
 				horizontal
 				showsHorizontalScrollIndicator={false}
 				contentContainerClassName="gap-2 p-3"
@@ -28,24 +29,25 @@ export function BagBar() {
 				{current ? (
 					<BagViewBar bag={current} onEdit={() => setEditing(current.id)} />
 				) : (
-					<>
-						{bags.map((bag) => (
-							<BagChip
-								key={bag.id}
-								bag={bag}
-								onPress={() => conn.setView(bag.id)}
-							/>
-						))}
-						<Pressable
-							accessibilityRole="button"
-							className={`${chip} ${dashed}`}
-							onPress={() => setEditing(null)}
-						>
-							<Text className="text-white">+ Bag</Text>
-						</Pressable>
-					</>
+					bags.map((bag) => (
+						<BagChip
+							key={bag.id}
+							bag={bag}
+							onPress={() => conn.setView(bag.id)}
+						/>
+					))
 				)}
 			</ScrollView>
+			{/* Outside the scroller, so it stays in sight behind many bags. */}
+			{!current && (
+				<Pressable
+					accessibilityRole="button"
+					className={`${chip} ${dashed} mr-3`}
+					onPress={() => setEditing(null)}
+				>
+					<Text className="text-white">+ Bag</Text>
+				</Pressable>
+			)}
 			{editing !== undefined && (
 				<BagSheet
 					key={String(editing)}
