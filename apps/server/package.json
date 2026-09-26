@@ -12,8 +12,10 @@
     "@piecemates/auth": "workspace:*",
     "@piecemates/db": "workspace:*",
     "@piecemates/game": "workspace:*",
-    "drizzle-orm": "catalog:",
+    "@piecemates/telemetry": "workspace:*",
+    "@sentry/cloudflare": "^11.0.0",
     "better-auth": "catalog:",
+    "drizzle-orm": "catalog:",
     "hono": "^4.13.7",
     "varlock": "catalog:",
     "zod": "catalog:"

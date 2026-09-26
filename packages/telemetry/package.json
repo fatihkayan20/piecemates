@@ -1,0 +1,14 @@
+{
+	"name": "@piecemates/telemetry",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"check-types": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@piecemates/config": "workspace:*",
+		"typescript": "^6.0.3"
+	}
+}

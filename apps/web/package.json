@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,9 @@
   "dependencies": {
     "@piecemates/client": "workspace:*",
     "@piecemates/game": "workspace:*",
+    "@piecemates/telemetry": "workspace:*",
     "@piecemates/ui": "workspace:*",
+    "@sentry/react": "^11.0.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-form": "catalog:",
     "@tanstack/react-router": "^1.170.32",
@@ -22,6 +24,7 @@
     "lucide-react": "catalog:",
     "next-themes": "catalog:",
     "pixi.js": "^8.21.0",
+    "posthog-js": "^1.434.15",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "sonner": "catalog:",
@@ -31,6 +34,7 @@
   },
   "devDependencies": {
     "@piecemates/config": "workspace:*",
+    "@sentry/vite-plugin": "^5.4.0",
     "@tanstack/react-router-devtools": "^1.167.1",
     "@tanstack/router-plugin": "^1.168.35",
     "@types/node": "catalog:",
