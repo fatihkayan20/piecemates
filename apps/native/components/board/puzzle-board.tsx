@@ -1,7 +1,8 @@
-import type { RoomInfo } from "@puzzle/client";
+import { BOARD_SCHEMES, type RoomInfo } from "@puzzle/client";
 import { useHeaderHeight } from "expo-router/build/react-navigation";
 import { View } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
+import { ScopedTheme } from "uniwind";
 import { BagBar } from "@/components/bags/bag-bar";
 import { Confetti } from "@/components/win/confetti";
 import { SolvedBar } from "@/components/win/solved-bar";
@@ -22,22 +23,25 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const solved = useRoom((r) => r.status === "done");
 
 	return (
-		<View
-			className="flex-1"
-			style={{ backgroundColor: background, paddingTop: headerHeight }}
-		>
-			<BagBar />
-			<GestureDetector gesture={gesture}>
-				{/* Kept apart from the bars, so the table never sits under them. */}
-				<View
-					className="flex-1"
-					onLayout={(e) => setViewport(e.nativeEvent.layout)}
-				>
-					<BoardCanvas room={room} />
-				</View>
-			</GestureDetector>
-			{solved ? <SolvedBar /> : <BoardControls room={room} />}
-			{solved && <Confetti />}
-		</View>
+		// The controls take the theme that reads on this table colour.
+		<ScopedTheme theme={BOARD_SCHEMES[background] ?? "dark"}>
+			<View
+				className="flex-1"
+				style={{ backgroundColor: background, paddingTop: headerHeight }}
+			>
+				<BagBar />
+				<GestureDetector gesture={gesture}>
+					{/* Kept apart from the bars, so the table never sits under them. */}
+					<View
+						className="flex-1"
+						onLayout={(e) => setViewport(e.nativeEvent.layout)}
+					>
+						<BoardCanvas room={room} />
+					</View>
+				</GestureDetector>
+				{solved ? <SolvedBar /> : <BoardControls room={room} />}
+				{solved && <Confetti />}
+			</View>
+		</ScopedTheme>
 	);
 }

@@ -11,7 +11,7 @@ export function PlayTime() {
 	return (
 		<View className={`${chip} mr-auto`}>
 			<Text
-				className="font-medium text-white"
+				className="font-medium text-foreground"
 				style={{ fontVariant: ["tabular-nums"] }}
 			>
 				{formatDuration(ms)}

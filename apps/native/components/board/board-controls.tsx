@@ -24,10 +24,10 @@ export function BoardControls({ room }: { room: RoomInfo }) {
 			<ReferenceImage room={room} />
 			<Pressable
 				accessibilityRole="button"
-				className="rounded bg-white px-3 py-1.5 active:opacity-70"
+				className="rounded bg-foreground px-3 py-1.5 active:opacity-70"
 				onPress={() => conn?.tidy()}
 			>
-				<Text className="font-medium text-black">Tidy pile</Text>
+				<Text className="font-medium text-background">Tidy pile</Text>
 			</Pressable>
 		</View>
 	);

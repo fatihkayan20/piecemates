@@ -14,10 +14,10 @@ export function ReferenceImage({ room }: { room: RoomInfo }) {
 		<>
 			<Pressable
 				accessibilityRole="button"
-				className="ml-auto rounded border border-white/40 px-3 py-1.5 active:opacity-70"
+				className="ml-auto rounded border border-foreground/40 px-3 py-1.5 active:opacity-70"
 				onPress={() => setOpen(true)}
 			>
-				<Text className="font-medium text-white">Image</Text>
+				<Text className="font-medium text-foreground">Image</Text>
 			</Pressable>
 			<Modal
 				visible={open}

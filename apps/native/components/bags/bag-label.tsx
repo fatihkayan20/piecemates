@@ -9,8 +9,8 @@ export function BagLabel({ bag }: { bag: BagChip }) {
 				className="size-3 rounded-full"
 				style={{ backgroundColor: bag.color }}
 			/>
-			<Text className="text-white">{bag.name}</Text>
-			<Text className="text-white/60">{bag.count}</Text>
+			<Text className="text-foreground">{bag.name}</Text>
+			<Text className="text-foreground/60">{bag.count}</Text>
 		</>
 	);
 }

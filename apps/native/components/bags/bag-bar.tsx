@@ -45,7 +45,7 @@ export function BagBar() {
 					className={`${chip} ${dashed} mr-3`}
 					onPress={() => setEditing(null)}
 				>
-					<Text className="text-white">+ Bag</Text>
+					<Text className="text-foreground">+ Bag</Text>
 				</Pressable>
 			)}
 			{editing !== undefined && (

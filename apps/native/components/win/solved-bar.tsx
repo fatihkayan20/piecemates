@@ -21,8 +21,12 @@ export function SolvedBar() {
 			className="flex-row items-center justify-center gap-2 p-3"
 			style={{ paddingBottom: insets.bottom + BOTTOM_GAP }}
 		>
-			<StyledIonicons name="trophy" size={ICON_SIZE} className="text-white" />
-			<Text className="font-medium text-white">
+			<StyledIonicons
+				name="trophy"
+				size={ICON_SIZE}
+				className="text-foreground"
+			/>
+			<Text className="font-medium text-foreground">
 				Solved in {formatDuration(ms)}
 			</Text>
 		</View>

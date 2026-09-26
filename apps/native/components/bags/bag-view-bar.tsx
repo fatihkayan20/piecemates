@@ -21,10 +21,10 @@ export function BagViewBar({
 		<>
 			<Pressable
 				accessibilityRole="button"
-				className={`${chip} bg-white/15`}
+				className={`${chip} bg-foreground/15`}
 				onPress={() => conn?.setView(null)}
 			>
-				<Text className="text-white">← Table</Text>
+				<Text className="text-foreground">← Table</Text>
 			</Pressable>
 			<Pressable accessibilityRole="button" className={chip} onPress={onEdit}>
 				<BagLabel bag={bag} />
@@ -33,7 +33,7 @@ export function BagViewBar({
 				ref={takeOut.ref}
 				className={`${chip} ${dashed} ${ring(takeOut.hovered)}`}
 			>
-				<Text className="text-white">Drop here to take out</Text>
+				<Text className="text-foreground">Drop here to take out</Text>
 			</View>
 		</>
 	);
