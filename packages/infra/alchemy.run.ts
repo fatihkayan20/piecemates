@@ -30,7 +30,7 @@ export const server = Cloudflare.Worker("server", {
 export type ServerEnv = Cloudflare.InferEnv<typeof server>;
 
 export default Alchemy.Stack(
-	"puzzle",
+	"piecemates",
 	{
 		providers: Cloudflare.providers(),
 		state: Cloudflare.state(),
