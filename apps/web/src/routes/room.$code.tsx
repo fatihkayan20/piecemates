@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PuzzleBoard } from "@/components/puzzle-board";
+import { PuzzleBoard } from "@/components/board/puzzle-board";
 import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/room/$code")({

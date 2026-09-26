@@ -128,3 +128,8 @@
     @apply font-sans;
   }
 }
+
+@theme {
+	/* The table behind the puzzle. */
+	--color-board: #1c1917;
+}
