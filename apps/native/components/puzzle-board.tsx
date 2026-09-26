@@ -36,6 +36,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { openRoomSocket } from "@/lib/api";
 
+import {
+	BagBar,
+	DROP_TABLE,
+	type DropRect,
+	type DropTargets,
+	measureTargets,
+	targetAt,
+} from "./bag-bar";
+
 /** `starts`: where each member of the dragged group was drawn when the drag began. */
 type Drag = { piece: number; starts: Map<number, Point> };
 
@@ -44,6 +53,9 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const insets = useSafeAreaInsets();
 	const [, rerender] = useReducer((n: number) => n + 1, 0);
 	const [drag, setDrag] = useState<Drag | null>(null);
+	const [hovered, setHovered] = useState<string | null>(null);
+	const dropTargets = useRef<DropTargets>(new Map()).current;
+	const dropRects = useRef(new Map<string, DropRect>());
 
 	const connection = useRef<RoomConnection | null>(null);
 	const drawOrder = useRef<number[]>([]); // last = on top
@@ -51,6 +63,8 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const touchedPiece = useRef<number | null>(null);
 	const dragRef = useRef<Drag | null>(null);
 	dragRef.current = drag;
+	const hoveredRef = useRef(hovered);
+	hoveredRef.current = hovered;
 	// Kept in a ref (not useMemo) so Fast Refresh can't leave it empty.
 	const paths = useRef<SkPath[]>([]).current;
 
@@ -122,12 +136,16 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 					const dragging = dragRef.current;
 					if (
 						event.by === conn.me &&
-						event.msg.type === "drop" &&
+						(event.msg.type === "drop" || event.msg.type === "bag:put") &&
 						dragging?.piece === event.msg.piece
 					)
 						endDrag();
 				} else if (event.type === "rejected") {
 					if (event.msg.type === "lock" || event.msg.type === "drop") endDrag();
+					if (event.msg.type === "bag:put") {
+						endDrag();
+						send({ type: "unlock", piece: event.msg.piece });
+					}
 				}
 				rerender();
 			});
@@ -153,8 +171,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 		const tableY = (y - cameraY.value) / cameraScale.value;
 		for (let k = drawOrder.current.length - 1; k >= 0; k--) {
 			const i = drawOrder.current[k] as number;
-			if (state.pieces[i]?.bag !== null || lockedByOther(state, i, conn.me))
-				continue;
+			if (!conn.visible(i) || lockedByOther(state, i, conn.me)) continue;
 			const at = conn.position(i);
 			if (paths[i]?.contains(tableX - at.x, tableY - at.y)) return i;
 		}
@@ -180,6 +197,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 			];
 			dragX.value = 0;
 			dragY.value = 0;
+			dropRects.current = measureTargets(dropTargets);
 			setDrag({ piece: i, starts });
 			send({ type: "lock", piece: i });
 		})
@@ -188,6 +206,8 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				// Translation counts from the first touch, so the piece doesn't lag by the activation slop.
 				dragX.value = e.translationX / cameraScale.value;
 				dragY.value = e.translationY / cameraScale.value;
+				const over = targetAt(dropRects.current, e.absoluteX, e.absoluteY);
+				if (over !== hoveredRef.current) setHovered(over);
 			} else {
 				const c = camera();
 				setCamera({ ...c, x: c.x + e.changeX, y: c.y + e.changeY });
@@ -200,15 +220,24 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				// Use the final translation; the last move may not have reached onChange.
 				dragX.value = e.translationX / cameraScale.value;
 				dragY.value = e.translationY / cameraScale.value;
-				// The group stays where it was dropped until the server echoes the drop.
-				send({
-					type: "drop",
-					piece: i,
-					x: start.x + dragX.value,
-					y: start.y + dragY.value,
-				});
+				const bag = targetAt(dropRects.current, e.absoluteX, e.absoluteY);
+				// The group stays where it was dropped until the server echoes it.
+				if (bag !== null)
+					send({
+						type: "bag:put",
+						piece: i,
+						bag: bag === DROP_TABLE ? null : bag,
+					});
+				else
+					send({
+						type: "drop",
+						piece: i,
+						x: start.x + dragX.value,
+						y: start.y + dragY.value,
+					});
 			}
 			touchedPiece.current = null;
+			setHovered(null);
 		});
 
 	const pinch = Gesture.Pinch()
@@ -249,6 +278,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 
 	return (
 		<View className="flex-1 bg-[#1c1917]">
+			{conn && <BagBar conn={conn} targets={dropTargets} hovered={hovered} />}
 			<GestureDetector gesture={Gesture.Simultaneous(pan, pinch)}>
 				<View
 					className="flex-1"
@@ -274,6 +304,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 										<Piece
 											key={i}
 											index={i}
+											visible={conn?.visible(i) ?? false}
 											at={conn?.position(i) ?? { x: 0, y: 0 }}
 											state={state}
 											me={me}
@@ -288,6 +319,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 											<Piece
 												key={i}
 												index={i}
+												visible
 												at={start}
 												state={state}
 												me={me}
@@ -330,6 +362,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 
 function Piece({
 	index,
+	visible,
 	at,
 	state,
 	me,
@@ -337,6 +370,7 @@ function Piece({
 	path,
 }: {
 	index: number;
+	visible: boolean;
 	at: Point;
 	state: State;
 	me: string;
@@ -344,7 +378,7 @@ function Piece({
 	path?: SkPath;
 }) {
 	const piece = state.pieces[index];
-	if (!piece || !path || piece.bag !== null) return null;
+	if (!piece || !path || !visible) return null;
 	const { row, col } = cellOf(state, index);
 	return (
 		<Group
