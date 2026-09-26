@@ -11,6 +11,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Game features Prio 3
 
+- [ ] **Ambient music**: a few music tracks to pick from, chosen per person and not shared with the room.
 - [ ] **Piece rotation option**: room creation gets a rotation choice. The default keeps pieces in the correct rotation; random rotation makes it more challenging (pieces need turning before they snap).
 - [ ] **History**: completed and expired rooms with friends' names, duration and date. No image, since images get cleaned up to keep costs down. Built on `room_players` in D1 (this also covers resuming unfinished rooms).
 - [ ] **Upload limits**: room creation with uploads is free for now but will be paid later; limit it and make sure anonymous logins can't be used to get around the limit.
