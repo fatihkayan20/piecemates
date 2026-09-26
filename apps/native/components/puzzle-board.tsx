@@ -10,6 +10,7 @@ import {
 	cellOf,
 	generateEdges,
 	groupOf,
+	isPlaced,
 	lockedByOther,
 	MAX_PLAYERS,
 	type Point,
@@ -171,7 +172,12 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 		const tableY = (y - cameraY.value) / cameraScale.value;
 		for (let k = drawOrder.current.length - 1; k >= 0; k--) {
 			const i = drawOrder.current[k] as number;
-			if (!conn.visible(i) || lockedByOther(state, i, conn.me)) continue;
+			if (
+				!conn.visible(i) ||
+				lockedByOther(state, i, conn.me) ||
+				isPlaced(state, i)
+			)
+				continue;
 			const at = conn.position(i);
 			if (paths[i]?.contains(tableX - at.x, tableY - at.y)) return i;
 		}
