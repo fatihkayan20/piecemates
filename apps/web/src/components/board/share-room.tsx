@@ -1,4 +1,5 @@
 import { roomUrl } from "@piecemates/client";
+import { track } from "@piecemates/telemetry";
 import { Button } from "@piecemates/ui/components/button";
 import { Share } from "lucide-react";
 import { toast } from "sonner";
@@ -7,6 +8,7 @@ import { toast } from "sonner";
 export function ShareRoom({ code }: { code: string }) {
 	const share = async () => {
 		const url = roomUrl(location.origin, code);
+		track("room_shared", {});
 		// Desktop share sheets are rare and clumsy; copying is what people expect there.
 		if (navigator.share && matchMedia("(pointer: coarse)").matches) {
 			await navigator.share({ url }).catch(() => undefined);

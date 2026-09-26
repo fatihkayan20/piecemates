@@ -1,8 +1,9 @@
 import {
 	analyticsKey,
 	DATA_COLLECTION,
+	REPLAY_ON_ERROR_RATE,
 	sentryOptions,
-	setTrackSink,
+	setAnalytics,
 	stampEvents,
 } from "@piecemates/telemetry";
 import * as Sentry from "@sentry/react";
@@ -18,7 +19,12 @@ export function startTelemetry(router: AnyRouter) {
 	Sentry.init({
 		...sentryOptions(ENV.VITE_SENTRY_DSN, environment),
 		dataCollection: DATA_COLLECTION,
-		integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
+		integrations: [
+			Sentry.tanstackRouterBrowserTracingIntegration(router),
+			Sentry.replayIntegration(),
+		],
+		replaysSessionSampleRate: 0,
+		replaysOnErrorSampleRate: REPLAY_ON_ERROR_RATE,
 		// The API is on another origin, so traces only carry on there if listed.
 		tracePropagationTargets: [ENV.VITE_SERVER_URL],
 	});
@@ -30,5 +36,8 @@ export function startTelemetry(router: AnyRouter) {
 		person_profiles: "identified_only",
 		before_send: stampEvents("web", version, environment),
 	});
-	setTrackSink((event, props) => posthog.capture(event, props));
+	setAnalytics({
+		capture: (event, props) => posthog.capture(event, props),
+		identify: (userId) => posthog.identify(userId),
+	});
 }
