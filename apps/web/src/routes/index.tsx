@@ -84,12 +84,10 @@ function HomeComponent() {
 							type="button"
 							aria-pressed={picked?.url === url}
 							className="overflow-hidden rounded border-2 border-transparent aria-pressed:border-primary"
-							onClick={(e) =>
-								pickImage(
-									url,
-									e.currentTarget.querySelector("img") as HTMLImageElement,
-								)
-							}
+							onClick={(e) => {
+								const img = e.currentTarget.querySelector("img");
+								if (img) pickImage(url, img);
+							}}
 						>
 							<img
 								src={url}
