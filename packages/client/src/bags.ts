@@ -1,4 +1,5 @@
 import type { Bag } from "@piecemates/game";
+import i18next from "i18next";
 
 import { BAG_COLORS } from "./samples.ts";
 
@@ -15,6 +16,6 @@ export const newBagId = () =>
 
 /** What the create sheet starts with when there are `count` bags already. */
 export const newBag = (count: number): Bag => ({
-	name: `Bag ${count + 1}`,
+	name: i18next.t("bags.numbered", { n: count + 1 }),
 	color: BAG_COLORS[0] ?? "",
 });
