@@ -18,26 +18,29 @@ export function BagBar() {
 	if (!conn) return null;
 
 	return (
-		<div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
-			{current ? (
-				<BagViewBar bag={current} onEdit={() => setEditing(current.id)} />
-			) : (
-				<>
-					{bags.map((bag) => (
+		<div className="flex min-w-0 flex-1 items-center gap-2">
+			<div className="flex min-w-0 items-center gap-2 overflow-x-auto">
+				{current ? (
+					<BagViewBar bag={current} onEdit={() => setEditing(current.id)} />
+				) : (
+					bags.map((bag) => (
 						<BagChip
 							key={bag.id}
 							bag={bag}
 							onClick={() => conn.setView(bag.id)}
 						/>
-					))}
-					<button
-						type="button"
-						className={`${chip} ${dashed}`}
-						onClick={() => setEditing(null)}
-					>
-						+ Bag
-					</button>
-				</>
+					))
+				)}
+			</div>
+			{/* Outside the scroller, so it stays in sight behind many bags. */}
+			{!current && (
+				<button
+					type="button"
+					className={`${chip} ${dashed} shrink-0`}
+					onClick={() => setEditing(null)}
+				>
+					+ Bag
+				</button>
 			)}
 			<BagSheet
 				key={String(editing)}
