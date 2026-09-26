@@ -14,6 +14,9 @@ import {
 } from "@puzzle/game";
 import { eq } from "drizzle-orm";
 
+/** The player a socket belongs to, stored on it when it connected. */
+const playerOf = (ws: WebSocket): Player => ws.deserializeAttachment();
+
 /**
  * One instance per room code. Holds the sockets (hibernatable, so an idle room
  * costs nothing) and the authoritative piece state.
@@ -78,7 +81,7 @@ export class Room extends DurableObject<Env> {
 		}
 		if (!parsed.success) return;
 		const msg = parsed.data;
-		const by = (ws.deserializeAttachment() as Player).id;
+		const by = playerOf(ws).id;
 
 		if (!apply(this.state, by, msg)) {
 			this.send(ws, { type: "rejected", msg });
@@ -96,7 +99,7 @@ export class Room extends DurableObject<Env> {
 	}
 
 	override async webSocketClose(ws: WebSocket) {
-		const by = (ws.deserializeAttachment() as Player).id;
+		const by = playerOf(ws).id;
 		ws.close();
 		// Same user may still be connected from another tab/device.
 		const stillHere = this.players().some((p) => p.id === by);
@@ -112,7 +115,7 @@ export class Room extends DurableObject<Env> {
 		const byId = new Map<string, Player>();
 		for (const ws of this.ctx.getWebSockets()) {
 			if (ws.readyState !== WebSocket.OPEN) continue;
-			const p = ws.deserializeAttachment() as Player;
+			const p = playerOf(ws);
 			byId.set(p.id, p);
 		}
 		return [...byId.values()];

@@ -1,4 +1,5 @@
 import { roomPlayers, rooms } from "@puzzle/db/schema/game";
+import { CELL_WIDTH, MAX_PIECES } from "@puzzle/game";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -6,6 +7,7 @@ import { logger } from "hono/logger";
 import { z } from "zod";
 
 import { ENV } from "./env.server";
+import { STATUS } from "./http";
 import { createAuth, getDb } from "./services";
 
 export { Room } from "./room";
@@ -37,7 +39,7 @@ app.get("/", (c) => {
 app.use("/rooms/*", async (c, next) => {
 	const auth = await createAuth();
 	const session = await auth.api.getSession({ headers: c.req.raw.headers });
-	if (!session) return c.text("Unauthorized", 401);
+	if (!session) return c.text("Unauthorized", STATUS.unauthorized);
 	c.set("user", { id: session.user.id, name: session.user.name });
 	await next();
 });
@@ -57,16 +59,17 @@ const CreateRoom = z.object({
 
 // No 0/O/1/I/L so codes are easy to read out loud.
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+const CODE_LENGTH = 6;
 const newCode = () =>
 	Array.from(
-		crypto.getRandomValues(new Uint8Array(6)),
+		crypto.getRandomValues(new Uint8Array(CODE_LENGTH)),
 		(b) => CODE_ALPHABET[b % CODE_ALPHABET.length],
 	).join("");
 
 app.post("/rooms", async (c) => {
 	const body = CreateRoom.safeParse(await c.req.json().catch(() => null));
-	if (!body.success || body.data.rows * body.data.cols > 1100) {
-		return c.text("Invalid room", 400);
+	if (!body.success || body.data.rows * body.data.cols > MAX_PIECES) {
+		return c.text("Invalid room", STATUS.badRequest);
 	}
 	const { imageUrl, imageW, imageH, rows, cols } = body.data;
 	const user = c.get("user");
@@ -79,9 +82,9 @@ app.post("/rooms", async (c) => {
 			.values({ code, ownerId: user.id, imageUrl, seed, rows, cols }),
 		db.insert(roomPlayers).values({ roomCode: code, userId: user.id }),
 	]);
-	// Table units: pieces are 100 wide, height follows the image's cell aspect.
-	const w = 100;
-	const h = (100 * (imageH / rows)) / (imageW / cols);
+	// Table units: height follows the image's cell aspect.
+	const w = CELL_WIDTH;
+	const h = (CELL_WIDTH * (imageH / rows)) / (imageW / cols);
 	await ENV.ROOM.getByName(code).init({ code, seed, rows, cols, w, h });
 	return c.json({ code });
 });
@@ -90,7 +93,7 @@ app.get("/rooms/:code", async (c) => {
 	const code = c.req.param("code").toUpperCase();
 	const db = getDb();
 	const room = await db.query.rooms.findFirst({ where: { code } });
-	if (!room) return c.text("Room not found", 404);
+	if (!room) return c.text("Room not found", STATUS.notFound);
 	await db
 		.insert(roomPlayers)
 		.values({ roomCode: code, userId: c.get("user").id })
@@ -101,14 +104,14 @@ app.get("/rooms/:code", async (c) => {
 
 app.get("/rooms/:code/ws", async (c) => {
 	if (c.req.header("upgrade") !== "websocket") {
-		return c.text("Expected websocket", 426);
+		return c.text("Expected websocket", STATUS.upgradeRequired);
 	}
 	const code = c.req.param("code").toUpperCase();
 	const exists = await getDb()
 		.select({ code: rooms.code })
 		.from(rooms)
 		.where(eq(rooms.code, code));
-	if (exists.length === 0) return c.text("Room not found", 404);
+	if (exists.length === 0) return c.text("Room not found", STATUS.notFound);
 	const user = c.get("user");
 	// Fresh headers so clients can't spoof who they are.
 	const headers = new Headers(c.req.raw.headers);
