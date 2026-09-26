@@ -8,6 +8,9 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Sticky edges**: pieces snap to their correct spot on the board frame, not only to neighbours, so the finished puzzle fits the board area.
 - [ ] **Reference image button**: show the full image to help solve the puzzle (overlay or popup, web and native).
 - [ ] **Unsplash search**: a server route `GET /images/search` keeps the API key server-side and handles attribution plus the required download-tracking call. Replaces the hardcoded sample images on both home screens.
+- [ ] **Local tidy**: "Tidy pile" rearranges only my own view, so it doesn't move pieces on other players' screens.
+- [ ] **Room settings**: a settings button and sheet on web and native for personal view options (e.g. background colour).
+- [ ] **Replace `with-ios-scene.js`**: try `expo-build-properties` instead of the custom plugin.
 - [ ] **Photo upload**: `POST /uploads` returns a direct upload URL for R2. The client resizes to about 2048px first (canvas on web, `expo-image-manipulator` on native). Add the R2 host to `ALLOWED_IMAGE_HOSTS` in `apps/server/src/index.ts`.
 
 ## Later
@@ -37,3 +40,4 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] Room Durable Object with WebSockets, max 4 players, state saved per room. `9da65f9`
 - [x] Web board (PixiJS): drag, lock, drop, snap, pan, wheel zoom, tidy. `2092713`
 - [x] iOS dev build and native board (Skia), in sync with web. `cab20bb`, `4a98d6d`
+- [x] Shared `@puzzle/client` package (API, session, room connection, camera) and clearer names across game, web and native. `13cfea8`…`90e4917`
