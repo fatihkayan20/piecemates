@@ -1,0 +1,5 @@
+language js
+
+`"use no memo"` as $directive where {
+	register_diagnostic(span=$directive, message="No 'use no memo': read room state through the store instead of mutating it in place.")
+}
