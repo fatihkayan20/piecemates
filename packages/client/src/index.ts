@@ -4,6 +4,7 @@ export * from "./bags.ts";
 export * from "./board-style.ts";
 export * from "./camera.ts";
 export * from "./confetti.ts";
+export * from "./debounce.ts";
 export * from "./drag.ts";
 export * from "./drop-targets.ts";
 export * from "./duration.ts";

@@ -5,6 +5,8 @@ export type Camera = { x: number; y: number; scale: number };
 type Viewport = { width: number; height: number };
 
 const MAX_SCALE = 4;
+/** How long the viewport must stay still before the camera follows a resize. */
+export const RESIZE_DEBOUNCE_MS = 150;
 
 /** Centres `bounds` in the viewport, filling `margin` of it. */
 export function fitCamera(

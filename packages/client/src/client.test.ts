@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { mock, test } from "node:test";
 
 import { createState, type ServerMsg, tableRect } from "@puzzle/game";
 
@@ -7,6 +7,7 @@ import {
 	CONFETTI_COUNT,
 	type Cue,
 	clampCamera,
+	debounce,
 	fitCamera,
 	formatDuration,
 	loadCues,
@@ -176,4 +177,22 @@ test("a resize keeps the zoom and the centre point", () => {
 		near((200 - moved.x) / moved.scale, (400 - zoomed.x) / zoomed.scale),
 		"centre point kept",
 	);
+});
+
+test("debounce runs once after the calls stop, and cancel drops it", () => {
+	mock.timers.enable({ apis: ["setTimeout"] });
+	let runs = 0;
+	const bump = debounce(() => runs++, 100);
+	bump();
+	mock.timers.tick(50);
+	bump();
+	mock.timers.tick(99);
+	assert.equal(runs, 0, "still waiting after the second call");
+	mock.timers.tick(1);
+	assert.equal(runs, 1);
+	bump();
+	bump.cancel();
+	mock.timers.tick(200);
+	assert.equal(runs, 1, "cancelled");
+	mock.timers.reset();
 });
