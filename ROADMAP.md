@@ -6,12 +6,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Polish and user engagement features Prio 2
 
-- [ ] **i18n**: translations on web and native.
-- [ ] **Big puzzles on small screens**: a 988-piece room opens with pieces about 11px wide on web and 4-5px on iPhone; start zoomed in enough to pick one up.
-- [ ] **Bag view frames its pieces**: opening a bag leaves the camera where it was, so a bag's few pieces can be dots in a corner.
-- [ ] **Fit the picture on win**: when the puzzle is solved, zoom out so the whole image shows (iOS stays where you were and cuts it off).
-- [ ] **iOS pinch zoom**: pinches felt uneven (one barely zoomed, the next jumped) and didn't stay centred on the fingers. Seen in the simulator; check on a device.
-
 ## Game features Prio 3
 
 - [ ] **Ambient music**: a few music tracks to pick from, chosen per person and not shared with the room.
@@ -59,6 +53,10 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
+- [x] **i18n**: i18next on web and native, English only. Text lives in a typed `locales/en.ts` in `@piecemates/client`, so a wrong key or a missing `{{value}}` fails the type check; the device language is picked at startup (browser languages, `expo-localization`). Add a language as `locales/<code>.ts` next to it. `ad05011` `9dd07b4` `fbf23d0`
+- [x] **Camera follows the room**: a big room starts zoomed in on the top of the pile so a piece can be picked up (40px); opening a bag frames its pieces and going back returns to where I was; the win zooms out to the whole picture (also when opening a solved room). `1f85f21` `b464284` `d1f26eb`
+- [x] **iOS pinch zoom**: a pinch is measured from where it began and pans with the fingers, so it zooms evenly and stays under them (checked in the simulator; worth a try on a device). `d1f26eb`
+- [x] **A bag piece dropped exactly on its spot leaves the bag**: it was fixed in place inside the bag, so the puzzle could never be finished. `95b7268`
 - [x] **PostHog and Sentry**: every error and every trace go to Sentry (web, iOS, Worker and room), with one trace from the client into the Worker; 10% of errors come with a screen recording; API answers the user caused (4xx, e.g. a wrong room code) aren't reported. PostHog gets production events only, stamped `app=piecemates` with platform, version and environment, room codes hidden in URLs, players identified by user id: iOS screen views, `room_created`, `room_joined`, `puzzle_solved` (seconds, players), `room_left` (% placed), `room_shared`, `bag_created`. Settings live in `@piecemates/telemetry`. `4938451` `3e53dc0` `93c4332` `f83b9b8` `cba578b` `f25ade1` `2250ab2` `fe34566` `4e699f5`
 - [x] **AI playtest**: a 988-piece room solved across web and iOS. It found that iOS froze while pieces moved fast (every move re-rendered all pieces); now only moved pieces re-render. Other findings are listed above. `7c1d08f` `6dbc3e3`
 - [x] **Harder to guess room codes**: 8 characters from the 31-letter alphabet, without modulo bias. `3c4846c`
