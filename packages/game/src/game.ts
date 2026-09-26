@@ -14,6 +14,7 @@ import {
 // identical everywhere without sending positions of anything but the dropped piece.
 
 export const MAX_PLAYERS = 4;
+export const BAG_NAME_MAX = 40;
 
 export type Piece = {
 	x: number;
@@ -54,8 +55,8 @@ export const ClientMsg = z.discriminatedUnion("type", [
 	}),
 	z.object({
 		type: z.enum(["bag:create", "bag:update"]),
-		bag: z.string().min(1).max(40),
-		name: z.string().max(40),
+		bag: z.string().min(1).max(BAG_NAME_MAX),
+		name: z.string().max(BAG_NAME_MAX),
 		color: z.string().max(20),
 	}),
 	z.object({ type: z.literal("bag:delete"), bag: z.string() }),
@@ -110,7 +111,7 @@ export function createState(opts: {
 }
 
 /** Row and column of a piece's correct cell. */
-export function cellOf(state: State, index: number) {
+export function cellOf(state: Pick<State, "cols">, index: number) {
 	return { row: Math.floor(index / state.cols), col: index % state.cols };
 }
 
