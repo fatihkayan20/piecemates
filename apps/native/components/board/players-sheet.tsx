@@ -1,17 +1,17 @@
 import {
 	BottomSheet,
 	Host,
-	HStack,
+	Label,
 	ShareLink,
 	Text,
 	VStack,
 } from "@expo/ui/swift-ui";
 import {
-	accessibilityLabel,
+	buttonStyle,
+	controlSize,
 	font,
 	foregroundStyle,
 	frame,
-	labelStyle,
 	padding,
 	presentationDragIndicator,
 } from "@expo/ui/swift-ui/modifiers";
@@ -55,20 +55,11 @@ export function PlayersSheet({
 						presentationDragIndicator("visible"),
 					]}
 				>
-					<HStack spacing={SHEET.spacing}>
-						<Text
-							modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
-						>
-							{`Players ${players.length} / ${MAX_PLAYERS}`}
-						</Text>
-						<ShareLink
-							item={roomUrl(ENV.EXPO_PUBLIC_WEB_URL, code)}
-							modifiers={[
-								labelStyle("iconOnly"),
-								accessibilityLabel("Share room link"),
-							]}
-						/>
-					</HStack>
+					<Text
+						modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
+					>
+						{`Players ${players.length} / ${MAX_PLAYERS}`}
+					</Text>
 					{(status === "connecting" || status === "disconnected") && (
 						<Text modifiers={[foregroundStyle("secondary")]}>
 							{`You are ${status}.`}
@@ -77,6 +68,16 @@ export function PlayersSheet({
 					{players.map((p) => (
 						<Text key={p.id}>{p.id === me ? `${p.name} (you)` : p.name}</Text>
 					))}
+					<ShareLink
+						item={roomUrl(ENV.EXPO_PUBLIC_WEB_URL, code)}
+						modifiers={[buttonStyle("bordered"), controlSize("large")]}
+					>
+						<Label
+							title="Share room link"
+							systemImage="square.and.arrow.up"
+							modifiers={[frame({ maxWidth: Number.POSITIVE_INFINITY })]}
+						/>
+					</ShareLink>
 				</VStack>
 			</BottomSheet>
 		</Host>

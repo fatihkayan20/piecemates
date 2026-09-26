@@ -28,12 +28,9 @@ export function PlayersSheet({ code }: { code: string }) {
 			<SheetContent side="bottom">
 				<div className="mx-auto flex w-full max-w-md flex-col gap-4 p-4">
 					<SheetHeader className="p-0">
-						<div className="flex items-center gap-2">
-							<SheetTitle>
-								Players {players.length} / {MAX_PLAYERS}
-							</SheetTitle>
-							<ShareRoom code={code} />
-						</div>
+						<SheetTitle>
+							Players {players.length} / {MAX_PLAYERS}
+						</SheetTitle>
 						{(status === "connecting" || status === "disconnected") && (
 							<SheetDescription>You are {status}.</SheetDescription>
 						)}
@@ -48,6 +45,7 @@ export function PlayersSheet({ code }: { code: string }) {
 							</li>
 						))}
 					</ul>
+					<ShareRoom code={code} />
 				</div>
 			</SheetContent>
 		</Sheet>

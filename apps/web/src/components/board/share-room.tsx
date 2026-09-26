@@ -18,13 +18,14 @@ export function ShareRoom({ code }: { code: string }) {
 
 	return (
 		<Button
-			variant="ghost"
-			size="icon-sm"
+			variant="outline"
+			size="lg"
+			className="w-full"
 			title={`Copy link to room ${code}`}
-			aria-label="Share room link"
 			onClick={share}
 		>
-			<Share />
+			<Share data-icon="inline-start" />
+			Share room link
 		</Button>
 	);
 }
