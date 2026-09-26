@@ -6,7 +6,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Polish and user engagement features Prio 2
 
-- [ ] **Sounds and haptics**: on piece placement, snaps and the win, with Sounds and Haptics toggles in the settings sheet.
 - [ ] **Win celebration**: confetti over the board and a finished state when `isComplete` is true (the server already marks the room `done` in D1). The completion animation replaces the bottom row (Image, Tidy pile) completely; there is no "Solved" badge anymore.
 - [ ] **Screen resize**: handle window and rotation changes on the board and other views, debounced.
 - [ ] **Dark and light theme**: one global theme toggle; fix the views that don't follow it yet.
@@ -66,3 +65,4 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] Share and deep links: the room code shares/copies the web link; `puzzle://room/CODE` opens the room in the app. `31bf93b`..`488664d`
 - [x] Room settings: a gear (web header, iOS nav bar) opens a sheet with the table background, saved per device (localStorage / SecureStore). Web room layout now mirrors native: header, bags, table, controls. `913a7a3` `1efec85` `2494bb9`
 - [x] Room chrome: share, players (sheet with the player list and connection state) and settings as icons, in the iOS header and beside the web bag row; no room code, player count or "Solved" badges. Also fixes the native bottom bar overflow. `95d32f7` `673c082`
+- [x] Sounds and haptics: a snap cue when my drop joins pieces or places them on the board, a win cue when the puzzle is done; plain drops stay quiet. Sounds and Haptics toggles in the settings sheet. Sounds load once, when a room opens. `aff77cc` `b9e45d0` `971617c`
