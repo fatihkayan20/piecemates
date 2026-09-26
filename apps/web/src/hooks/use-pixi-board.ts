@@ -45,11 +45,10 @@ export function usePixiBoard(
 			const world = new Container({ sortableChildren: true });
 			app.stage.addChild(world);
 			const camera = createCamera(world, app.screen);
-			// Pixi's resizeTo already batches window resizes into one per frame.
 			app.renderer.on("resize", camera.resize);
 			let pieces: Graphics[] = [];
 
-			unsubscribe = roomStore.subscribe((snap) => {
+			const unsubscribeStore = roomStore.subscribe((snap) => {
 				if (pieces.length === 0 && snap.grid) {
 					pieces = drawPieces(world, texture, room.seed, snap.grid);
 					attachPointer(app, world, pieces, camera);
@@ -57,6 +56,11 @@ export function usePixiBoard(
 				}
 				syncPieces(pieces, snap);
 			});
+			// A resize still waiting must not touch the world once it's destroyed.
+			unsubscribe = () => {
+				unsubscribeStore();
+				camera.resize.cancel();
+			};
 			conn = connectRoom(socket);
 
 			// Lets browser automation find pieces on screen during development.

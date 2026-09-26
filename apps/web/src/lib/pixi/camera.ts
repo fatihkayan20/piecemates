@@ -1,7 +1,9 @@
 import {
 	type Camera,
 	clampCamera,
+	debounce,
 	fitCamera,
+	RESIZE_DEBOUNCE_MS,
 	resizeCamera,
 	roomStore,
 	zoomAt,
@@ -37,12 +39,12 @@ export function createCamera(world: Container, screen: Rectangle) {
 			if (bounds) set(fitCamera(bounds, screen));
 		},
 		/** Keeps the zoom and centre point when the canvas changes size. */
-		resize: () => {
+		resize: debounce(() => {
 			const bounds = table();
 			const to = { width: screen.width, height: screen.height };
 			if (bounds) set(resizeCamera(get(), bounds, last, to));
 			last = to;
-		},
+		}, RESIZE_DEBOUNCE_MS),
 		wheel: (e: WheelEvent) => {
 			e.preventDefault();
 			const bounds = table();
