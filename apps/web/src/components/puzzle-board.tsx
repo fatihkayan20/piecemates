@@ -1,9 +1,9 @@
 import {
 	type Camera,
+	clampCamera,
 	fitCamera,
 	RoomConnection,
 	type RoomInfo,
-	tableBounds,
 	zoomAt,
 } from "@puzzle/client";
 import {
@@ -12,8 +12,10 @@ import {
 	groupOf,
 	lockedByOther,
 	MAX_PLAYERS,
+	type Point,
 	piecePath,
 	type State,
+	tableRect,
 } from "@puzzle/game";
 import { Button } from "@puzzle/ui/components/button";
 import {
@@ -32,6 +34,8 @@ import { openRoomSocket } from "@/lib/api";
 type Drag = {
 	piece: number;
 	members: number[];
+	/** Where each member was drawn when the drag started. */
+	starts: Map<number, Point>;
 	/** Where the pointer grabbed the piece, relative to its top-left. */
 	grabX: number;
 	grabY: number;
@@ -85,7 +89,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				const state = conn.state;
 				if (event.type === "state" && pieceGraphics.length === 0 && state) {
 					drawPieces(state);
-					setCamera(fitCamera(tableBounds(state), app.screen));
+					setCamera(fitCamera(tableRect(state), app.screen));
 				} else if (
 					event.type === "rejected" &&
 					event.msg.type === "lock" &&
@@ -103,7 +107,11 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				y: world.y,
 				scale: world.scale.x,
 			});
-			const setCamera = (c: Camera) => {
+			/** Every camera change goes through here, so the table stays on screen. */
+			const setCamera = (camera: Camera) => {
+				const c = conn.state
+					? clampCamera(camera, tableRect(conn.state), app.screen)
+					: camera;
 				world.scale.set(c.scale);
 				world.position.set(c.x, c.y);
 			};
@@ -144,7 +152,8 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				for (const [i, piece] of state.pieces.entries()) {
 					const g = pieceGraphics[i];
 					if (!g || drag?.members.includes(i)) continue;
-					g.position.set(piece.x, piece.y);
+					const at = conn.position(i);
+					g.position.set(at.x, at.y);
 					g.visible = piece.bag === null;
 					const theirs = lockedByOther(state, i, conn.me);
 					g.alpha = theirs ? 0.5 : 1;
@@ -153,16 +162,18 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 			};
 
 			const startDrag = (i: number, e: FederatedPointerEvent) => {
-				const piece = conn.state?.pieces[i];
-				if (!conn.state || !piece) return;
+				if (!conn.state) return;
 				e.stopPropagation();
 				const members = groupOf(conn.state, i);
+				const starts = new Map(members.map((m) => [m, conn.position(m)]));
+				const start = conn.position(i);
 				const at = world.toLocal(e.global);
 				drag = {
 					piece: i,
 					members,
-					grabX: at.x - piece.x,
-					grabY: at.y - piece.y,
+					starts,
+					grabX: at.x - start.x,
+					grabY: at.y - start.y,
 				};
 				topZ++;
 				for (const m of members)
@@ -174,19 +185,20 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				panGrab = { x: e.global.x - world.x, y: e.global.y - world.y };
 			});
 			app.stage.on("globalpointermove", (e) => {
-				const state = conn.state;
-				if (drag && state) {
+				if (drag) {
 					const at = world.toLocal(e.global);
-					const origin = state.pieces[drag.piece] as State["pieces"][number];
+					const origin = drag.starts.get(drag.piece) as Point;
 					const dx = at.x - drag.grabX - origin.x;
 					const dy = at.y - drag.grabY - origin.y;
-					for (const m of drag.members) {
-						const piece = state.pieces[m];
-						if (piece)
-							pieceGraphics[m]?.position.set(piece.x + dx, piece.y + dy);
+					for (const [m, start] of drag.starts) {
+						pieceGraphics[m]?.position.set(start.x + dx, start.y + dy);
 					}
 				} else if (panGrab) {
-					world.position.set(e.global.x - panGrab.x, e.global.y - panGrab.y);
+					setCamera({
+						...camera(),
+						x: e.global.x - panGrab.x,
+						y: e.global.y - panGrab.y,
+					});
 				}
 			});
 			const endPointer = () => {
@@ -205,8 +217,16 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 				"wheel",
 				(e) => {
 					e.preventDefault();
+					if (!conn.state) return;
 					setCamera(
-						zoomAt(camera(), e.offsetX, e.offsetY, Math.exp(-e.deltaY * 0.001)),
+						zoomAt(
+							camera(),
+							e.offsetX,
+							e.offsetY,
+							Math.exp(-e.deltaY * 0.001),
+							tableRect(conn.state),
+							app.screen,
+						),
 					);
 				},
 				{ passive: false },
@@ -247,10 +267,10 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const status = conn?.status ?? "connecting";
 
 	return (
-		<div className="relative h-full min-h-0 overflow-hidden">
-			<div ref={host} className="absolute inset-0" />
-			<div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-3 p-3 text-sm">
-				<span className="pointer-events-auto rounded bg-black/60 px-2 py-1 font-mono">
+		<div className="flex h-full min-h-0 flex-col bg-[#1c1917]">
+			{/* Kept outside the canvas so the table never sits under the controls. */}
+			<div className="flex items-center gap-3 p-3 text-sm">
+				<span className="rounded bg-black/60 px-2 py-1 font-mono">
 					Room {room.code}
 				</span>
 				<span className="rounded bg-black/60 px-2 py-1">
@@ -262,14 +282,11 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 						{status === "done" ? "Solved! 🎉" : status}
 					</span>
 				)}
-				<Button
-					className="pointer-events-auto ml-auto"
-					size="sm"
-					onClick={() => conn?.send({ type: "tidy" })}
-				>
+				<Button className="ml-auto" size="sm" onClick={() => conn?.tidy()}>
 					Tidy pile
 				</Button>
 			</div>
+			<div ref={host} className="relative min-h-0 flex-1 overflow-hidden" />
 		</div>
 	);
 }
