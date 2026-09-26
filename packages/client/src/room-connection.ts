@@ -10,6 +10,7 @@ import {
 	tidyPositions,
 	visibleIn,
 } from "@piecemates/game";
+import { track } from "@piecemates/telemetry";
 
 import { type Cue, cue, progress } from "./feedback.ts";
 
@@ -101,6 +102,7 @@ export class RoomConnection {
 			case "state":
 				this.state = msg.state;
 				this.me = msg.you;
+				track("room_joined", { pieces: msg.state.pieces.length });
 				break;
 			case "applied": {
 				if (!this.state) break;
@@ -132,8 +134,10 @@ export class RoomConnection {
 			if (this.view !== null && !(this.view in this.state.bags))
 				this.view = null;
 		}
-		if (msg.type === "applied" && !wasDone && this.status === "done")
+		if (msg.type === "applied" && !wasDone && this.status === "done") {
 			heard = "win";
+			track("puzzle_solved", { pieces: this.state?.pieces.length ?? 0 });
+		}
 		if (heard) cue(heard);
 		this.onEvent(msg);
 	}

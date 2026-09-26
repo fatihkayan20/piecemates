@@ -1,3 +1,5 @@
+import { track } from "@piecemates/telemetry";
+
 export type RoomInfo = {
 	code: string;
 	imageUrl: string;
@@ -38,11 +40,14 @@ export function createApi(opts: {
 	}
 
 	return {
-		createRoom: (room: NewRoom) =>
-			request<{ code: string }>("/rooms", {
+		createRoom: async (room: NewRoom) => {
+			const created = await request<{ code: string }>("/rooms", {
 				method: "POST",
 				body: JSON.stringify(room),
-			}),
+			});
+			track("room_created", { pieces: room.rows * room.cols });
+			return created;
+		},
 		getRoom: (code: string) => request<RoomInfo>(`/rooms/${code}`),
 		roomSocketUrl: (code: string) =>
 			`${opts.serverUrl.replace(/^http/, "ws")}/rooms/${code}/ws`,
