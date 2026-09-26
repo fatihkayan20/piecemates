@@ -1,4 +1,4 @@
-# puzzle
+# Piecemates
 
 This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Router, Hono, and more.
 
@@ -117,7 +117,7 @@ cd packages/infra && pnpm exec alchemy deploy --stage production
 ## Project Structure
 
 ```
-puzzle/
+piecemates/
 ├── apps/
 │   ├── web/         # Frontend application (React + TanStack Router)
 │   ├── native/      # Mobile application (React Native, Expo)

@@ -1,6 +1,6 @@
 # Agents and contributors
 
-A multiplayer jigsaw: `apps/web` (TanStack Router + PixiJS), `apps/native` (Expo + Skia), `apps/server` (Hono on Workers, a Durable Object per room), shared code in `packages/*`. Hosting stays at $0. Plans live in `ROADMAP.md`; keep it updated as work lands.
+Piecemates, a multiplayer jigsaw: `apps/web` (TanStack Router + PixiJS), `apps/native` (Expo + Skia), `apps/server` (Hono on Workers, a Durable Object per room), shared code in `packages/*`. Hosting stays at $0. Plans live in `ROADMAP.md`; keep it updated as work lands.
 
 ## Rules
 
