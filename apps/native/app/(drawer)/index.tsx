@@ -2,6 +2,7 @@ import { SAMPLE_IMAGES } from "@piecemates/client";
 import { type GridOption, gridOptions } from "@piecemates/game";
 import { router } from "expo-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, Image, Pressable, Text, TextInput, View } from "react-native";
 
 import { Container } from "@/components/container";
@@ -18,6 +19,7 @@ const openRoom = (code: string) =>
 	router.push({ pathname: "/room/[code]", params: { code } });
 
 export default function Home() {
+	const { t } = useTranslation();
 	const [picked, setPicked] = useState<PickedImage>();
 	const [code, setCode] = useState("");
 	const [busy, setBusy] = useState(false);
@@ -39,11 +41,8 @@ export default function Home() {
 				cols: grid.cols,
 			});
 			openRoom(room.code);
-		} catch (e) {
-			Alert.alert(
-				"Could not create room",
-				e instanceof Error ? e.message : undefined,
-			);
+		} catch {
+			Alert.alert(t("home.createFailed"));
 		} finally {
 			setBusy(false);
 		}
@@ -52,10 +51,12 @@ export default function Home() {
 	return (
 		<Container className="gap-8 p-6">
 			<View className="gap-3">
-				<Text className="font-medium text-foreground text-lg">Join a room</Text>
+				<Text className="font-medium text-foreground text-lg">
+					{t("home.joinRoom")}
+				</Text>
 				<View className="flex-row gap-2">
 					<TextInput
-						accessibilityLabel="Room code"
+						accessibilityLabel={t("home.roomCode")}
 						placeholder="ABCD2345"
 						autoCapitalize="characters"
 						autoCorrect={false}
@@ -68,19 +69,23 @@ export default function Home() {
 						className="justify-center rounded bg-foreground px-4 active:opacity-70"
 						onPress={() => code.trim() && openRoom(code.trim().toUpperCase())}
 					>
-						<Text className="font-medium text-background">Join</Text>
+						<Text className="font-medium text-background">
+							{t("home.join")}
+						</Text>
 					</Pressable>
 				</View>
 			</View>
 
 			<View className="gap-3">
-				<Text className="font-medium text-foreground text-lg">New puzzle</Text>
+				<Text className="font-medium text-foreground text-lg">
+					{t("home.newPuzzle")}
+				</Text>
 				<View className="flex-row gap-2">
 					{SAMPLE_IMAGES.map((url, i) => (
 						<Pressable
 							key={url}
 							accessibilityRole="button"
-							accessibilityLabel={`Sample image ${i + 1}`}
+							accessibilityLabel={t("home.sampleImage", { n: i + 1 })}
 							accessibilityState={{ selected: picked?.url === url }}
 							className={`flex-1 overflow-hidden rounded border-2 ${picked?.url === url ? "border-foreground" : "border-transparent"}`}
 							onPress={() => pickImage(url)}
@@ -99,7 +104,9 @@ export default function Home() {
 								className="rounded border border-border px-3 py-2 active:opacity-70"
 								onPress={() => createPuzzle(grid)}
 							>
-								<Text className="text-foreground">{grid.count} pieces</Text>
+								<Text className="text-foreground">
+									{t("home.pieces", { count: grid.count })}
+								</Text>
 							</Pressable>
 						))}
 					</View>

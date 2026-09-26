@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { formatDuration } from "@piecemates/client";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { withUniwind } from "uniwind";
@@ -15,6 +16,7 @@ const ICON_SIZE = 20;
 
 /** Takes the place of the controls once the puzzle is done. */
 export function SolvedBar() {
+	const { t } = useTranslation();
 	const insets = useSafeAreaInsets();
 	const ms = useElapsed();
 
@@ -30,7 +32,7 @@ export function SolvedBar() {
 				className="text-foreground"
 			/>
 			<Text className="font-medium text-foreground">
-				Solved in {formatDuration(ms)}
+				{t("room.solvedIn", { time: formatDuration(ms) })}
 			</Text>
 		</View>
 	);

@@ -1,4 +1,5 @@
 import { type BagChip, DROP_TABLE } from "@piecemates/client";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 import { useDropTarget } from "@/hooks/use-drop-target";
@@ -15,6 +16,7 @@ export function BagViewBar({
 	bag: BagChip;
 	onEdit: () => void;
 }) {
+	const { t } = useTranslation();
 	const conn = useRoom((r) => r.conn);
 	const takeOut = useDropTarget(DROP_TABLE);
 	return (
@@ -24,7 +26,7 @@ export function BagViewBar({
 				className={`${chip} bg-foreground/15`}
 				onPress={() => conn?.setView(null)}
 			>
-				<Text className="text-foreground">← Table</Text>
+				<Text className="text-foreground">{t("bags.backToTable")}</Text>
 			</Pressable>
 			<Pressable accessibilityRole="button" className={chip} onPress={onEdit}>
 				<BagLabel bag={bag} />
@@ -33,7 +35,7 @@ export function BagViewBar({
 				ref={takeOut.ref}
 				className={`${chip} ${dashed} ${ring(takeOut.hovered)}`}
 			>
-				<Text className="text-foreground">Drop here to take out</Text>
+				<Text className="text-foreground">{t("bags.takeOut")}</Text>
 			</View>
 		</>
 	);

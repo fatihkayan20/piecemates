@@ -1,4 +1,5 @@
 import type { RoomInfo } from "@piecemates/client";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -12,6 +13,7 @@ const BOTTOM_GAP = 12;
 
 /** Play time, the reference image and Tidy, under the table. */
 export function BoardControls({ room }: { room: RoomInfo }) {
+	const { t } = useTranslation();
 	const insets = useSafeAreaInsets();
 	const conn = useRoom((r) => r.conn);
 
@@ -27,7 +29,7 @@ export function BoardControls({ room }: { room: RoomInfo }) {
 				className="rounded bg-foreground px-3 py-1.5 active:opacity-70"
 				onPress={() => conn?.tidy()}
 			>
-				<Text className="font-medium text-background">Tidy pile</Text>
+				<Text className="font-medium text-background">{t("room.tidy")}</Text>
 			</Pressable>
 		</View>
 	);

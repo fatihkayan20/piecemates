@@ -1,6 +1,7 @@
 import { BOARD_SCHEMES } from "@piecemates/client";
 import { Stack } from "expo-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSettings } from "@/hooks/use-settings";
 import { PlayersSheet } from "./players-sheet";
 import { SettingsSheet } from "./settings-sheet";
@@ -9,6 +10,7 @@ type Sheet = "players" | "settings";
 
 /** Players and settings in the screen's header, and the sheets they open. */
 export function RoomHeaderItems({ code }: { code: string }) {
+	const { t } = useTranslation();
 	const [sheet, setSheet] = useState<Sheet>();
 	const close = () => setSheet(undefined);
 	const background = useSettings((s) => s.background);
@@ -21,13 +23,13 @@ export function RoomHeaderItems({ code }: { code: string }) {
 					unstable_headerRightItems: () => [
 						{
 							type: "button",
-							label: "Players",
+							label: t("players.title"),
 							icon: { type: "sfSymbol", name: "person.2" },
 							onPress: () => setSheet("players"),
 						},
 						{
 							type: "button",
-							label: "Settings",
+							label: t("settings.title"),
 							icon: { type: "sfSymbol", name: "gearshape" },
 							onPress: () => setSheet("settings"),
 						},

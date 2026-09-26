@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { useRoom } from "@/hooks/use-room";
@@ -10,6 +11,7 @@ import { BagViewBar } from "./bag-view-bar";
 
 /** Bags along the top: chips on the table, or the open bag's own bar. */
 export function BagBar() {
+	const { t } = useTranslation();
 	/** undefined = sheet closed, null = new bag, string = editing that bag. */
 	const [editing, setEditing] = useState<string | null>();
 	const conn = useRoom((r) => r.conn);
@@ -45,7 +47,7 @@ export function BagBar() {
 					className={`${chip} ${dashed} mr-3`}
 					onPress={() => setEditing(null)}
 				>
-					<Text className="text-foreground">+ Bag</Text>
+					<Text className="text-foreground">{t("bags.add")}</Text>
 				</Pressable>
 			)}
 			{editing !== undefined && (

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Image, View } from "react-native";
 import Animated, { ZoomIn } from "react-native-reanimated";
 
@@ -9,6 +10,7 @@ const CAT_GAP = 16;
 
 /** Dancing cats that pop up just above the solved bar. */
 export function WinCat() {
+	const { t } = useTranslation();
 	return (
 		<View
 			pointerEvents="none"
@@ -18,7 +20,7 @@ export function WinCat() {
 			<Animated.View entering={ZoomIn.springify()}>
 				<Image
 					source={dancingCats}
-					accessibilityLabel="Two kittens dancing"
+					accessibilityLabel={t("room.winCat")}
 					className="rounded-lg"
 					style={{ width: CAT_SIZE, height: CAT_SIZE }}
 				/>

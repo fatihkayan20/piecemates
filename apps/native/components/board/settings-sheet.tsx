@@ -12,6 +12,7 @@ import {
 	setSounds,
 } from "@piecemates/client";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { ColorSwatches } from "@/components/bags/color-swatches";
 import { useSettings } from "@/hooks/use-settings";
@@ -20,6 +21,7 @@ const SHEET = { spacing: 16, padding: 24, titleSize: 20 };
 
 /** My own view settings, saved on this device. */
 export function SettingsSheet({ onClose }: { onClose: () => void }) {
+	const { t } = useTranslation();
 	const background = useSettings((s) => s.background);
 	const sounds = useSettings((s) => s.sounds);
 	const haptics = useSettings((s) => s.haptics);
@@ -44,16 +46,26 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
 					<Text
 						modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
 					>
-						Settings
+						{t("settings.title")}
 					</Text>
-					<Text modifiers={[foregroundStyle("secondary")]}>Background</Text>
+					<Text modifiers={[foregroundStyle("secondary")]}>
+						{t("settings.background")}
+					</Text>
 					<ColorSwatches
 						colors={BACKGROUNDS}
 						value={background}
 						onChange={setBackground}
 					/>
-					<Toggle label="Sounds" isOn={sounds} onIsOnChange={setSounds} />
-					<Toggle label="Haptics" isOn={haptics} onIsOnChange={setHaptics} />
+					<Toggle
+						label={t("settings.sounds")}
+						isOn={sounds}
+						onIsOnChange={setSounds}
+					/>
+					<Toggle
+						label={t("settings.haptics")}
+						isOn={haptics}
+						onIsOnChange={setHaptics}
+					/>
 				</VStack>
 			</BottomSheet>
 		</Host>

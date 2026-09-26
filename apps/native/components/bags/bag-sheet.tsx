@@ -18,6 +18,7 @@ import {
 import { newBag, newBagId } from "@piecemates/client";
 import { BAG_NAME_MAX } from "@piecemates/game";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useRoom } from "@/hooks/use-room";
 
@@ -33,6 +34,7 @@ export function BagSheet({
 	editing: string | null;
 	onClose: () => void;
 }) {
+	const { t } = useTranslation();
 	const conn = useRoom((r) => r.conn);
 	const bags = useRoom((r) => r.bags);
 	const initial = bags.find((b) => b.id === editing) ?? newBag(bags.length);
@@ -44,7 +46,7 @@ export function BagSheet({
 	const save = () => {
 		const bag = editing ?? newBagId();
 		const type = editing ? "bag:update" : "bag:create";
-		conn?.send({ type, bag, name: name.trim() || "Bag", color });
+		conn?.send({ type, bag, name: name.trim() || t("bags.unnamed"), color });
 		setOpen(false);
 	};
 	const remove = () => {
@@ -71,11 +73,11 @@ export function BagSheet({
 					<Text
 						modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
 					>
-						{editing ? "Edit bag" : "New bag"}
+						{editing ? t("bags.editBag") : t("bags.newBag")}
 					</Text>
 					<TextField
 						text={nameField}
-						placeholder="Name"
+						placeholder={t("bags.name")}
 						maxLength={BAG_NAME_MAX}
 						onTextChange={setName}
 					/>
@@ -83,11 +85,15 @@ export function BagSheet({
 					<HStack>
 						{editing && (
 							// biome-ignore lint/a11y/useValidAriaRole: SwiftUI's button role, not ARIA.
-							<Button role="destructive" label="Delete bag" onPress={remove} />
+							<Button
+								role="destructive"
+								label={t("bags.delete")}
+								onPress={remove}
+							/>
 						)}
 						<Spacer />
 						<Button
-							label={editing ? "Save" : "Create"}
+							label={editing ? t("bags.save") : t("bags.create")}
 							modifiers={[buttonStyle("borderedProminent")]}
 							onPress={save}
 						/>

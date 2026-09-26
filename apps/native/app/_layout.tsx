@@ -1,6 +1,8 @@
+import { initReactI18next, useTranslation } from "react-i18next";
 import "@/global.css";
-import { loadSettings } from "@piecemates/client";
+import { loadSettings, startI18n } from "@piecemates/client";
 import * as Sentry from "@sentry/react-native";
+import { getLocales } from "expo-localization";
 import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { HeroUINativeProvider } from "heroui-native";
@@ -15,6 +17,10 @@ import { startTelemetry } from "@/lib/telemetry";
 // First, so the session request is already traced.
 startTelemetry();
 void ensureSession();
+startI18n(
+	getLocales().map((l) => l.languageTag),
+	initReactI18next,
+);
 // ponytail: SecureStore is the storage we already ship; fine for a few prefs (2 KB per key).
 void loadSettings({
 	getItem: SecureStore.getItemAsync,
@@ -27,12 +33,13 @@ export const unstable_settings = {
 };
 
 function StackLayout() {
+	const { t } = useTranslation();
 	useScreenTracking();
 	return (
 		<Stack screenOptions={{}}>
 			<Stack.Screen
 				name="(drawer)"
-				options={{ headerShown: false, title: "Home" }}
+				options={{ headerShown: false, title: t("nav.home") }}
 			/>
 			<Stack.Screen name="room/[code]" />
 		</Stack>

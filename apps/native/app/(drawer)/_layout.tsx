@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Drawer } from "expo-router/drawer";
 import { useThemeColor } from "heroui-native";
+import { useTranslation } from "react-i18next";
 import { Text } from "react-native";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 
 function DrawerLayout() {
+	const { t } = useTranslation();
 	const themeColorForeground = useThemeColor("foreground");
 	const themeColorBackground = useThemeColor("background");
 
@@ -25,10 +27,10 @@ function DrawerLayout() {
 			<Drawer.Screen
 				name="index"
 				options={{
-					headerTitle: "Home",
+					headerTitle: t("nav.home"),
 					drawerLabel: ({ color, focused }) => (
 						<Text style={{ color: focused ? color : themeColorForeground }}>
-							Home
+							{t("nav.home")}
 						</Text>
 					),
 					drawerIcon: ({ size, color, focused }) => (

@@ -19,6 +19,7 @@ import { roomUrl } from "@piecemates/client";
 import { MAX_PLAYERS } from "@piecemates/game";
 import { track } from "@piecemates/telemetry";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Share } from "react-native";
 
 import { useRoom } from "@/hooks/use-room";
@@ -34,6 +35,7 @@ export function PlayersSheet({
 	code: string;
 	onClose: () => void;
 }) {
+	const { t } = useTranslation();
 	const players = useRoom((r) => r.players);
 	const me = useRoom((r) => r.conn?.me);
 	const status = useRoom((r) => r.status);
@@ -60,15 +62,19 @@ export function PlayersSheet({
 					<Text
 						modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
 					>
-						{`Players ${players.length} / ${MAX_PLAYERS}`}
+						{t("players.count", { count: players.length, max: MAX_PLAYERS })}
 					</Text>
 					{(status === "connecting" || status === "disconnected") && (
 						<Text modifiers={[foregroundStyle("secondary")]}>
-							{`You are ${status}.`}
+							{status === "connecting"
+								? t("players.connecting")
+								: t("players.disconnected")}
 						</Text>
 					)}
 					{players.map((p) => (
-						<Text key={p.id}>{p.id === me ? `${p.name} (you)` : p.name}</Text>
+						<Text key={p.id}>
+							{p.id === me ? t("players.me", { name: p.name }) : p.name}
+						</Text>
 					))}
 					{/* A Button, not ShareLink, so the share can be counted. */}
 					<Button
@@ -79,7 +85,7 @@ export function PlayersSheet({
 						modifiers={[buttonStyle("bordered"), controlSize("large")]}
 					>
 						<Label
-							title="Share room link"
+							title={t("players.share")}
 							systemImage="square.and.arrow.up"
 							modifiers={[frame({ maxWidth: Number.POSITIVE_INFINITY })]}
 						/>
