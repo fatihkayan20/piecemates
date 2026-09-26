@@ -12,6 +12,7 @@
     "env:generate": "varlock codegen"
   },
   "dependencies": {
+    "@puzzle/client": "workspace:*",
     "@puzzle/game": "workspace:*",
     "@puzzle/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",

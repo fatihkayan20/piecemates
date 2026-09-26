@@ -1,0 +1,7 @@
+{
+	"extends": "@puzzle/config/tsconfig.base.json",
+	"compilerOptions": {
+		"lib": ["ESNext", "DOM"],
+		"types": ["node"]
+	}
+}
