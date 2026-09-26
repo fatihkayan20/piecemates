@@ -9,6 +9,7 @@ export type PieceEdges = [Edge, Edge, Edge, Edge];
 /** Tabs stick out this fraction of min(w, h); renderers pad piece textures by it. */
 export const TAB_SIZE = 0.26;
 
+// biome-ignore-start lint/style/noMagicNumbers: mulberry32's own constants.
 export function seededRandom(seed: number) {
 	let a = seed >>> 0;
 	return () => {
@@ -19,6 +20,10 @@ export function seededRandom(seed: number) {
 		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 	};
 }
+// biome-ignore-end lint/style/noMagicNumbers: mulberry32's own constants.
+
+/** Chance an inner edge is a tab on the first piece's side. */
+const TAB_OUT_CHANCE = 0.5;
 
 export function generateEdges(
 	seed: number,
@@ -26,7 +31,7 @@ export function generateEdges(
 	cols: number,
 ): PieceEdges[] {
 	const random = seededRandom(seed);
-	const flip = (): Edge => (random() < 0.5 ? 1 : -1);
+	const flip = (): Edge => (random() < TAB_OUT_CHANCE ? 1 : -1);
 	// horizontal[r][c]: edge between row r-1 and r; vertical[r][c]: edge between col c-1 and c.
 	const horizontal = Array.from({ length: rows + 1 }, (_, r) =>
 		Array.from({ length: cols }, () => (r === 0 || r === rows ? 0 : flip())),
@@ -55,6 +60,7 @@ export function generateEdges(
 // One tab as cubic beziers in (u along edge, v outward). Symmetric under
 // u -> 1-u, so both neighbours trace the same curve from either direction.
 // ponytail: every tab has the same shape; add per-edge seeded jitter if it looks too uniform.
+// biome-ignore-start lint/style/noMagicNumbers: control points of the tab's outline.
 const TAB_CURVE: [number, number][][] = [
 	[
 		[0.35, 0],
@@ -77,8 +83,11 @@ const TAB_CURVE: [number, number][][] = [
 		[1, 0],
 	],
 ];
+// biome-ignore-end lint/style/noMagicNumbers: control points of the tab's outline.
 
-const round2 = (n: number) => Math.round(n * 100) / 100;
+/** Path coordinates keep two decimals. */
+const PRECISION = 100;
+const round2 = (n: number) => Math.round(n * PRECISION) / PRECISION;
 
 /** SVG path of a piece with its cell's top-left at (0,0). Works with Skia and PixiJS. */
 export function piecePath(edges: PieceEdges, w: number, h: number): string {
@@ -90,9 +99,9 @@ export function piecePath(edges: PieceEdges, w: number, h: number): string {
 		[0, h],
 	];
 	let d = "M0,0";
-	for (let i = 0; i < 4; i++) {
+	for (let i = 0; i < corners.length; i++) {
 		const [ax, ay] = corners[i] as [number, number];
-		const [bx, by] = corners[(i + 1) % 4] as [number, number];
+		const [bx, by] = corners[(i + 1) % corners.length] as [number, number];
 		const sign = edges[i] ?? 0;
 		if (sign === 0) {
 			d += `L${round2(bx)},${round2(by)}`;
@@ -110,19 +119,29 @@ export function piecePath(edges: PieceEdges, w: number, h: number): string {
 
 export type GridOption = { rows: number; cols: number; count: number };
 
+// biome-ignore-start lint/style/noMagicNumbers: the piece counts offered to players.
 const TARGETS = [24, 48, 96, 150, 300, 500, 750, 1000];
+// biome-ignore-end lint/style/noMagicNumbers: the piece counts offered to players.
+
+/** Fewest pieces along a side. */
+const MIN_SIDE = 2;
+/** How far from square a piece may be (width / height, either way). */
+const MAX_ASPECT = 1.25;
 
 /** Piece counts that fit the image with near-square pieces. */
 export function gridOptions(imageW: number, imageH: number): GridOption[] {
 	const out: GridOption[] = [];
 	for (const n of TARGETS) {
-		const rows = Math.max(2, Math.round(Math.sqrt((n * imageH) / imageW)));
-		const cols = Math.max(2, Math.round(n / rows));
+		const rows = Math.max(
+			MIN_SIDE,
+			Math.round(Math.sqrt((n * imageH) / imageW)),
+		);
+		const cols = Math.max(MIN_SIDE, Math.round(n / rows));
 		const aspect = imageW / cols / (imageH / rows);
 		const count = rows * cols;
 		if (
-			aspect >= 0.8 &&
-			aspect <= 1.25 &&
+			aspect >= 1 / MAX_ASPECT &&
+			aspect <= MAX_ASPECT &&
 			!out.some((o) => o.count === count)
 		) {
 			out.push({ rows, cols, count });

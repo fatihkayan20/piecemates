@@ -1,4 +1,4 @@
-import type { State } from "./game.ts";
+import type { State } from "./types.ts";
 
 // The table is the board, free space around it to work in, and the pile of
 // loose pieces in rings along the table's outer edge. It has a fixed size, so
