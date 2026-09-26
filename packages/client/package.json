@@ -9,7 +9,8 @@
 		"test": "node --test src/*.test.ts"
 	},
 	"dependencies": {
-		"@puzzle/game": "workspace:*"
+		"@puzzle/game": "workspace:*",
+		"zustand": "catalog:"
 	},
 	"devDependencies": {
 		"@puzzle/config": "workspace:*",
