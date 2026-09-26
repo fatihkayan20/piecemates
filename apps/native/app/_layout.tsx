@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AppThemeProvider } from "@/contexts/app-theme-context";
+import { useScreenTracking } from "@/hooks/use-screen-tracking";
 import { ensureSession } from "@/lib/auth-client";
 import { startTelemetry } from "@/lib/telemetry";
 
@@ -26,6 +27,7 @@ export const unstable_settings = {
 };
 
 function StackLayout() {
+	useScreenTracking();
 	return (
 		<Stack screenOptions={{}}>
 			<Stack.Screen

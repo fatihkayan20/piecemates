@@ -1,8 +1,8 @@
 import {
 	BottomSheet,
+	Button,
 	Host,
 	Label,
-	ShareLink,
 	Text,
 	VStack,
 } from "@expo/ui/swift-ui";
@@ -17,7 +17,9 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 import { roomUrl } from "@piecemates/client";
 import { MAX_PLAYERS } from "@piecemates/game";
+import { track } from "@piecemates/telemetry";
 import { useState } from "react";
+import { Share } from "react-native";
 
 import { useRoom } from "@/hooks/use-room";
 import { ENV } from "@/src/env";
@@ -68,8 +70,12 @@ export function PlayersSheet({
 					{players.map((p) => (
 						<Text key={p.id}>{p.id === me ? `${p.name} (you)` : p.name}</Text>
 					))}
-					<ShareLink
-						item={roomUrl(ENV.EXPO_PUBLIC_WEB_URL, code)}
+					{/* A Button, not ShareLink, so the share can be counted. */}
+					<Button
+						onPress={() => {
+							track("room_shared", {});
+							void Share.share({ url: roomUrl(ENV.EXPO_PUBLIC_WEB_URL, code) });
+						}}
 						modifiers={[buttonStyle("bordered"), controlSize("large")]}
 					>
 						<Label
@@ -77,7 +83,7 @@ export function PlayersSheet({
 							systemImage="square.and.arrow.up"
 							modifiers={[frame({ maxWidth: Number.POSITIVE_INFINITY })]}
 						/>
-					</ShareLink>
+					</Button>
 				</VStack>
 			</BottomSheet>
 		</Host>

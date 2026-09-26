@@ -1,7 +1,8 @@
 import {
 	analyticsKey,
+	REPLAY_ON_ERROR_RATE,
 	sentryOptions,
-	setTrackSink,
+	setAnalytics,
 	stampEvents,
 } from "@piecemates/telemetry";
 import * as Sentry from "@sentry/react-native";
@@ -11,6 +12,11 @@ import { Platform } from "react-native";
 
 import { ENV } from "../src/env";
 
+let posthog: PostHog | undefined;
+
+/** Records an Expo Router screen, e.g. "/room/[code]". */
+export const trackScreen = (name: string) => posthog?.screen(name);
+
 /** Starts Sentry, and PostHog in production; each stays off without its key. */
 export function startTelemetry() {
 	const environment = __DEV__ ? "development" : "production";
@@ -18,10 +24,13 @@ export function startTelemetry() {
 		...sentryOptions(ENV.EXPO_PUBLIC_SENTRY_DSN, environment),
 		// Traces carry on into the API, which is on its own host.
 		tracePropagationTargets: [ENV.EXPO_PUBLIC_SERVER_URL],
+		integrations: [Sentry.mobileReplayIntegration()],
+		replaysSessionSampleRate: 0,
+		replaysOnErrorSampleRate: REPLAY_ON_ERROR_RATE,
 	});
 	const key = analyticsKey(ENV.EXPO_PUBLIC_POSTHOG_KEY, environment);
 	if (!key) return;
-	const posthog = new PostHog(key, {
+	const client = new PostHog(key, {
 		host: ENV.EXPO_PUBLIC_POSTHOG_HOST,
 		before_send: stampEvents(
 			Platform.OS === "android" ? "android" : "ios",
@@ -29,5 +38,9 @@ export function startTelemetry() {
 			environment,
 		),
 	});
-	setTrackSink((event, props) => posthog.capture(event, props));
+	posthog = client;
+	setAnalytics({
+		capture: (event, props) => client.capture(event, props),
+		identify: (userId) => client.identify(userId),
+	});
 }
