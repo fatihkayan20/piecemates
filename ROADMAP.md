@@ -7,14 +7,16 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 ## Polish and user engagement features Prio 2
 
 - [ ] **Sounds and haptics**: on piece placement, snaps and the win, with Sounds and Haptics toggles in the settings sheet.
-- [ ] **Win celebration**: confetti over the board and a finished state when `isComplete` is true (the server already marks the room `done` in D1).
+- [ ] **Win celebration**: confetti over the board and a finished state when `isComplete` is true (the server already marks the room `done` in D1). The completion animation replaces the bottom row (Image, Tidy pile) completely; there is no "Solved" badge anymore.
 - [ ] **Screen resize**: handle window and rotation changes on the board and other views, debounced.
 - [ ] **Dark and light theme**: one global theme toggle; fix the views that don't follow it yet.
 - [ ] **PostHog, Sentry and i18n**: analytics and error reports tagged with app version, environment and platform; translations on web and native.
+- [ ] **Harder to guess room codes**: codes are 6 characters from a 31-letter alphabet (`newCode` in `apps/server/src/index.ts`); make them longer so users can't guess their way into rooms, and keep them easy to type and share.
 - [ ] **AI playtest**: play one large puzzle the way a person would, to find issues and improvements. An orchestrator starts two sub-agents, one driving iOS and one driving web, each with its own focus (e.g. bagging edge pieces vs. building the middle). They only get the app and what it does, and report back as users.
 
 ## Game features Prio 3
 
+- [ ] **Piece rotation option**: room creation gets a rotation choice. The default keeps pieces in the correct rotation; random rotation makes it more challenging (pieces need turning before they snap).
 - [ ] **History**: completed and expired rooms with friends' names, duration and date. No image, since images get cleaned up to keep costs down. Built on `room_players` in D1 (this also covers resuming unfinished rooms).
 - [ ] **Upload limits**: room creation with uploads is free for now but will be paid later; limit it and make sure anonymous logins can't be used to get around the limit.
   - **Photo upload**: `POST /uploads` returns a direct upload URL for R2. The client resizes to about 2048px first (canvas on web, `expo-image-manipulator` on native). Add the R2 host to `ALLOWED_IMAGE_HOSTS` in `apps/server/src/index.ts`.
@@ -26,8 +28,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 ## Later
 
 - [ ] **Universal links and app links**: `https://<web>/room/CODE` opens the app when it's installed. Needs the production web domain, an `apple-app-site-association` (with the Apple Team ID, a paid account) and `assetlinks.json` served from it, plus `associatedDomains` / `intentFilters` in `app.json`. Set `EXPO_PUBLIC_WEB_URL` for production builds.
-- [ ] **Bottom bar overflow on native**: a status note ("disconnected") pushes Tidy pile off screen.
-- [ ] **Settings gear on Android**: the room header uses `unstable_headerRightItems`, which is iOS only; add a `headerRight` gear for Android (TODO in `settings-header-item.tsx`).
+- [ ] **Room header buttons on Android**: share, players and settings use `unstable_headerRightItems`, which is iOS only; add `headerRight` buttons for Android (TODO in `room-header-items.tsx`).
 - [ ] **Replace `with-ios-scene.js`**: try `expo-build-properties` instead of the custom plugin.
 - [ ] **Reconnect**: the room socket reconnects on its own after a drop (web and native), instead of showing "disconnected".
 - [ ] **Nicknames and player colours**: guests pick a name, and pieces locked by others are tinted in that player's colour instead of only dimmed.
@@ -64,3 +65,4 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] Sticky "+ Bag" button: pinned outside the scrolling chip row. `db8c605` `81573cd`
 - [x] Share and deep links: the room code shares/copies the web link; `puzzle://room/CODE` opens the room in the app. `31bf93b`..`488664d`
 - [x] Room settings: a gear (web header, iOS nav bar) opens a sheet with the table background, saved per device (localStorage / SecureStore). Web room layout now mirrors native: header, bags, table, controls. `913a7a3` `1efec85` `2494bb9`
+- [x] Room chrome: share, players (sheet with the player list and connection state) and settings as icons, in the iOS header and beside the web bag row; no room code, player count or "Solved" badges. Also fixes the native bottom bar overflow. `95d32f7` `673c082`
