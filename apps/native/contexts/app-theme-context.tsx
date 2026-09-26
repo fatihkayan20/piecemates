@@ -5,7 +5,7 @@ import { Uniwind, useUniwind } from "uniwind";
 type ThemeName = "light" | "dark";
 
 // Uniwind forgets a picked theme on restart, so it's saved on the device.
-const THEME_KEY = "puzzle-theme";
+const THEME_KEY = "piecemates-theme";
 void SecureStore.getItemAsync(THEME_KEY).then((saved) => {
 	if (saved === "light" || saved === "dark") Uniwind.setTheme(saved);
 });

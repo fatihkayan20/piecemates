@@ -66,7 +66,7 @@ export function usePixiBoard(
 			// Lets browser automation find pieces on screen during development.
 			if (import.meta.env.DEV)
 				Object.assign(window, {
-					__puzzle: { roomStore, world, pieces: () => pieces },
+					__piecemates: { roomStore, world, pieces: () => pieces },
 				});
 		})();
 

@@ -50,7 +50,7 @@ export const settingsStore = createStore<Settings>()(
 			haptics: true,
 		}),
 		{
-			name: "puzzle-settings",
+			name: "piecemates-settings",
 			storage: createJSONStorage(() => storage),
 			// Each app hands over its storage in loadSettings.
 			skipHydration: true,

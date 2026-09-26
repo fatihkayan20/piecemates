@@ -137,7 +137,7 @@ test("connection applies server messages and tracks status", () => {
 
 test("settings load from and save to the given storage", async () => {
 	const saved = new Map([
-		["puzzle-settings", JSON.stringify({ state: { background: "#111" } })],
+		["piecemates-settings", JSON.stringify({ state: { background: "#111" } })],
 	]);
 	await loadSettings({
 		getItem: (k) => saved.get(k) ?? null,
@@ -152,7 +152,7 @@ test("settings load from and save to the given storage", async () => {
 		"not a table colour",
 	);
 	setBackground("#14532d");
-	assert.match(saved.get("puzzle-settings") ?? "", /#14532d/);
+	assert.match(saved.get("piecemates-settings") ?? "", /#14532d/);
 });
 
 test("confetti starts across the width in every bag colour", () => {

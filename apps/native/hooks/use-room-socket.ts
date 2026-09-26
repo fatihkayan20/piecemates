@@ -21,7 +21,7 @@ export function useRoomSocket(code: string) {
 		});
 		// Lets device automation find pieces on screen during development.
 		if (__DEV__)
-			Object.assign(globalThis, { __puzzle: { roomStore, camera } });
+			Object.assign(globalThis, { __piecemates: { roomStore, camera } });
 		return () => {
 			closed = true;
 			if (conn) disconnectRoom(conn);
