@@ -1,16 +1,16 @@
-import { useSegments } from "expo-router";
+import { usePathname } from "expo-router";
 import { useEffect } from "react";
 
 import { trackScreen } from "@/lib/telemetry";
 
 /**
- * Sends a screen view on every route change, e.g. "/" or "/room/[code]"
- * (never the code itself; route groups like "(drawer)" are left out).
+ * Sends a screen view on every route change, as Expo Router's screen tracking
+ * guide does. Params are left out (they hold the room code), and the code in
+ * the path reaches PostHog as "/room/:code".
  */
 export function useScreenTracking() {
-	const path = useSegments().filter((s) => !s.startsWith("("));
-	const screen = `/${path.join("/")}`;
+	const pathname = usePathname();
 	useEffect(() => {
-		trackScreen(screen);
-	}, [screen]);
+		trackScreen(pathname);
+	}, [pathname]);
 }

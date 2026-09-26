@@ -14,7 +14,7 @@ import { ENV } from "../src/env";
 
 let posthog: PostHog | undefined;
 
-/** Records an Expo Router screen, e.g. "/room/[code]". */
+/** Records an Expo Router screen, e.g. "/" or "/room/:code". */
 export const trackScreen = (name: string) => posthog?.screen(name);
 
 /** Starts Sentry, and PostHog in production; each stays off without its key. */
