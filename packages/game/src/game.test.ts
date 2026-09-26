@@ -146,9 +146,9 @@ test("bag slots don't stack; a loose drop on the board stays in the bag", () => 
 		"next piece gets another slot",
 	);
 
-	// Trying a spot on the board isn't placing it: only joining a table piece is.
+	// Trying a wrong spot on the board isn't placing it.
 	apply(s, "a", { type: "lock", piece: 1 });
-	apply(s, "a", { type: "drop", piece: 1, x: 100, y: 0 });
+	apply(s, "a", { type: "drop", piece: 1, x: 100, y: 100 });
 	assert.equal(s.pieces[1]?.bag, "sky", "still in the bag");
 });
 
@@ -232,6 +232,9 @@ test("frame pieces stick to their spot on the board and leave their bag", () => 
 		[s.pieces[6]?.x, s.pieces[6]?.y, s.pieces[6]?.bag],
 		[0, 200, null],
 	);
+	assert.ok(apply(s, "a", { type: "bag:put", piece: 8, bag: "b" }));
+	drop(8, 200, 200); // exactly on its spot, so nothing moves
+	assert.equal(s.pieces[8]?.bag, null, "a placed piece leaves its bag too");
 });
 
 test("the clock only runs while someone is in an unsolved room", () => {

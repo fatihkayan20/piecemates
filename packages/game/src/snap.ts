@@ -91,8 +91,11 @@ export function snap(state: State, group: number) {
 			if (merged) break;
 		}
 	}
-	// Joined the puzzle: the whole group is on the table now.
+	// Joined the puzzle or sits in its spot: the whole group is on the table now.
 	const members = piecesInGroup(state, group);
-	if (stuck || members.some((p) => p.bag === null))
+	const placed = state.pieces.some(
+		(p, i) => p.group === group && isPlaced(state, i),
+	);
+	if (stuck || placed || members.some((p) => p.bag === null))
 		for (const p of members) p.bag = null;
 }
