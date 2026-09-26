@@ -4,12 +4,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useRoom } from "@/hooks/use-room";
 
+import { PlayTime } from "./play-time";
 import { ReferenceImage } from "./reference-image";
 
 /** Padding under the controls, on top of the home indicator inset. */
 const BOTTOM_GAP = 12;
 
-/** The reference image and Tidy, under the table. */
+/** Play time, the reference image and Tidy, under the table. */
 export function BoardControls({ room }: { room: RoomInfo }) {
 	const insets = useSafeAreaInsets();
 	const conn = useRoom((r) => r.conn);
@@ -19,6 +20,7 @@ export function BoardControls({ room }: { room: RoomInfo }) {
 			className="flex-row items-center justify-end gap-2 p-3"
 			style={{ paddingBottom: insets.bottom + BOTTOM_GAP }}
 		>
+			<PlayTime />
 			<ReferenceImage room={room} />
 			<Pressable
 				accessibilityRole="button"
