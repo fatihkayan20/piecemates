@@ -67,6 +67,13 @@ const empty: RoomSnapshot = {
 // One room is open at a time, so the store is a singleton; apps wrap it in a hook.
 export const roomStore = createStore<RoomSnapshot>(() => empty);
 
+const sameView = (a: PieceView, b: PieceView) =>
+	a.x === b.x &&
+	a.y === b.y &&
+	a.visible === b.visible &&
+	a.held === b.held &&
+	a.placed === b.placed;
+
 function snapshot(conn: RoomConnection, prev: RoomSnapshot) {
 	const state = conn.state;
 	if (!state) return { players: conn.players, status: conn.status };
@@ -74,12 +81,17 @@ function snapshot(conn: RoomConnection, prev: RoomSnapshot) {
 	const g = prev.grid;
 	const same = g?.rows === rows && g.cols === cols && g.w === w && g.h === h;
 	const grid = same ? g : { rows, cols, w, h };
-	const pieces = state.pieces.map((_, i) => ({
-		...conn.position(i),
-		visible: conn.visible(i),
-		held: lockedByOther(state, i, conn.me),
-		placed: isPlaced(state, i),
-	}));
+	// Unchanged pieces keep their object, so only moved pieces re-render.
+	const pieces = state.pieces.map((_, i) => {
+		const old = prev.pieces[i];
+		const next = {
+			...conn.position(i),
+			visible: conn.visible(i),
+			held: lockedByOther(state, i, conn.me),
+			placed: isPlaced(state, i),
+		};
+		return old && sameView(old, next) ? old : next;
+	});
 	const bags = Object.entries(state.bags).map(([id, bag]) => ({
 		...bag,
 		id,

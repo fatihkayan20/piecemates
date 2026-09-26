@@ -43,6 +43,11 @@ test("store mirrors the room; drags pick up, drop and settle", () => {
 		{ id: "sky", name: "Sky", color: "#38bdf8", count: 1 },
 	]);
 	assert.ok(canPickUp(conn, 0) && !canPickUp(conn, 3), "bagged piece hidden");
+	deliver({ type: "applied", by: "b", msg: { type: "lock", piece: 1 } });
+	const locked = roomStore.getState().pieces;
+	assert.equal(locked[0], snap.pieces[0], "untouched piece keeps its object");
+	assert.ok(locked[1]?.held && locked[1] !== snap.pieces[1]);
+	deliver({ type: "applied", by: "b", msg: { type: "unlock", piece: 1 } });
 
 	const drag = startDrag(0);
 	assert.ok(drag);
