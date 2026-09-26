@@ -3,6 +3,7 @@ export * from "./auth.ts";
 export * from "./bags.ts";
 export * from "./board-style.ts";
 export * from "./camera.ts";
+export * from "./camera-follow.ts";
 export * from "./confetti.ts";
 export * from "./debounce.ts";
 export * from "./drag.ts";

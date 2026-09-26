@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { createState, type ServerMsg } from "@piecemates/game";
 
 import {
+	type Camera,
 	canPickUp,
 	connectRoom,
 	DROP_TABLE,
@@ -11,6 +12,8 @@ import {
 	dropTargetAt,
 	endsDrag,
 	finishDrag,
+	fitCamera,
+	followRoom,
 	measureDropTargets,
 	registerDropTarget,
 	roomStore,
@@ -91,4 +94,58 @@ test("store mirrors the room; drags pick up, drop and settle", () => {
 
 	disconnectRoom(conn);
 	assert.equal(roomStore.getState().conn, null);
+});
+
+test("the camera starts, frames a bag, returns, and shows the win", () => {
+	const socket = {
+		readyState: WebSocket.OPEN,
+		send() {},
+		close() {},
+	} as unknown as WebSocket;
+	let camera: Camera = { x: 0, y: 0, scale: 1 };
+	const sets: Camera[] = [];
+	const viewport = { width: 800, height: 600 };
+	const unfollow = followRoom({
+		get: () => camera,
+		set: (c) => {
+			camera = c;
+			sets.push(c);
+		},
+		viewport: () => viewport,
+	});
+	const conn = connectRoom(socket);
+	const deliver = (msg: ServerMsg) =>
+		socket.onmessage?.({ data: JSON.stringify(msg) } as MessageEvent);
+	const state = createState({ seed: 1, rows: 2, cols: 2, w: 100, h: 100 });
+	deliver({ type: "state", state, you: "a" });
+	assert.equal(sets.length, 1, "start view");
+	const table = { ...camera, x: camera.x + 5 };
+	camera = table;
+
+	const bag = { bag: "sky", name: "Sky", color: "#38bdf8" };
+	deliver({ type: "applied", by: "a", msg: { type: "bag:create", ...bag } });
+	deliver({
+		type: "applied",
+		by: "a",
+		msg: { type: "bag:put", piece: 0, bag: "sky" },
+	});
+	conn.setView("sky");
+	assert.equal(camera.scale, 1.2, "one bag piece, framed at the capped zoom");
+	conn.setView(null);
+	assert.deepEqual(camera, table, "back where I was on the table");
+
+	const board = { x: 0, y: 0, width: 200, height: 200 };
+	for (const [piece, x, y] of [
+		[0, 0, 0],
+		[1, 100, 0],
+		[2, 0, 100],
+		[3, 100, 100],
+	] as const) {
+		deliver({ type: "applied", by: "a", msg: { type: "lock", piece } });
+		deliver({ type: "applied", by: "a", msg: { type: "drop", piece, x, y } });
+	}
+	assert.equal(roomStore.getState().status, "done");
+	assert.deepEqual(camera, fitCamera(board, viewport), "whole picture");
+	unfollow();
+	disconnectRoom(conn);
 });

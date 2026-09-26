@@ -10,15 +10,18 @@ import {
 	debounce,
 	fitCamera,
 	formatDuration,
+	frameCamera,
 	loadCues,
 	loadSettings,
 	makeConfetti,
+	pinchCamera,
 	RoomConnection,
 	type RoomEvent,
 	resizeCamera,
 	setBackground,
 	setHaptics,
 	settingsStore,
+	startCamera,
 	zoomAt,
 } from "./index.ts";
 
@@ -48,6 +51,45 @@ test("camera fits the table and zooms around a fixed point", () => {
 		near(panned.y, viewport.height - (bounds.y + bounds.height) * zoomed.scale),
 		"bottom edge at screen",
 	);
+});
+
+test("big rooms start zoomed in; frames and pinches keep pieces usable", () => {
+	const viewport = { width: 400, height: 800 };
+	const piece = { w: 100, h: 100 };
+	const small = createState({ seed: 1, rows: 2, cols: 2, ...piece });
+	const smallTable = tableRect(small);
+	const wide = { width: 800, height: 800 };
+	assert.deepEqual(
+		startCamera(smallTable, piece, wide),
+		fitCamera(smallTable, wide),
+		"a small room shows the whole table",
+	);
+	const big = createState({ seed: 1, rows: 26, cols: 38, ...piece });
+	const table = tableRect(big);
+	const start = startCamera(table, piece, viewport);
+	assert.equal(start.scale * piece.w, 40, "pieces start big enough to pick up");
+	assert.ok(
+		Math.abs(start.y + table.y * start.scale) < 1e-6,
+		"top of the pile",
+	);
+
+	const one = { x: 0, y: 0, width: 100, height: 100 };
+	assert.equal(frameCamera(one, piece, viewport).scale, 1.2, "capped zoom");
+
+	const from = { x: 100, y: 100 };
+	const to = { x: 150, y: 120 };
+	const pinched = pinchCamera(start, from, to, 2, table, viewport);
+	const under = (c: typeof start, p: typeof from) => ({
+		x: (p.x - c.x) / c.scale,
+		y: (p.y - c.y) / c.scale,
+	});
+	const a = under(start, from);
+	const b = under(pinched, to);
+	assert.ok(
+		Math.abs(a.x - b.x) + Math.abs(a.y - b.y) < 1e-9,
+		"the table point under the fingers stays under them",
+	);
+	assert.equal(pinched.scale, start.scale * 2);
 });
 
 test("connection applies server messages and tracks status", () => {
