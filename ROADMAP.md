@@ -4,6 +4,14 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Urgent or easy fixes Prio 1
 
+- [ ] **Before deploying Sentry and PostHog**:
+  - Server: set `SENTRY_DSN` where `alchemy deploy` runs (it's read into the Worker's bindings).
+  - Web: `VITE_SENTRY_DSN`, `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST=https://eu.i.posthog.com` and `SENTRY_AUTH_TOKEN` (uploads source maps on build) in the web build env.
+  - Native: `EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_POSTHOG_KEY`, `EXPO_PUBLIC_POSTHOG_HOST` and `SENTRY_AUTH_TOKEN` (EAS secret) for release builds.
+  - Make a new Sentry auth token; the current one was pasted in a chat.
+  - In PostHog, filter dashboards on `app = piecemates`; the project is shared with another app.
+  - Traces are kept at 100% (`TRACES_SAMPLE_RATE` in `@piecemates/telemetry`); lower it when traffic grows.
+
 ## Polish and user engagement features Prio 2
 
 - [ ] **i18n**: translations on web and native.
@@ -34,6 +42,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Accounts**: add email and social login in Better Auth. Guest data already moves to the real account through `onLinkAccount`.
 - [ ] **Portrait phones**: the table has one shape for everyone, so a landscape puzzle leaves empty space above and below on a portrait phone. Consider laying the pile out to suit portrait screens.
 - [ ] **Who is in which bag**: show on each bag chip which players are looking at it (a presence field).
+- [ ] **Count every room leave**: `room_left` fires when someone leaves inside the app (Home, Back), not when they close the tab or kill the app; send it on `pagehide` (with PostHog's beacon transport) and when the app goes to the background if that gap matters.
 - [ ] **Trace game moves**: a Sentry trace reaches the Worker over HTTP, but room socket messages carry no trace headers; send the trace with each move and start a span per message in the room if moves need tracing. Native also has no screen-change spans yet (`reactNavigationIntegration` with Expo Router's navigation ref).
 - [ ] **Performance at 1000 pieces**:
   - Native gestures run on the JS thread; move them to worklets if dragging stutters.
@@ -50,7 +59,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
-- [x] **PostHog and Sentry**: errors and 10% of traces go to Sentry (web, iOS, Worker and room), one trace from the client into the Worker; PostHog gets production events only, each stamped `app=piecemates` with platform, version and environment, plus `room_created`, `room_joined` and `puzzle_solved`. Settings live in `@piecemates/telemetry`. `4938451` `3e53dc0` `93c4332` `f83b9b8` `cba578b`
+- [x] **PostHog and Sentry**: every error and every trace go to Sentry (web, iOS, Worker and room), with one trace from the client into the Worker; 10% of errors come with a screen recording; API answers the user caused (4xx, e.g. a wrong room code) aren't reported. PostHog gets production events only, stamped `app=piecemates` with platform, version and environment, room codes hidden in URLs, players identified by user id: iOS screen views, `room_created`, `room_joined`, `puzzle_solved` (seconds, players), `room_left` (% placed), `room_shared`, `bag_created`. Settings live in `@piecemates/telemetry`. `4938451` `3e53dc0` `93c4332` `f83b9b8` `cba578b` `f25ade1` `2250ab2` `fe34566` `4e699f5`
 - [x] **AI playtest**: a 988-piece room solved across web and iOS. It found that iOS froze while pieces moved fast (every move re-rendered all pieces); now only moved pieces re-render. Other findings are listed above. `7c1d08f` `6dbc3e3`
 - [x] **Harder to guess room codes**: 8 characters from the 31-letter alphabet, without modulo bias. `3c4846c`
 - [x] **Dark and light theme**: board controls take the theme that reads on the picked table colour, whatever the app theme; the native theme choice is saved. `af6108c` `a75f1a0` `d286040` `d21e2a9` `e0a6c0b` `b52f3b2`
