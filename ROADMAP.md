@@ -4,16 +4,14 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Urgent or easy fixes Prio 1
 
-
 ## Polish and user engagement features Prio 2
 
-- [ ] **Sounds and haptics**: on piece placement, snaps and the win.
+- [ ] **Sounds and haptics**: on piece placement, snaps and the win, with Sounds and Haptics toggles in the settings sheet.
 - [ ] **Win celebration**: confetti over the board and a finished state when `isComplete` is true (the server already marks the room `done` in D1).
 - [ ] **Screen resize**: handle window and rotation changes on the board and other views, debounced.
-- [ ] **AI playtest**: play one large puzzle the way a person would, to find issues and improvements. An orchestrator starts two sub-agents, one driving iOS and one driving web, each with its own focus (e.g. bagging edge pieces vs. building the middle). They only get the app and what it does, and report back as users.
 - [ ] **Dark and light theme**: one global theme toggle; fix the views that don't follow it yet.
-- [ ] **Room settings**: a settings button and sheet on web and native for personal view options (e.g. background colour).
 - [ ] **PostHog, Sentry and i18n**: analytics and error reports tagged with app version, environment and platform; translations on web and native.
+- [ ] **AI playtest**: play one large puzzle the way a person would, to find issues and improvements. An orchestrator starts two sub-agents, one driving iOS and one driving web, each with its own focus (e.g. bagging edge pieces vs. building the middle). They only get the app and what it does, and report back as users.
 
 ## Game features Prio 3
 
@@ -29,6 +27,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 - [ ] **Universal links and app links**: `https://<web>/room/CODE` opens the app when it's installed. Needs the production web domain, an `apple-app-site-association` (with the Apple Team ID, a paid account) and `assetlinks.json` served from it, plus `associatedDomains` / `intentFilters` in `app.json`. Set `EXPO_PUBLIC_WEB_URL` for production builds.
 - [ ] **Bottom bar overflow on native**: a status note ("disconnected") pushes Tidy pile off screen.
+- [ ] **Settings gear on Android**: the room header uses `unstable_headerRightItems`, which is iOS only; add a `headerRight` gear for Android (TODO in `settings-header-item.tsx`).
 - [ ] **Replace `with-ios-scene.js`**: try `expo-build-properties` instead of the custom plugin.
 - [ ] **Reconnect**: the room socket reconnects on its own after a drop (web and native), instead of showing "disconnected".
 - [ ] **Nicknames and player colours**: guests pick a name, and pieces locked by others are tinted in that player's colour instead of only dimmed.
@@ -64,3 +63,4 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] Repo rules in `AGENTS.md`, enforced by biome and grit plugins; boards, bag bars and game rules split into small modules around a shared zustand room store. `fe11e50`..`673bbcc`
 - [x] Sticky "+ Bag" button: pinned outside the scrolling chip row. `db8c605` `81573cd`
 - [x] Share and deep links: the room code shares/copies the web link; `puzzle://room/CODE` opens the room in the app. `31bf93b`..`488664d`
+- [x] Room settings: a gear (web header, iOS nav bar) opens a sheet with the table background, saved per device (localStorage / SecureStore). Web room layout now mirrors native: header, bags, table, controls. `913a7a3` `1efec85` `2494bb9`
