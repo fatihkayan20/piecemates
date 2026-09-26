@@ -15,6 +15,7 @@ export const api = createApi({
 
 /** React Native's WebSocket takes headers as a third argument, so the socket can authenticate. */
 export async function openRoomSocket(code: string) {
+	// biome-ignore lint/plugin: the DOM WebSocket type lacks React Native's headers argument.
 	const NativeWebSocket = WebSocket as unknown as new (
 		url: string,
 		protocols: undefined,
