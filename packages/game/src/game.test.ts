@@ -11,6 +11,7 @@ import {
 	piecePath,
 	tableRect,
 	tidyPositions,
+	visibleIn,
 } from "./index.ts";
 
 test("neighbouring edges interlock and borders are flat", () => {
@@ -74,19 +75,57 @@ test("locks, drop, snap, completion", () => {
 	assert.ok(isComplete(s));
 });
 
-test("leave releases locks; bags hold single pieces", () => {
+test("leave releases locks", () => {
 	const s = createState({ seed: 7, rows: 2, cols: 2, w: 10, h: 10 });
 	apply(s, "a", { type: "lock", piece: 3 });
 	apply(s, "a", { type: "leave" });
 	assert.deepEqual(s.locks, {});
+});
 
-	assert.ok(apply(s, "a", { type: "bag:create", bag: "edges", name: "Edges" }));
-	assert.ok(apply(s, "a", { type: "bag:put", bag: "edges", pieces: [0, 1] }));
-	assert.equal(s.pieces[0]?.bag, "edges");
+test("bags keep their groups and hand them to the puzzle on snap", () => {
+	const s = createState({ seed: 5, rows: 2, cols: 2, w: 100, h: 100 });
+	const bag = { bag: "sky", name: "Sky", color: "#38bdf8" };
+	assert.ok(apply(s, "a", { type: "bag:create", ...bag }));
+	assert.equal(apply(s, "a", { type: "bag:create", ...bag }), false, "twice");
 	assert.equal(
-		apply(s, "a", { type: "bag:put", bag: "nope", pieces: [2] }),
+		apply(s, "a", { type: "bag:put", piece: 0, bag: "nope" }),
 		false,
+		"unknown bag",
 	);
+
+	assert.ok(apply(s, "a", { type: "bag:put", piece: 0, bag: "sky" }));
+	assert.ok(apply(s, "a", { type: "bag:put", piece: 1, bag: "sky" }));
+	assert.ok(!visibleIn(s, null).has(0), "hidden on the table");
+	assert.deepEqual([...visibleIn(s, "sky")], [0, 1]);
+
+	// Join 0 and 1 inside the bag: they stay in it.
+	const p0 = s.pieces[0] as { x: number; y: number };
+	apply(s, "a", { type: "lock", piece: 1 });
+	apply(s, "a", { type: "drop", piece: 1, x: p0.x + 100, y: p0.y });
+	assert.equal(s.pieces[1]?.group, s.pieces[0]?.group);
+	assert.equal(s.pieces[1]?.bag, "sky", "a drop keeps the bag");
+
+	// Piece 2 on the board is part of the puzzle, so the bag view shows it.
+	apply(s, "b", { type: "lock", piece: 2 });
+	apply(s, "b", { type: "drop", piece: 2, x: 0, y: 100 });
+	assert.ok(visibleIn(s, "sky").has(2));
+	assert.ok(!visibleIn(s, "sky").has(3), "loose table pieces hidden");
+	apply(s, "a", { type: "lock", piece: 0 });
+	apply(s, "a", { type: "drop", piece: 0, x: 0, y: 0 });
+	assert.deepEqual(
+		s.pieces.slice(0, 3).map((p) => p.bag),
+		[null, null, null],
+		"joined the puzzle",
+	);
+
+	// Out of a bag and back: a lone piece lands in a free pile slot.
+	apply(s, "a", { type: "bag:put", piece: 3, bag: "sky" });
+	assert.ok(apply(s, "a", { type: "bag:put", piece: 3, bag: null }));
+	assert.equal(s.pieces[3]?.touched, false);
+	apply(s, "a", { type: "bag:put", piece: 3, bag: "sky" });
+	assert.ok(apply(s, "a", { type: "bag:delete", bag: "sky" }));
+	assert.equal(s.pieces[3]?.bag, null, "delete empties the bag");
+	assert.deepEqual(s.bags, {});
 });
 
 test("protocol rejects bad input", () => {
@@ -134,8 +173,8 @@ test("pile rings the board, drops stay on the table, tidy is stable", () => {
 	assert.equal(p7?.y, t.y, "clamped to the top edge");
 
 	const at = (i: number) => s.pieces[i] as { x: number; y: number };
-	const once = tidyPositions(s, at);
+	const once = tidyPositions(s, null, at);
 	assert.ok(!once.has(7), "touched pieces stay put");
-	const twice = tidyPositions(s, (i) => once.get(i) ?? at(i));
+	const twice = tidyPositions(s, null, (i) => once.get(i) ?? at(i));
 	assert.deepEqual([...twice], [...once], "tidying again changes nothing");
 });

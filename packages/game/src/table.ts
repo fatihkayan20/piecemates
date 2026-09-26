@@ -79,24 +79,40 @@ export const pileSlots = (state: State) => layout(state).slots;
 /** The whole playing area in table units. Drops are kept inside it. */
 export const tableRect = (state: State) => layout(state).table;
 
-/** Pieces a tidy may move: untouched, not bagged, not held. */
-export const inPile = (state: State, index: number) => {
+/** Pieces a tidy may move in a view (null = the table): untouched, in that view, not held. */
+export const inPile = (state: State, index: number, view: string | null) => {
 	const piece = state.pieces[index];
 	return (
 		!!piece &&
 		!piece.touched &&
-		piece.bag === null &&
+		piece.bag === view &&
 		state.locks[piece.group] === undefined
 	);
 };
 
+/** First pile slot in a view that no other loose piece of that view sits in. */
+export function freeSlot(
+	state: State,
+	view: string | null,
+	except: Point,
+): Point {
+	const slots = pileSlots(state);
+	const taken = new Set(
+		state.pieces
+			.filter((p) => p !== except && p.bag === view && !p.touched)
+			.map((p) => `${p.x},${p.y}`),
+	);
+	return slots.find((s) => !taken.has(`${s.x},${s.y}`)) ?? (slots[0] as Point);
+}
+
 /**
- * New positions for pile pieces: packed into the first free slots, keeping
+ * New positions for a view's pile pieces: packed into the first free slots, keeping
  * their order around the rings (so tidying twice changes nothing). Pieces not
  * sitting in a slot, e.g. from an older layout, go after the others.
  */
 export function tidyPositions(
 	state: State,
+	view: string | null,
 	positionOf: (index: number) => Point,
 ): Map<number, Point> {
 	const slots = pileSlots(state);
@@ -107,7 +123,7 @@ export function tidyPositions(
 	};
 	const pile = state.pieces
 		.map((_, i) => i)
-		.filter((i) => inPile(state, i))
+		.filter((i) => inPile(state, i, view))
 		.sort((a, b) => {
 			const pa = positionOf(a);
 			const pb = positionOf(b);
