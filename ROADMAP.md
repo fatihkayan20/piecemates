@@ -1,20 +1,37 @@
 # Roadmap
 
-Keep this updated as work lands. Move items to **Done** with the commit that shipped them.
+Keep this updated as work lands. Move items to **Done** with the commit that shipped them. New ideas start in `todo.md` and are synced here under the same section titles.
 
-## Next
+## Urgent or easy fixes Prio 1
 
+- [ ] **Sticky "+ Bag" button**: pin the create-bag button so it doesn't scroll out of sight behind many bags.
+- [ ] **Share and deep links**: a share action for the room link; `puzzle://room/CODE` and web links (`/room/CODE`) open the room in the app when it's installed (universal links / app links), or on the web otherwise.
+
+## Polish and user engagement features Prio 2
+
+- [ ] **Sounds and haptics**: on piece placement, snaps and the win.
+- [ ] **Win celebration**: confetti over the board and a finished state when `isComplete` is true (the server already marks the room `done` in D1).
+- [ ] **Screen resize**: handle window and rotation changes on the board and other views, debounced.
+- [ ] **AI playtest**: play one large puzzle the way a person would, to find issues and improvements. An orchestrator starts two sub-agents, one driving iOS and one driving web, each with its own focus (e.g. bagging edge pieces vs. building the middle). They only get the app and what it does, and report back as users.
+- [ ] **Dark and light theme**: one global theme toggle; fix the views that don't follow it yet.
 - [ ] **Room settings**: a settings button and sheet on web and native for personal view options (e.g. background colour).
-- [ ] **Replace `with-ios-scene.js`**: try `expo-build-properties` instead of the custom plugin.
-- [ ] **Photo upload**: `POST /uploads` returns a direct upload URL for R2. The client resizes to about 2048px first (canvas on web, `expo-image-manipulator` on native). Add the R2 host to `ALLOWED_IMAGE_HOSTS` in `apps/server/src/index.ts`.
-- [ ] **Unsplash search**: a server route `GET /images/search` keeps the API key server-side and handles attribution plus the required download-tracking call. Replaces the hardcoded sample images on both home screens.
+- [ ] **PostHog, Sentry and i18n**: analytics and error reports tagged with app version, environment and platform; translations on web and native.
+
+## Game features Prio 3
+
+- [ ] **History**: completed and expired rooms with friends' names, duration and date. No image, since images get cleaned up to keep costs down. Built on `room_players` in D1 (this also covers resuming unfinished rooms).
+- [ ] **Upload limits**: room creation with uploads is free for now but will be paid later; limit it and make sure anonymous logins can't be used to get around the limit.
+  - **Photo upload**: `POST /uploads` returns a direct upload URL for R2. The client resizes to about 2048px first (canvas on web, `expo-image-manipulator` on native). Add the R2 host to `ALLOWED_IMAGE_HOSTS` in `apps/server/src/index.ts`.
+- [ ] **Better home screen and room creation**: image lists by category (e.g. today's selection), and room creation in a sheet instead of inline.
+  - **Unsplash search**: a server route `GET /images/search` keeps the API key server-side and handles attribution plus the required download-tracking call.
+- [ ] **Stale data cleanup**: a background job removes expired rooms and their images.
+- [ ] **Project diagram**: one detailed Mermaid diagram of the whole project (packages, apps, data flow, room lifecycle), for planning and for picking the project back up later.
 
 ## Later
 
+- [ ] **Replace `with-ios-scene.js`**: try `expo-build-properties` instead of the custom plugin.
 - [ ] **Reconnect**: the room socket reconnects on its own after a drop (web and native), instead of showing "disconnected".
 - [ ] **Nicknames and player colours**: guests pick a name, and pieces locked by others are tinted in that player's colour instead of only dimmed.
-- [ ] **"My puzzles" list**: rooms I created or joined, via `room_players` in D1, so I can resume them.
-- [ ] **Completion**: show a finished state and celebration when `isComplete` is true (the server already marks the room `done` in D1).
 - [ ] **Accounts**: add email and social login in Better Auth. Guest data already moves to the real account through `onLinkAccount`.
 - [ ] **Portrait phones**: the table has one shape for everyone, so a landscape puzzle leaves empty space above and below on a portrait phone. Consider laying the pile out to suit portrait screens.
 - [ ] **Who is in which bag**: show on each bag chip which players are looking at it (a presence field).
