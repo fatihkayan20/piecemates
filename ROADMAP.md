@@ -44,3 +44,4 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] Sticky edges: a frame piece dropped near its spot on the board sticks there with its group; a bag piece that sticks leaves its bag. `d575c83`
 - [x] Placed pieces are fixed: a group in its correct spot can't be picked up or bagged; grabbing it pans the camera. `6935266`
 - [x] Reference image: an Image button opens the full picture in a popup (shadcn dialog on web, fading modal on native). `d93ac75` `88fd227`
+- [x] Repo rules in `AGENTS.md`, enforced by biome and grit plugins; boards, bag bars and game rules split into small modules around a shared zustand room store. `fe11e50`..`673bbcc`
