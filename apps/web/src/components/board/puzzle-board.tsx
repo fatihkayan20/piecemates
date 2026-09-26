@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { BagBar } from "@/components/bags/bag-bar";
 import { Confetti } from "@/components/win/confetti";
 import { SolvedBar } from "@/components/win/solved-bar";
+import { WinCat } from "@/components/win/win-cat";
 import { usePixiBoard } from "@/hooks/use-pixi-board";
 import { useRoom } from "@/hooks/use-room";
 import { useSettings } from "@/hooks/use-settings";
@@ -32,6 +33,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 			<div ref={host} className="relative min-h-0 flex-1 overflow-hidden" />
 			{solved ? <SolvedBar /> : <BoardControls room={room} />}
 			{solved && <Confetti />}
+			{solved && <WinCat />}
 		</div>
 	);
 }
