@@ -5,7 +5,7 @@ import {
 	apply,
 	ClientMsg,
 	createState,
-	generate,
+	generateEdges,
 	gridOptions,
 	isComplete,
 	piecePath,
@@ -14,8 +14,8 @@ import {
 test("neighbouring edges interlock and borders are flat", () => {
 	const rows = 3;
 	const cols = 4;
-	const e = generate(42, rows, cols);
-	assert.deepEqual(e, generate(42, rows, cols), "deterministic");
+	const e = generateEdges(42, rows, cols);
+	assert.deepEqual(e, generateEdges(42, rows, cols), "deterministic");
 	for (let r = 0; r < rows; r++) {
 		for (let c = 0; c < cols; c++) {
 			const [top, right, bottom, left] = e[r * cols + c] ?? [];

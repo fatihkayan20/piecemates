@@ -7,13 +7,12 @@ import {
 	ClientMsg,
 	createState,
 	isComplete,
+	MAX_PLAYERS,
 	type Player,
 	type ServerMsg,
 	type State,
 } from "@puzzle/game";
 import { eq } from "drizzle-orm";
-
-export const MAX_PLAYERS = 4;
 
 /**
  * One instance per room code. Holds the sockets (hibernatable, so an idle room
