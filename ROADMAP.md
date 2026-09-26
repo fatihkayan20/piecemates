@@ -6,7 +6,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Polish and user engagement features Prio 2
 
-- [ ] **PostHog, Sentry and i18n**: analytics and error reports tagged with app version, environment and platform; translations on web and native.
+- [ ] **i18n**: translations on web and native.
 - [ ] **Big puzzles on small screens**: a 988-piece room opens with pieces about 11px wide on web and 4-5px on iPhone; start zoomed in enough to pick one up.
 - [ ] **Bag view frames its pieces**: opening a bag leaves the camera where it was, so a bag's few pieces can be dots in a corner.
 - [ ] **Fit the picture on win**: when the puzzle is solved, zoom out so the whole image shows (iOS stays where you were and cuts it off).
@@ -34,6 +34,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Accounts**: add email and social login in Better Auth. Guest data already moves to the real account through `onLinkAccount`.
 - [ ] **Portrait phones**: the table has one shape for everyone, so a landscape puzzle leaves empty space above and below on a portrait phone. Consider laying the pile out to suit portrait screens.
 - [ ] **Who is in which bag**: show on each bag chip which players are looking at it (a presence field).
+- [ ] **Trace game moves**: a Sentry trace reaches the Worker over HTTP, but room socket messages carry no trace headers; send the trace with each move and start a span per message in the room if moves need tracing. Native also has no screen-change spans yet (`reactNavigationIntegration` with Expo Router's navigation ref).
 - [ ] **Performance at 1000 pieces**:
   - Native gestures run on the JS thread; move them to worklets if dragging stutters.
   - Skia re-records all 988 pieces on the JS thread for every change (about 200ms in dev). Normal play is fine, but a sustained burst of about 11 placed pieces a second still backs iOS up.
@@ -49,6 +50,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
+- [x] **PostHog and Sentry**: errors and 10% of traces go to Sentry (web, iOS, Worker and room), one trace from the client into the Worker; PostHog gets production events only, each stamped `app=piecemates` with platform, version and environment, plus `room_created`, `room_joined` and `puzzle_solved`. Settings live in `@piecemates/telemetry`. `4938451` `3e53dc0` `93c4332` `f83b9b8` `cba578b`
 - [x] **AI playtest**: a 988-piece room solved across web and iOS. It found that iOS froze while pieces moved fast (every move re-rendered all pieces); now only moved pieces re-render. Other findings are listed above. `7c1d08f` `6dbc3e3`
 - [x] **Harder to guess room codes**: 8 characters from the 31-letter alphabet, without modulo bias. `3c4846c`
 - [x] **Dark and light theme**: board controls take the theme that reads on the picked table colour, whatever the app theme; the native theme choice is saved. `af6108c` `a75f1a0` `d286040` `d21e2a9` `e0a6c0b` `b52f3b2`
