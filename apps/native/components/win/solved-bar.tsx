@@ -1,0 +1,30 @@
+import { Ionicons } from "@expo/vector-icons";
+import { formatDuration } from "@puzzle/client";
+import { Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { withUniwind } from "uniwind";
+
+import { useElapsed } from "@/hooks/use-elapsed";
+
+const StyledIonicons = withUniwind(Ionicons);
+/** Padding under the bar, on top of the home indicator inset (matches the controls). */
+const BOTTOM_GAP = 12;
+const ICON_SIZE = 20;
+
+/** Takes the place of the controls once the puzzle is done. */
+export function SolvedBar() {
+	const insets = useSafeAreaInsets();
+	const ms = useElapsed();
+
+	return (
+		<View
+			className="flex-row items-center justify-center gap-2 p-3"
+			style={{ paddingBottom: insets.bottom + BOTTOM_GAP }}
+		>
+			<StyledIonicons name="trophy" size={ICON_SIZE} className="text-white" />
+			<Text className="font-medium text-white">
+				Solved in {formatDuration(ms)}
+			</Text>
+		</View>
+	);
+}
