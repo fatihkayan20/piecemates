@@ -1,7 +1,3 @@
 {
-  "extends": "@puzzle/config/tsconfig.base.json",
-  "compilerOptions": {
-    "noEmit": true,
-    "allowImportingTsExtensions": true
-  }
+  "extends": "@puzzle/config/tsconfig.base.json"
 }
