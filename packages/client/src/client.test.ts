@@ -146,7 +146,9 @@ test("settings load from and save to the given storage", async () => {
 	});
 	assert.equal(settingsStore.getState().background, "#111");
 	setBackground("#222");
-	assert.match(saved.get("puzzle-settings") ?? "", /#222/);
+	assert.equal(settingsStore.getState().background, "#111", "not a table colour");
+	setBackground("#14532d");
+	assert.match(saved.get("puzzle-settings") ?? "", /#14532d/);
 });
 
 test("confetti starts across the width in every bag colour", () => {
