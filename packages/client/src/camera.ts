@@ -65,3 +65,28 @@ export function clampCamera(
 		y: axis(camera.y, table.y, table.height, viewport.height),
 	};
 }
+
+/**
+ * Follows a viewport resize: keeps the table point at the screen centre and
+ * the zoom relative to the whole-table fit, then keeps the table on screen.
+ */
+export function resizeCamera(
+	camera: Camera,
+	table: Rect,
+	from: Viewport,
+	to: Viewport,
+): Camera {
+	const scale =
+		(camera.scale * fitCamera(table, to).scale) / fitCamera(table, from).scale;
+	const centreX = (from.width / 2 - camera.x) / camera.scale;
+	const centreY = (from.height / 2 - camera.y) / camera.scale;
+	return clampCamera(
+		{
+			scale,
+			x: to.width / 2 - centreX * scale,
+			y: to.height / 2 - centreY * scale,
+		},
+		table,
+		to,
+	);
+}

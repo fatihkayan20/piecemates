@@ -14,6 +14,7 @@ import {
 	makeConfetti,
 	RoomConnection,
 	type RoomEvent,
+	resizeCamera,
 	setBackground,
 	setHaptics,
 	settingsStore,
@@ -152,4 +153,27 @@ test("confetti starts across the width in every bag colour", () => {
 	assert.equal(pieces.length, CONFETTI_COUNT);
 	assert.ok(pieces.every((p) => p.x >= 0 && p.x <= 1 && p.duration > 0));
 	assert.equal(new Set(pieces.map((p) => p.color)).size, 6);
+});
+
+test("a resize keeps the zoom and the centre point", () => {
+	const state = createState({ seed: 1, rows: 2, cols: 2, w: 100, h: 100 });
+	const bounds = tableRect(state);
+	const big = { width: 800, height: 600 };
+	const small = { width: 400, height: 300 };
+	const fitted = fitCamera(bounds, big);
+	const refit = resizeCamera(fitted, bounds, big, small);
+	assert.deepEqual(
+		refit,
+		fitCamera(bounds, small),
+		"a fitted table stays fitted",
+	);
+
+	const zoomed = zoomAt(fitted, 400, 300, 2, bounds, big);
+	const moved = resizeCamera(zoomed, bounds, big, small);
+	const near = (a: number, b: number) => Math.abs(a - b) < 1e-6;
+	assert.ok(near(moved.scale, refit.scale * 2), "zoom kept relative to fit");
+	assert.ok(
+		near((200 - moved.x) / moved.scale, (400 - zoomed.x) / zoomed.scale),
+		"centre point kept",
+	);
 });
