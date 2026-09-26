@@ -1,11 +1,16 @@
-import { BottomSheet, Host, Text, VStack } from "@expo/ui/swift-ui";
+import { BottomSheet, Host, Text, Toggle, VStack } from "@expo/ui/swift-ui";
 import {
 	font,
 	foregroundStyle,
 	padding,
 	presentationDragIndicator,
 } from "@expo/ui/swift-ui/modifiers";
-import { BACKGROUNDS, setBackground } from "@puzzle/client";
+import {
+	BACKGROUNDS,
+	setBackground,
+	setHaptics,
+	setSounds,
+} from "@puzzle/client";
 import { useState } from "react";
 
 import { ColorSwatches } from "@/components/bags/color-swatches";
@@ -16,6 +21,8 @@ const SHEET = { spacing: 16, padding: 24, titleSize: 20 };
 /** My own view settings, saved on this device. */
 export function SettingsSheet({ onClose }: { onClose: () => void }) {
 	const background = useSettings((s) => s.background);
+	const sounds = useSettings((s) => s.sounds);
+	const haptics = useSettings((s) => s.haptics);
 	const [open, setOpen] = useState(true);
 
 	return (
@@ -45,6 +52,8 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
 						value={background}
 						onChange={setBackground}
 					/>
+					<Toggle label="Sounds" isOn={sounds} onIsOnChange={setSounds} />
+					<Toggle label="Haptics" isOn={haptics} onIsOnChange={setHaptics} />
 				</VStack>
 			</BottomSheet>
 		</Host>

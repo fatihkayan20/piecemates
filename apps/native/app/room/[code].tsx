@@ -6,12 +6,14 @@ import { ActivityIndicator, Text, View } from "react-native";
 import { PuzzleBoard } from "@/components/board/puzzle-board";
 import { RoomHeaderItems } from "@/components/board/room-header-items";
 import { api } from "@/lib/api";
+import { loadNativeCues } from "@/lib/cues";
 
 export default function RoomScreen() {
 	const { code } = useLocalSearchParams<{ code: string }>();
 	const [room, setRoom] = useState<RoomInfo>();
 	const [error, setError] = useState<string>();
 
+	useEffect(loadNativeCues, []);
 	useEffect(() => {
 		api.getRoom(code).then(setRoom, (e: Error) => setError(e.message));
 	}, [code]);
