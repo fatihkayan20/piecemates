@@ -18,8 +18,13 @@ export const authClient = createAuthClient({
   ],
 });
 
-/** Every player gets a user id; guests are signed in silently. */
-export async function ensureSession() {
-  const { data } = await authClient.getSession();
-  if (!data) await authClient.signIn.anonymous();
+let ready: Promise<void> | undefined;
+
+/** Every player gets a user id; guests are signed in silently. Safe to await anywhere. */
+export function ensureSession() {
+  ready ??= (async () => {
+    const { data } = await authClient.getSession();
+    if (!data) await authClient.signIn.anonymous();
+  })();
+  return ready;
 }
