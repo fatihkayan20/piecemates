@@ -1,20 +1,37 @@
-import { BottomSheet, Host, Text, VStack } from "@expo/ui/swift-ui";
 import {
+	BottomSheet,
+	Host,
+	HStack,
+	ShareLink,
+	Text,
+	VStack,
+} from "@expo/ui/swift-ui";
+import {
+	accessibilityLabel,
 	font,
 	foregroundStyle,
 	frame,
+	labelStyle,
 	padding,
 	presentationDragIndicator,
 } from "@expo/ui/swift-ui/modifiers";
+import { roomUrl } from "@puzzle/client";
 import { MAX_PLAYERS } from "@puzzle/game";
 import { useState } from "react";
 
 import { useRoom } from "@/hooks/use-room";
+import { ENV } from "@/src/env";
 
 const SHEET = { spacing: 12, padding: 24, titleSize: 20 };
 
-/** Who is in the room, and my connection if it isn't live. */
-export function PlayersSheet({ onClose }: { onClose: () => void }) {
+/** Who is in the room, its share link, and my connection if it isn't live. */
+export function PlayersSheet({
+	code,
+	onClose,
+}: {
+	code: string;
+	onClose: () => void;
+}) {
 	const players = useRoom((r) => r.players);
 	const me = useRoom((r) => r.conn?.me);
 	const status = useRoom((r) => r.status);
@@ -38,11 +55,20 @@ export function PlayersSheet({ onClose }: { onClose: () => void }) {
 						presentationDragIndicator("visible"),
 					]}
 				>
-					<Text
-						modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
-					>
-						{`Players ${players.length} / ${MAX_PLAYERS}`}
-					</Text>
+					<HStack spacing={SHEET.spacing}>
+						<Text
+							modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
+						>
+							{`Players ${players.length} / ${MAX_PLAYERS}`}
+						</Text>
+						<ShareLink
+							item={roomUrl(ENV.EXPO_PUBLIC_WEB_URL, code)}
+							modifiers={[
+								labelStyle("iconOnly"),
+								accessibilityLabel("Share room link"),
+							]}
+						/>
+					</HStack>
 					{(status === "connecting" || status === "disconnected") && (
 						<Text modifiers={[foregroundStyle("secondary")]}>
 							{`You are ${status}.`}

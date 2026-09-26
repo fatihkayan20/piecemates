@@ -1,16 +1,12 @@
-import { roomUrl } from "@puzzle/client";
 import { Stack } from "expo-router";
 import { useState } from "react";
-import { Share } from "react-native";
-
-import { ENV } from "@/src/env";
 
 import { PlayersSheet } from "./players-sheet";
 import { SettingsSheet } from "./settings-sheet";
 
 type Sheet = "players" | "settings";
 
-/** Share, players and settings in the screen's header, and the sheets they open. */
+/** Players and settings in the screen's header, and the sheets they open. */
 export function RoomHeaderItems({ code }: { code: string }) {
 	const [sheet, setSheet] = useState<Sheet>();
 	const close = () => setSheet(undefined);
@@ -21,15 +17,6 @@ export function RoomHeaderItems({ code }: { code: string }) {
 				options={{
 					// TODO(android): unstable_headerRightItems is iOS only; add headerRight buttons for Android.
 					unstable_headerRightItems: () => [
-						{
-							type: "button",
-							label: "Share room link",
-							icon: { type: "sfSymbol", name: "square.and.arrow.up" },
-							onPress: () =>
-								Share.share({
-									message: roomUrl(ENV.EXPO_PUBLIC_WEB_URL, code),
-								}),
-						},
 						{
 							type: "button",
 							label: "Players",
@@ -46,7 +33,7 @@ export function RoomHeaderItems({ code }: { code: string }) {
 				}}
 			/>
 			{sheet === "settings" && <SettingsSheet onClose={close} />}
-			{sheet === "players" && <PlayersSheet onClose={close} />}
+			{sheet === "players" && <PlayersSheet code={code} onClose={close} />}
 		</>
 	);
 }
