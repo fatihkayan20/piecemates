@@ -4,7 +4,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Next
 
-- [ ] **Sticky edges**: pieces snap to their correct spot on the board frame, not only to neighbours, so the finished puzzle fits the board area. A bag piece that sticks to the frame counts as placed and leaves its bag, like one that snaps to a table piece.
 - [ ] **Reference image button**: show the full image to help solve the puzzle (overlay or popup, web and native).
 - [ ] **Unsplash search**: a server route `GET /images/search` keeps the API key server-side and handles attribution plus the required download-tracking call. Replaces the hardcoded sample images on both home screens.
 - [ ] **Room settings**: a settings button and sheet on web and native for personal view options (e.g. background colour).
@@ -43,3 +42,4 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [x] Shared `@puzzle/client` package (API, session, room connection, camera) and clearer names across game, web and native. `13cfea8`…`90e4917`
 - [x] Table with the pile around the board, drops kept on the table, zoom and pan limits, local-only tidy. `221299e`…`f28ef01`
 - [x] Bags: a shared bag bar on web and iOS, drop a piece or group on a bag, a per-device bag view (the bag plus the puzzle so far), groups kept inside bags, take-out zone, create/edit sheet (shadcn on web, Expo UI on iOS). `00f3463`…`5d391c1`
+- [x] Sticky edges: a frame piece dropped near its spot on the board sticks there with its group; a bag piece that sticks leaves its bag. `d575c83`
