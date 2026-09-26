@@ -5,10 +5,13 @@ import {
 	apply,
 	ClientMsg,
 	createState,
+	elapsed,
 	generateEdges,
 	gridOptions,
 	isComplete,
+	pause,
 	piecePath,
+	resume,
 	tableRect,
 	tidyPositions,
 	visibleIn,
@@ -229,4 +232,23 @@ test("frame pieces stick to their spot on the board and leave their bag", () => 
 		[s.pieces[6]?.x, s.pieces[6]?.y, s.pieces[6]?.bag],
 		[0, 200, null],
 	);
+});
+
+test("the clock only runs while someone is in an unsolved room", () => {
+	const s = createState({ seed: 1, rows: 1, cols: 2, w: 100, h: 100 });
+	resume(s, 1000);
+	resume(s, 1500); // a second player joining doesn't restart it
+	assert.equal(elapsed(s.clock, 3000), 2000, "running");
+	pause(s, 3000);
+	pause(s, 9000); // already paused
+	assert.equal(elapsed(s.clock, 9000), 2000, "paused");
+	resume(s, 10000);
+	for (const piece of [0, 1]) {
+		assert.ok(apply(s, "a", { type: "lock", piece }));
+		assert.ok(apply(s, "a", { type: "drop", piece, x: piece * 100, y: 0 }));
+	}
+	assert.ok(isComplete(s));
+	pause(s, 10500);
+	resume(s, 20000); // solved rooms stay stopped
+	assert.equal(elapsed(s.clock, 30000), 2500, "solved");
 });

@@ -23,7 +23,16 @@ export function createState(opts: {
 		bag: null,
 		touched: false,
 	}));
-	const state: State = { rows, cols, w, h, pieces, locks: {}, bags: {} };
+	const state: State = {
+		rows,
+		cols,
+		w,
+		h,
+		pieces,
+		locks: {},
+		bags: {},
+		clock: { played: 0, since: null },
+	};
 	// Shuffle the pieces into the pile slots around the board.
 	const order = pieces.map((_, i) => i);
 	for (let i = order.length - 1; i > 0; i--) {

@@ -1,4 +1,5 @@
 export * from "./apply.ts";
+export * from "./clock.ts";
 export * from "./messages.ts";
 export * from "./shape.ts";
 export * from "./state.ts";

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { BAG_NAME_MAX, type Player, type State } from "./types.ts";
+import { BAG_NAME_MAX, type Clock, type Player, type State } from "./types.ts";
 
 /** Long enough for any CSS colour we pick, e.g. "#38bdf8" or "rgb(…)". */
 const COLOR_MAX = 20;
@@ -39,4 +39,5 @@ export type ServerMsg =
 	| { type: "state"; state: State; you: string }
 	| { type: "applied"; by: string; msg: Msg }
 	| { type: "rejected"; msg: ClientMsg }
-	| { type: "presence"; players: Player[] };
+	| { type: "presence"; players: Player[] }
+	| { type: "clock"; clock: Clock };

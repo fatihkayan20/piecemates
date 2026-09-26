@@ -22,6 +22,14 @@ export type Piece = {
 
 export type Bag = { name: string; color: string };
 
+/** Play time, kept by the server. It only runs while someone is in the room. */
+export type Clock = {
+	/** ms played before `since`. */
+	played: number;
+	/** Server time (ms) the current run started, or null while paused. */
+	since: number | null;
+};
+
 export type State = {
 	rows: number;
 	cols: number;
@@ -33,6 +41,7 @@ export type State = {
 	locks: Record<number, string>;
 	/** bag id -> bag */
 	bags: Record<string, Bag>;
+	clock: Clock;
 };
 
 export type Player = { id: string; name: string };
