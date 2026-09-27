@@ -32,8 +32,12 @@ export class Room extends DurableObject<Env> {
 		ctx.blockConcurrencyWhile(async () => {
 			this.code = (await ctx.storage.get<string>("code")) ?? "";
 			this.state = await ctx.storage.get<State>("state");
-			// Rooms made before the clock existed.
-			if (this.state) this.state.clock ??= { played: 0, since: null };
+			// Rooms made before the clock and rotation existed.
+			if (this.state) {
+				this.state.clock ??= { played: 0, since: null };
+				this.state.rotate ??= false;
+				for (const p of this.state.pieces) p.rot ??= 0;
+			}
 		});
 	}
 
@@ -44,6 +48,7 @@ export class Room extends DurableObject<Env> {
 		cols: number;
 		w: number;
 		h: number;
+		rotate: boolean;
 	}) {
 		if (this.state) return;
 		const { code, ...rest } = opts;

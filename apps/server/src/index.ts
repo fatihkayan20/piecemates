@@ -12,7 +12,7 @@ import { ENV } from "./env.server";
 import { STATUS } from "./http";
 import { Room as RoomObject } from "./room";
 import { sentryFor } from "./sentry";
-import { createAuth, getDb } from "./services";
+import { getAuth, getDb } from "./services";
 
 export const Room = Sentry.instrumentDurableObjectWithSentry(
 	sentryFor,
@@ -41,7 +41,7 @@ app.onError((error, c) => {
 });
 
 app.on(["POST", "GET"], "/api/auth/*", async (c) =>
-	(await createAuth()).handler(c.req.raw),
+	getAuth().handler(c.req.raw),
 );
 
 app.get("/", (c) => {
@@ -50,7 +50,7 @@ app.get("/", (c) => {
 
 // Everything under /rooms needs a session (guests get an anonymous one).
 app.use("/rooms/*", async (c, next) => {
-	const auth = await createAuth();
+	const auth = getAuth();
 	const session = await auth.api.getSession({ headers: c.req.raw.headers });
 	if (!session) return c.text("Unauthorized", STATUS.unauthorized);
 	c.set("user", { id: session.user.id, name: session.user.name });
@@ -68,6 +68,7 @@ const CreateRoom = z.object({
 	imageH: z.int().positive(),
 	rows: z.int().min(2).max(60),
 	cols: z.int().min(2).max(60),
+	rotate: z.boolean().default(false),
 });
 
 // No 0/O/1/I/L so codes are easy to read out loud.
@@ -91,7 +92,7 @@ app.post("/rooms", async (c) => {
 	if (!body.success || body.data.rows * body.data.cols > MAX_PIECES) {
 		return c.text("Invalid room", STATUS.badRequest);
 	}
-	const { imageUrl, imageW, imageH, rows, cols } = body.data;
+	const { imageUrl, imageW, imageH, rows, cols, rotate } = body.data;
 	const user = c.get("user");
 	const code = newCode();
 	const seed = crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
@@ -105,7 +106,7 @@ app.post("/rooms", async (c) => {
 	// Table units: height follows the image's cell aspect.
 	const w = CELL_WIDTH;
 	const h = (CELL_WIDTH * (imageH / rows)) / (imageW / cols);
-	await ENV.ROOM.getByName(code).init({ code, seed, rows, cols, w, h });
+	await ENV.ROOM.getByName(code).init({ code, seed, rows, cols, w, h, rotate });
 	return c.json({ code });
 });
 
