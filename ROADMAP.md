@@ -4,7 +4,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Urgent or easy fixes Prio 1
 
-- [ ] **Data fetching library**: replace the inline `fetch`/`useFocusEffect` loads (Home's Continue, History, the room info) with TanStack Query (or tRPC on top of Hono) for caching, refetch on focus and loading/error states.
 
 ## Polish and user engagement features Prio 2
 
@@ -58,6 +57,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
+- [x] **Data fetching library**: the room API is a tRPC router (`packages/api`) and both apps read it through one shared TanStack Query cache. Lists refetch after mutations and after opening a room, not on every focus. `8ca15be`
 - [x] **Abandoned puzzles in History**: History lists rooms I abandoned ("Abandoned after 1:07") next to solved ones. Reopening one counts against the open-room cap. `0163109`
 - [x] **Music picker sheet**: the Settings tab's Music row opens a sheet where the chosen track plays while it's open. The room keeps the inline segments, where music already plays. `1455448`
 - [x] **Abandon confirmation**: Abandon turns the room's settings sheet into its confirmation in place (flag, title, Abandon / Keep playing), so the sheet keeps its height on web and iOS. `d0775eb`
