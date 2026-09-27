@@ -1,8 +1,8 @@
-import { historyLines } from "@piecemates/client";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 
+import { RoomRow } from "@/components/room-row";
 import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/history")({
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/history")({
 	),
 });
 
-/** Rooms I've played in; an open one resumes, a solved one shows the picture. */
+/** My solved rooms; a row shows the finished picture. */
 function HistoryComponent() {
 	const { t } = useTranslation();
 	const rooms = Route.useLoaderData();
@@ -25,24 +25,11 @@ function HistoryComponent() {
 				<p className="text-muted-foreground text-sm">{t("history.empty")}</p>
 			)}
 			<ul className="grid gap-2">
-				{rooms.map((room) => {
-					const lines = historyLines(room);
-					return (
-						<li key={room.code}>
-							<Link
-								to="/room/$code"
-								params={{ code: room.code }}
-								className="grid gap-0.5 rounded border p-3 hover:bg-muted"
-							>
-								<span className="font-medium">{lines.title}</span>
-								<span className="text-sm">{lines.status}</span>
-								<span className="text-muted-foreground text-sm">
-									{lines.players}
-								</span>
-							</Link>
-						</li>
-					);
-				})}
+				{rooms.map((room) => (
+					<li key={room.code}>
+						<RoomRow room={room} />
+					</li>
+				))}
 			</ul>
 		</div>
 	);

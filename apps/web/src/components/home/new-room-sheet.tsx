@@ -1,4 +1,4 @@
-import { defaultGrid } from "@piecemates/client";
+import { createErrorText, defaultGrid } from "@piecemates/client";
 import { gridOptions } from "@piecemates/game";
 import { Button } from "@piecemates/ui/components/button";
 import { Checkbox } from "@piecemates/ui/components/checkbox";
@@ -49,8 +49,8 @@ export function NewRoomSheet({
 				rotate,
 			});
 			await navigate({ to: "/room/$code", params: { code: room.code } });
-		} catch {
-			toast.error(t("home.createFailed"));
+		} catch (e) {
+			toast.error(createErrorText(e));
 			setBusy(false);
 		}
 	};

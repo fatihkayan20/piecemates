@@ -22,10 +22,11 @@ import { useTranslation } from "react-i18next";
 import { ColorSwatches } from "@/components/bags/color-swatches";
 import { useSettings } from "@/hooks/use-settings";
 
+import { AbandonRoom } from "./abandon-room";
 import { iconButton } from "./icon-button";
 
-/** The gear button and my own view settings, saved on this device. */
-export function SettingsSheet() {
+/** The gear button, my own view settings (saved on this device) and Abandon. */
+export function SettingsSheet({ code }: { code: string }) {
 	const { t } = useTranslation();
 	const background = useSettings((s) => s.background);
 	const sounds = useSettings((s) => s.sounds);
@@ -72,6 +73,7 @@ export function SettingsSheet() {
 							</Button>
 						))}
 					</div>
+					<AbandonRoom code={code} />
 				</div>
 			</SheetContent>
 		</Sheet>
