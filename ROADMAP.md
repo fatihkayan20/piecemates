@@ -4,11 +4,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Urgent or easy fixes Prio 1
 
-
 ## Polish and user engagement features Prio 2
-
-- [ ] **Delete account**: players can delete their account in the app (App Store requirement), with their sessions and room memberships.
-- [ ] **Privacy policy and terms links**: Settings links to the privacy policy and terms of service.
 
 ## Game features Prio 3
 
@@ -42,6 +38,9 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Expo SDK 58**: upgrade, then delete `apps/native/plugins/with-ios-scene.js`.
 - [ ] **Cloudflare overview**: usage, limits and monitoring for Workers, Durable Objects, D1 and R2 on the free plan.
 - [ ] **AI playtest once more**: play one large puzzle the way a person would, to find issues and improvements. An orchestrator starts two sub-agents, one driving iOS and one driving web, each with its own focus (e.g. bagging edge pieces vs. building the middle). They only get the app and what it does, and report back as users.
+
+- [ ] **Delete account**: players can delete their account in the app (App Store requirement), with their sessions and room memberships.
+- [ ] **Privacy policy and terms links**: Settings links to the privacy policy and terms of service.
 
 - [ ] **Real music tracks**: the three ambient loops are generated placeholders (a small synth script, ~390 KB AAC each); swap in licensed tracks under the same ids (`calm`, `drift`, `night`) in `apps/*/assets/music`.
 - [ ] **Room saves on every move**: the room writes its whole state (about 60 KB at 1000 pieces) to Durable Object storage on every accepted message, locks included. Fine for now; if writes or CPU show up in the Cloudflare dashboard, save per piece or batch saves (locks must survive hibernation, so they can't simply be skipped).
