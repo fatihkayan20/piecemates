@@ -49,6 +49,8 @@ export const server = Effect.flatMap(images, (bucket) =>
 			// Empty turns Sentry off.
 			SENTRY_DSN: Config.String("SENTRY_DSN").pipe(Config.withDefault("")),
 		},
+		// Daily at 03:00 UTC: unused uploads and stray files (apps/server/src/cleanup.ts).
+		crons: ["0 3 * * *"],
 		dev: {
 			port: 3000,
 		},

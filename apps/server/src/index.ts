@@ -8,6 +8,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
+import { cleanUpUploads } from "./cleanup";
 import { ENV } from "./env.server";
 import { STATUS } from "./http";
 import { photoStorage, serveImage } from "./images";
@@ -101,4 +102,7 @@ app.get("/rooms/:code/ws", async (c) => {
 	);
 });
 
-export default Sentry.withSentry(sentryFor, app);
+export default Sentry.withSentry(sentryFor, {
+	fetch: app.fetch,
+	scheduled: (_event, _env, ctx) => ctx.waitUntil(cleanUpUploads()),
+} satisfies ExportedHandler);
