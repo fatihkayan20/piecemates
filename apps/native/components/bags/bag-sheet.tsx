@@ -1,7 +1,6 @@
 import {
 	BottomSheet,
 	Button,
-	Host,
 	HStack,
 	Spacer,
 	Text,
@@ -9,18 +8,15 @@ import {
 	useNativeState,
 	VStack,
 } from "@expo/ui/swift-ui";
-import {
-	buttonStyle,
-	font,
-	padding,
-	presentationDragIndicator,
-} from "@expo/ui/swift-ui/modifiers";
+import { font, padding } from "@expo/ui/swift-ui/modifiers";
 import { newBag, newBagId } from "@piecemates/client";
 import { BAG_NAME_MAX } from "@piecemates/game";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { AppHost } from "@/components/app-host";
 import { useRoom } from "@/hooks/use-room";
+import { useSheetStyle } from "@/hooks/use-sheet-style";
 
 import { ColorSwatches } from "./color-swatches";
 
@@ -35,6 +31,7 @@ export function BagSheet({
 	onClose: () => void;
 }) {
 	const { t } = useTranslation();
+	const style = useSheetStyle();
 	const conn = useRoom((r) => r.conn);
 	const bags = useRoom((r) => r.bags);
 	const initial = bags.find((b) => b.id === editing) ?? newBag(bags.length);
@@ -55,7 +52,7 @@ export function BagSheet({
 	};
 
 	return (
-		<Host matchContents>
+		<AppHost matchContents>
 			<BottomSheet
 				isPresented={open}
 				onIsPresentedChange={setOpen}
@@ -65,10 +62,7 @@ export function BagSheet({
 				<VStack
 					alignment="leading"
 					spacing={SHEET.spacing}
-					modifiers={[
-						padding({ all: SHEET.padding }),
-						presentationDragIndicator("visible"),
-					]}
+					modifiers={[padding({ all: SHEET.padding }), ...style.sheet]}
 				>
 					<Text
 						modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
@@ -94,12 +88,12 @@ export function BagSheet({
 						<Spacer />
 						<Button
 							label={editing ? t("bags.save") : t("bags.create")}
-							modifiers={[buttonStyle("borderedProminent")]}
+							modifiers={style.prominent}
 							onPress={save}
 						/>
 					</HStack>
 				</VStack>
 			</BottomSheet>
-		</Host>
+		</AppHost>
 	);
 }

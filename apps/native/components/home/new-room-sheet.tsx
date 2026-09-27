@@ -1,19 +1,16 @@
 import {
 	BottomSheet,
 	Button,
-	Host,
 	HStack,
 	Text,
 	Toggle,
 	VStack,
 } from "@expo/ui/swift-ui";
 import {
-	buttonStyle,
 	font,
 	foregroundStyle,
 	frame,
 	padding,
-	presentationDragIndicator,
 } from "@expo/ui/swift-ui/modifiers";
 import { createErrorText, defaultGrid } from "@piecemates/client";
 import { gridOptions } from "@piecemates/game";
@@ -22,6 +19,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 
+import { AppHost } from "@/components/app-host";
+import { useSheetStyle } from "@/hooks/use-sheet-style";
 import { api } from "@/lib/api";
 
 export type PickedImage = { url: string; width: number; height: number };
@@ -39,6 +38,7 @@ export function NewRoomSheet({
 	onClose: () => void;
 }) {
 	const { t } = useTranslation();
+	const style = useSheetStyle();
 	const options = gridOptions(image.width, image.height);
 	const [count, setCount] = useState(defaultGrid(options)?.count);
 	const [rotate, setRotate] = useState(false);
@@ -72,7 +72,7 @@ export function NewRoomSheet({
 	};
 
 	return (
-		<Host matchContents>
+		<AppHost matchContents>
 			<BottomSheet
 				isPresented={open}
 				onIsPresentedChange={setOpen}
@@ -82,10 +82,7 @@ export function NewRoomSheet({
 				<VStack
 					alignment="leading"
 					spacing={SHEET.spacing}
-					modifiers={[
-						padding({ all: SHEET.padding }),
-						presentationDragIndicator("visible"),
-					]}
+					modifiers={[padding({ all: SHEET.padding }), ...style.sheet]}
 				>
 					<Text
 						modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
@@ -103,9 +100,7 @@ export function NewRoomSheet({
 									label={String(o.count)}
 									onPress={() => setCount(o.count)}
 									modifiers={[
-										buttonStyle(
-											o.count === count ? "borderedProminent" : "bordered",
-										),
+										...(o.count === count ? style.prominent : style.button),
 										frame({ maxWidth: Number.POSITIVE_INFINITY }),
 									]}
 								/>
@@ -122,11 +117,11 @@ export function NewRoomSheet({
 					</Text>
 					<Button
 						label={t("home.create")}
-						modifiers={[buttonStyle("borderedProminent")]}
+						modifiers={style.prominent}
 						onPress={busy ? undefined : create}
 					/>
 				</VStack>
 			</BottomSheet>
-		</Host>
+		</AppHost>
 	);
 }

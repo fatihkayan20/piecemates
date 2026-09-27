@@ -1,13 +1,11 @@
-import { BottomSheet, Host, Text, VStack } from "@expo/ui/swift-ui";
-import {
-	font,
-	padding,
-	presentationDragIndicator,
-} from "@expo/ui/swift-ui/modifiers";
+import { BottomSheet, Text, VStack } from "@expo/ui/swift-ui";
+import { font, padding } from "@expo/ui/swift-ui/modifiers";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { AppHost } from "@/components/app-host";
 import { SettingsControls } from "@/components/settings/settings-controls";
+import { useSheetStyle } from "@/hooks/use-sheet-style";
 
 import { AbandonRoom } from "./abandon-room";
 
@@ -21,10 +19,11 @@ export function SettingsSheet({
 	onClose: () => void;
 }) {
 	const { t } = useTranslation();
+	const style = useSheetStyle();
 	const [open, setOpen] = useState(true);
 
 	return (
-		<Host matchContents>
+		<AppHost matchContents>
 			<BottomSheet
 				isPresented={open}
 				onIsPresentedChange={setOpen}
@@ -34,10 +33,7 @@ export function SettingsSheet({
 				<VStack
 					alignment="leading"
 					spacing={SHEET.spacing}
-					modifiers={[
-						padding({ all: SHEET.padding }),
-						presentationDragIndicator("visible"),
-					]}
+					modifiers={[padding({ all: SHEET.padding }), ...style.sheet]}
 				>
 					<Text
 						modifiers={[font({ size: SHEET.titleSize, weight: "semibold" })]}
@@ -48,6 +44,6 @@ export function SettingsSheet({
 					<AbandonRoom code={code} onDone={() => setOpen(false)} />
 				</VStack>
 			</BottomSheet>
-		</Host>
+		</AppHost>
 	);
 }

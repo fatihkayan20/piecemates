@@ -1,6 +1,7 @@
-import { Form, Host, Section, Toggle } from "@expo/ui/swift-ui";
+import { Form, Section, Toggle } from "@expo/ui/swift-ui";
 import { useTranslation } from "react-i18next";
 
+import { AppHost } from "@/components/app-host";
 import { SettingsControls } from "@/components/settings/settings-controls";
 import { useAppTheme } from "@/contexts/app-theme-context";
 
@@ -9,7 +10,7 @@ export default function Settings() {
 	const { t } = useTranslation();
 	const { isLight, toggleTheme } = useAppTheme();
 	return (
-		<Host style={{ flex: 1 }}>
+		<AppHost style={{ flex: 1 }}>
 			<Form>
 				<Section title={t("settings.board")}>
 					<SettingsControls />
@@ -22,6 +23,6 @@ export default function Settings() {
 					/>
 				</Section>
 			</Form>
-		</Host>
+		</AppHost>
 	);
 }
