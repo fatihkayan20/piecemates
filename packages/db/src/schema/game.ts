@@ -24,6 +24,8 @@ export const rooms = sqliteTable(
 		status: text("status", { enum: ["playing", "done"] })
 			.default("playing")
 			.notNull(),
+		// Private until a player shares it; only then can others join by its code.
+		shared: integer("shared", { mode: "boolean" }).default(false).notNull(),
 		// Time spent with someone in the room; saved whenever the room empties or is solved.
 		playedMs: integer("played_ms").default(0).notNull(),
 		finishedAt: integer("finished_at", { mode: "timestamp_ms" }),
