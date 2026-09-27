@@ -71,7 +71,8 @@ export const en = {
 		creditsLeft_other: "{{count}} uploads left",
 		uploading: "Uploading…",
 		notAnImage: "Pick a JPEG, PNG or WebP photo",
-		imageTooSmall: "The photo needs {{min}} pixels on its shorter side",
+		imageTooSmall:
+			"The photo is too small; its shorter side needs {{min}} pixels",
 		imageTooLarge: "The photo is too large",
 		uploadFailed: "Could not upload the photo",
 		useUploaded: "Start a puzzle with your uploaded photo first",

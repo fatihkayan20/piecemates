@@ -124,7 +124,11 @@
 			"plugins": ["./biome-plugins/no-as-cast.grit"]
 		},
 		{
-			"includes": ["**/*.test.ts", "**/*.test.tsx"],
+			"includes": [
+				"**/*.test.ts",
+				"**/*.test.tsx",
+				"packages/client/src/locales/**"
+			],
 			"linter": {
 				"rules": {
 					"style": {
