@@ -52,6 +52,11 @@ export const en = {
 		pieces_one: "{{count}} piece",
 		pieces_other: "{{count}} pieces",
 		createFailed: "Could not create the room",
+		newRoom: "New room",
+		pieceCount: "Pieces",
+		rotate: "Turned pieces",
+		rotateHint: "Pieces start turned; tap one to turn it.",
+		create: "Create room",
 	},
 	room: {
 		title: "Room {{code}}",

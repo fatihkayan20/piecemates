@@ -66,6 +66,8 @@ test("store mirrors the room; drags pick up, drop and settle", () => {
 	assert.ok(endsDrag({ type: "applied", by: "a", msg: drop }, "a", 0));
 	assert.ok(!endsDrag({ type: "applied", by: "b", msg: drop }, "a", 0));
 	assert.ok(endsDrag({ type: "rejected", msg: drop }, "a", 0));
+	const turn = { type: "rotate", piece: 0 } as const;
+	assert.ok(endsDrag({ type: "applied", by: "a", msg: turn }, "a", 0));
 
 	deliver({ type: "applied", by: "a", msg: { type: "lock", piece: 0 } });
 	deliver({

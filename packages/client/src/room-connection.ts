@@ -109,13 +109,14 @@ export class RoomConnection {
 			case "applied": {
 				if (!this.state) break;
 				const bags = this.state.pieces.map((p) => p.bag);
-				const mine =
-					msg.by === this.me && msg.msg.type === "drop" ? msg.msg.piece : null;
+				const m = msg.msg;
+				const move = m.type === "drop" || m.type === "rotate";
+				const mine = msg.by === this.me && move ? m.piece : null;
 				const before = mine === null ? 0 : progress(this.state, mine);
 				apply(this.state, msg.by, msg.msg);
 				if (msg.by === this.me && msg.msg.type === "bag:create")
 					track("bag_created", {});
-				// Only a drop that joins pieces or places them makes a sound.
+				// Only a drop or turn that joins pieces or places them makes a sound.
 				if (mine !== null && progress(this.state, mine) > before)
 					heard = "snap";
 				// A piece that changed view lands in a new pile slot; forget my old tidy spot.

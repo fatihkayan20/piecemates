@@ -49,12 +49,21 @@ export function finishDrag(
 		conn.send({ type: "drop", piece, x: start.x + dx, y: start.y + dy });
 }
 
-/** Whether an event settles my drag of `piece`: my drop echoed back, or refused. */
+/** In a rotation room, turns the tapped piece's group; returns whether it did. */
+export function turnPiece(conn: RoomConnection, piece: number) {
+	if (!conn.state?.rotate) return false;
+	conn.send({ type: "rotate", piece });
+	return true;
+}
+
+/** Whether an event settles my drag of `piece`: my drop (or turn) echoed back, or refused. */
 export function endsDrag(event: RoomEvent, me: string, piece: number) {
 	if (event.type === "applied")
 		return (
 			event.by === me &&
-			(event.msg.type === "drop" || event.msg.type === "bag:put") &&
+			(event.msg.type === "drop" ||
+				event.msg.type === "bag:put" ||
+				event.msg.type === "rotate") &&
 			event.msg.piece === piece
 		);
 	return (

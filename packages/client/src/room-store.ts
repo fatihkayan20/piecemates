@@ -27,6 +27,8 @@ export type PieceView = {
 	/** Held by another player. */
 	held: boolean;
 	placed: boolean;
+	/** Quarter turns clockwise. */
+	rot: number;
 };
 
 /**
@@ -75,7 +77,8 @@ const sameView = (a: PieceView, b: PieceView) =>
 	a.y === b.y &&
 	a.visible === b.visible &&
 	a.held === b.held &&
-	a.placed === b.placed;
+	a.placed === b.placed &&
+	a.rot === b.rot;
 
 function snapshot(conn: RoomConnection, prev: RoomSnapshot) {
 	const state = conn.state;
@@ -92,6 +95,7 @@ function snapshot(conn: RoomConnection, prev: RoomSnapshot) {
 			visible: conn.visible(i),
 			held: lockedByOther(state, i, conn.me),
 			placed: isPlaced(state, i),
+			rot: state.pieces[i]?.rot ?? 0,
 		};
 		return old && sameView(old, next) ? old : next;
 	});

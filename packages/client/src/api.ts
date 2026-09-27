@@ -15,6 +15,8 @@ export type NewRoom = {
 	imageH: number;
 	rows: number;
 	cols: number;
+	/** Pieces start turned and players turn them. */
+	rotate: boolean;
 };
 
 /** A non-2xx answer; the status lets Sentry skip the ones the user caused. */
