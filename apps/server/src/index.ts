@@ -1,16 +1,16 @@
 import { roomPlayers, rooms } from "@piecemates/db/schema/game";
-import { CELL_WIDTH, MAX_PIECES } from "@piecemates/game";
+import { CELL_WIDTH, MAX_OPEN_ROOMS, MAX_PIECES } from "@piecemates/game";
 import { TRACE_HEADERS } from "@piecemates/telemetry";
 import * as Sentry from "@sentry/cloudflare";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { z } from "zod";
 
 import { ENV } from "./env.server";
-import { roomHistory } from "./history";
 import { STATUS } from "./http";
+import { myRooms, openRoomCount } from "./my-rooms";
 import { Room as RoomObject } from "./room";
 import { newCode } from "./room-code";
 import { sentryFor } from "./sentry";
@@ -73,7 +73,11 @@ const CreateRoom = z.object({
 	rotate: z.boolean().default(false),
 });
 
-app.get("/rooms", async (c) => c.json(await roomHistory(c.get("user").id)));
+// ?status=done lists History; anything else my open rooms (Continue).
+app.get("/rooms", async (c) => {
+	const status = c.req.query("status") === "done" ? "done" : "playing";
+	return c.json(await myRooms(c.get("user").id, status));
+});
 
 app.post("/rooms", async (c) => {
 	const body = CreateRoom.safeParse(await c.req.json().catch(() => null));
@@ -82,6 +86,9 @@ app.post("/rooms", async (c) => {
 	}
 	const { imageUrl, imageW, imageH, rows, cols, rotate } = body.data;
 	const user = c.get("user");
+	if ((await openRoomCount(user.id)) >= MAX_OPEN_ROOMS) {
+		return c.text("Too many open rooms", STATUS.conflict);
+	}
 	const code = newCode();
 	const seed = crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
 	const db = getDb();
@@ -103,12 +110,30 @@ app.get("/rooms/:code", async (c) => {
 	const db = getDb();
 	const room = await db.query.rooms.findFirst({ where: { code } });
 	if (!room) return c.text("Room not found", STATUS.notFound);
+	// Opening a room I abandoned makes it one of my open rooms again.
 	await db
 		.insert(roomPlayers)
 		.values({ roomCode: code, userId: c.get("user").id })
-		.onConflictDoNothing();
+		.onConflictDoUpdate({
+			target: [roomPlayers.roomCode, roomPlayers.userId],
+			set: { abandonedAt: null },
+		});
 	const { imageUrl, seed, rows, cols, status } = room;
 	return c.json({ code, imageUrl, seed, rows, cols, status });
+});
+
+app.post("/rooms/:code/abandon", async (c) => {
+	const code = c.req.param("code").toUpperCase();
+	await getDb()
+		.update(roomPlayers)
+		.set({ abandonedAt: new Date() })
+		.where(
+			and(
+				eq(roomPlayers.roomCode, code),
+				eq(roomPlayers.userId, c.get("user").id),
+			),
+		);
+	return c.json({ code });
 });
 
 app.get("/rooms/:code/ws", async (c) => {

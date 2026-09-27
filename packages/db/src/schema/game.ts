@@ -46,6 +46,8 @@ export const roomPlayers = sqliteTable(
 		joinedAt: integer("joined_at", { mode: "timestamp_ms" })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.notNull(),
+		// Set when I give up on the room; it then leaves my open rooms.
+		abandonedAt: integer("abandoned_at", { mode: "timestamp_ms" }),
 	},
 	(table) => [
 		primaryKey({ columns: [table.roomCode, table.userId] }),

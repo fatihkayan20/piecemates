@@ -1,0 +1,1 @@
+ALTER TABLE `room_players` ADD `abandoned_at` integer;

@@ -6,6 +6,8 @@ export const MAX_PLAYERS = 4;
 export const BAG_NAME_MAX = 40;
 /** Most pieces a room may have (the largest grid option, with rounding room). */
 export const MAX_PIECES = 1100;
+/** Unsolved rooms a player may have before they must finish or abandon one. */
+export const MAX_OPEN_ROOMS = 3;
 /** A piece's width in table units; its height follows the image. */
 export const CELL_WIDTH = 100;
 
