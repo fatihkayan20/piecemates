@@ -7,6 +7,7 @@ import {
 	ClientMsg,
 	createState,
 	isComplete,
+	MAX_MESSAGES_PER_SECOND,
 	MAX_PLAYERS,
 	type Player,
 	pause,
@@ -18,6 +19,7 @@ import { eq } from "drizzle-orm";
 
 /** The player a socket belongs to, stored on it when it connected. */
 const playerOf = (ws: WebSocket): Player => ws.deserializeAttachment();
+const SECOND_MS = 1000;
 
 /**
  * One instance per room code. Holds the sockets (hibernatable, so an idle room
@@ -26,6 +28,8 @@ const playerOf = (ws: WebSocket): Player => ws.deserializeAttachment();
 export class Room extends DurableObject<Env> {
 	private code = "";
 	private state: State | undefined;
+	/** Messages per socket in the current second; forgotten when the room hibernates, which is fine. */
+	private rates = new WeakMap<WebSocket, { since: number; count: number }>();
 
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
@@ -97,7 +101,8 @@ export class Room extends DurableObject<Env> {
 		const msg = parsed.data;
 		const by = playerOf(ws).id;
 
-		if (!apply(this.state, by, msg)) {
+		// Too fast is rejected like a bad move, so the client puts the piece back.
+		if (this.tooFast(ws) || !apply(this.state, by, msg)) {
 			this.send(ws, { type: "rejected", msg });
 			return;
 		}
@@ -140,6 +145,18 @@ export class Room extends DurableObject<Env> {
 				...(done && { status: "done", finishedAt: new Date(now) }),
 			})
 			.where(eq(rooms.code, this.code));
+	}
+
+	/** Counts the message; true once this socket is over its per-second budget. */
+	private tooFast(ws: WebSocket) {
+		const now = Date.now();
+		const rate = this.rates.get(ws);
+		if (!rate || now - rate.since >= SECOND_MS) {
+			this.rates.set(ws, { since: now, count: 1 });
+			return false;
+		}
+		rate.count++;
+		return rate.count > MAX_MESSAGES_PER_SECOND;
 	}
 
 	private players(): Player[] {
