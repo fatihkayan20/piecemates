@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const AnimatedView = Animated.createAnimatedComponent(View);
 
 type Props = AnimatedProps<ViewProps> & {
+	/** Styles the content (padding, gap), inside the scroll view. */
 	className?: string;
 	isScrollable?: boolean;
 	scrollViewProps?: Omit<ScrollViewProps, "contentContainerStyle">;
@@ -28,7 +29,7 @@ export function Container({
 
 	return (
 		<AnimatedView
-			className={cn("flex-1 bg-background", className)}
+			className="flex-1 bg-background"
 			style={{
 				paddingBottom: insets.bottom,
 			}}
@@ -36,7 +37,7 @@ export function Container({
 		>
 			{isScrollable ? (
 				<ScrollView
-					contentContainerStyle={{ flexGrow: 1 }}
+					contentContainerClassName={cn("grow", className)}
 					keyboardShouldPersistTaps="handled"
 					contentInsetAdjustmentBehavior="automatic"
 					{...scrollViewProps}
@@ -44,7 +45,7 @@ export function Container({
 					{children}
 				</ScrollView>
 			) : (
-				<View className="flex-1">{children}</View>
+				<View className={cn("flex-1", className)}>{children}</View>
 			)}
 		</AnimatedView>
 	);

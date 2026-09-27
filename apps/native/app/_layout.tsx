@@ -29,7 +29,7 @@ void loadSettings({
 });
 
 export const unstable_settings = {
-	initialRouteName: "(drawer)",
+	initialRouteName: "(tabs)",
 };
 
 function StackLayout() {
@@ -38,7 +38,7 @@ function StackLayout() {
 	return (
 		<Stack screenOptions={{}}>
 			<Stack.Screen
-				name="(drawer)"
+				name="(tabs)"
 				options={{ headerShown: false, title: t("nav.home") }}
 			/>
 			<Stack.Screen name="room/[code]" />
