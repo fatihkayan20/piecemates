@@ -1,24 +1,14 @@
-import { imageSrc, SAMPLE_IMAGES } from "@piecemates/client";
+import type { PickedImage } from "@piecemates/client";
 import { MAX_OPEN_ROOMS } from "@piecemates/game";
 import { useQuery } from "@tanstack/react-query";
 import { router, useIsFocused } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-	Image,
-	PixelRatio,
-	Pressable,
-	Text,
-	TextInput,
-	useWindowDimensions,
-	View,
-} from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 import { Container } from "@/components/container";
-import {
-	NewRoomSheet,
-	type PickedImage,
-} from "@/components/home/new-room-sheet";
+import { NewRoomSheet } from "@/components/home/new-room-sheet";
+import { PhotoTiles } from "@/components/home/photo-tiles";
 import { RoomRow } from "@/components/room-row";
 import { api } from "@/lib/api";
 
@@ -37,14 +27,6 @@ export default function Home() {
 		subscribed: useIsFocused(),
 	});
 	const full = open.length >= MAX_OPEN_ROOMS;
-
-	// The samples share the screen's width; any resized copy has the photo's aspect.
-	const tileWidth = useWindowDimensions().width / SAMPLE_IMAGES.length;
-	const tileSrc = (url: string) => imageSrc(url, tileWidth, PixelRatio.get());
-	const pickImage = (url: string) =>
-		Image.getSize(tileSrc(url), (width, height) =>
-			setPicked({ url, width, height }),
-		);
 
 	return (
 		<Container className="gap-8 p-6">
@@ -94,23 +76,7 @@ export default function Home() {
 						{t("home.openRoomsFull", { max: MAX_OPEN_ROOMS })}
 					</Text>
 				)}
-				<View className="flex-row gap-2">
-					{SAMPLE_IMAGES.map((url, i) => (
-						<Pressable
-							key={url}
-							accessibilityRole="button"
-							accessibilityLabel={t("home.sampleImage", { n: i + 1 })}
-							disabled={full}
-							className={`flex-1 overflow-hidden rounded ${full ? "opacity-50" : ""}`}
-							onPress={() => pickImage(url)}
-						>
-							<Image
-								source={{ uri: tileSrc(url) }}
-								className="aspect-video w-full"
-							/>
-						</Pressable>
-					))}
-				</View>
+				<PhotoTiles disabled={full} onPick={setPicked} />
 			</View>
 			{picked && (
 				<NewRoomSheet

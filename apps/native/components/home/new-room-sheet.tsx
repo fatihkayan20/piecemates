@@ -12,7 +12,11 @@ import {
 	frame,
 	padding,
 } from "@expo/ui/swift-ui/modifiers";
-import { createErrorText, defaultGrid } from "@piecemates/client";
+import {
+	createErrorText,
+	defaultGrid,
+	type PickedImage,
+} from "@piecemates/client";
 import { gridOptions } from "@piecemates/game";
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -23,8 +27,6 @@ import { Alert } from "react-native";
 import { AppHost } from "@/components/app-host";
 import { useSheetStyle } from "@/hooks/use-sheet-style";
 import { api } from "@/lib/api";
-
-export type PickedImage = { url: string; width: number; height: number };
 
 const SHEET = { spacing: 16, padding: 24, titleSize: 20, buttonGap: 8 };
 /** Piece count buttons per row, so every option shows at once. */
@@ -54,14 +56,8 @@ export function NewRoomSheet({
 	const create = async () => {
 		if (!grid) return;
 		try {
-			const room = await mutateAsync({
-				imageUrl: image.url,
-				imageW: image.width,
-				imageH: image.height,
-				rows: grid.rows,
-				cols: grid.cols,
-				rotate,
-			});
+			const { rows, cols } = grid;
+			const room = await mutateAsync({ image, rows, cols, rotate });
 			setOpen(false);
 			router.push({ pathname: "/room/[code]", params: { code: room.code } });
 		} catch (e) {
@@ -114,7 +110,9 @@ export function NewRoomSheet({
 						{t("home.rotateHint")}
 					</Text>
 					<Button
-						label={t("home.create")}
+						label={
+							isPending && image.file ? t("upload.uploading") : t("home.create")
+						}
 						modifiers={style.prominent}
 						onPress={isPending ? undefined : create}
 					/>
