@@ -2,6 +2,7 @@ import { MAX_API_BATCH } from "@piecemates/game";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 import { roomsRouter } from "./rooms";
+import { samplesRouter } from "./samples";
 import { type Context, router } from "./trpc";
 import { uploadsRouter } from "./uploads";
 
@@ -10,7 +11,11 @@ export type { Context, ImageInfo, RoomInit } from "./trpc";
 /** Where the Worker serves the API. */
 export const API_PATH = "/trpc";
 
-export const appRouter = router({ rooms: roomsRouter, uploads: uploadsRouter });
+export const appRouter = router({
+	rooms: roomsRouter,
+	samples: samplesRouter,
+	uploads: uploadsRouter,
+});
 
 export type AppRouter = typeof appRouter;
 

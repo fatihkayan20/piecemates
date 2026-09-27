@@ -14,6 +14,7 @@ import { ENV } from "./env.server";
 import { STATUS } from "./http";
 import { photoStorage, serveImage } from "./images";
 import { Room as RoomObject } from "./room";
+import { syncSamples, unsplash } from "./samples-sync";
 import { sentryFor } from "./sentry";
 import { getAuth, getDb } from "./services";
 
@@ -78,6 +79,10 @@ app.all(`${API_PATH}/*`, async (c) =>
 					})
 				).success,
 			images: photoStorage,
+			countDownload: (url) =>
+				c.executionCtx.waitUntil(
+					unsplash(url).catch((error) => Sentry.captureException(error)),
+				),
 		},
 		(error) => Sentry.captureException(error),
 	),
@@ -139,5 +144,6 @@ app.get("/rooms/:code/ws", async (c) => {
 
 export default Sentry.withSentry(sentryFor, {
 	fetch: app.fetch,
-	scheduled: (_event, _env, ctx) => ctx.waitUntil(cleanUpUploads()),
+	scheduled: (_event, _env, ctx) =>
+		ctx.waitUntil(Promise.all([cleanUpUploads(), syncSamples()])),
 } satisfies ExportedHandler);

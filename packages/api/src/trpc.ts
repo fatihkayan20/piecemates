@@ -27,6 +27,8 @@ export type Context = {
 	leaveRoom: (code: string, userId: string) => Promise<void>;
 	/** False once this user is over their per-minute budget of writes, or of reads. */
 	allow: (userId: string, kind: "write" | "read") => Promise<boolean>;
+	/** Tells Unsplash a sample was used (its download_location); fire and forget. */
+	countDownload: (url: string) => void;
 	images: {
 		/** A short-lived URL that takes exactly this type and size. */
 		uploadUrl: (id: string, type: string, size: number) => Promise<string>;

@@ -45,6 +45,8 @@ export const server = Effect.flatMap(images, (bucket) =>
 			R2_BUCKET: bucket.bucketName,
 			R2_ACCESS_KEY_ID: Config.Redacted("R2_ACCESS_KEY_ID"),
 			R2_SECRET_ACCESS_KEY: Config.Redacted("R2_SECRET_ACCESS_KEY"),
+			// Sample photos: the daily sync and download counts (apps/server/src/samples-sync.ts).
+			UNSPLASH_ACCESS_KEY: Config.Redacted("UNSPLASH_ACCESS_KEY"),
 			CORS_ORIGIN: Config.String("CORS_ORIGIN"),
 			BETTER_AUTH_SECRET: Config.Redacted("BETTER_AUTH_SECRET"),
 			BETTER_AUTH_URL: Cloudflare.Worker.URL,
@@ -54,7 +56,7 @@ export const server = Effect.flatMap(images, (bucket) =>
 			// Empty turns Sentry off.
 			SENTRY_DSN: Config.String("SENTRY_DSN").pipe(Config.withDefault("")),
 		},
-		// Daily at 03:00 UTC: unused uploads and stray files (apps/server/src/cleanup.ts).
+		// Daily at 03:00 UTC: unused uploads and stray files (apps/server/src/cleanup.ts), and new sample photos.
 		crons: ["0 3 * * *"],
 		dev: {
 			port: 3000,

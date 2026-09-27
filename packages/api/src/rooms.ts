@@ -1,10 +1,5 @@
 import { roomPlayers, rooms } from "@piecemates/db/schema/game";
-import {
-	isImageAspect,
-	MAX_PLAYERS,
-	needsName,
-	ROOM_CODE_LENGTH,
-} from "@piecemates/game";
+import { MAX_PLAYERS, needsName, ROOM_CODE_LENGTH } from "@piecemates/game";
 import { TRPCError } from "@trpc/server";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -17,11 +12,12 @@ import {
 	startRoom,
 	underRoomCap,
 } from "./new-room";
+import { sampleImage } from "./samples";
 import { protectedProcedure, router } from "./trpc";
 import { uploadedImage } from "./uploaded-image";
 
-// Sample photos; uploads come in by id instead.
-const ALLOWED_IMAGE_HOSTS = ["images.unsplash.com"];
+/** Unsplash ids are about 11 characters. */
+const MAX_SAMPLE_ID = 32;
 
 const Code = z.object({ code: z.string().max(ROOM_CODE_LENGTH).toUpperCase() });
 
@@ -31,16 +27,10 @@ const checkName = (ctx: { user: { name: string } }) => {
 		throw new TRPCError({ code: "FORBIDDEN", message: "nameNeeded" });
 };
 
+/** Samples come by id, so a room only ever shows a photo from our catalogue. */
 const SampleRoom = Grid.extend({
-	imageUrl: z
-		.url({ protocol: /^https$/ })
-		.refine((u) => ALLOWED_IMAGE_HOSTS.includes(new URL(u).hostname)),
-	imageW: z.int().positive(),
-	imageH: z.int().positive(),
-})
-	.refine(fitsPieces)
-	// The server can't measure a sample, so its shape is checked instead.
-	.refine((r) => isImageAspect(r.imageW, r.imageH));
+	sample: z.string().max(MAX_SAMPLE_ID),
+}).refine(fitsPieces);
 
 /** The server measures an uploaded photo itself. */
 const UploadRoom = Grid.extend({ upload: z.uuid() }).refine(fitsPieces);
@@ -64,12 +54,11 @@ export const roomsRouter = router({
 		.input(SampleRoom)
 		.mutation(async ({ ctx, input }) => {
 			await checkOpenRooms(ctx);
-			const image = {
-				url: input.imageUrl,
-				width: input.imageW,
-				height: input.imageH,
-			};
-			return startRoom(ctx, image, input);
+			const sample = await sampleImage(ctx, input.sample);
+			const room = await startRoom(ctx, sample, input);
+			// Unsplash counts a photo's downloads by the rooms started from it.
+			ctx.countDownload(sample.downloadUrl);
+			return room;
 		}),
 
 	/** A room from a photo I uploaded. */
