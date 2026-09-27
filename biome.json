@@ -145,7 +145,8 @@
 				"**/*.config.*",
 				"**/app.config.*",
 				"packages/infra/**",
-				"apps/server/src/index.ts"
+				"apps/server/src/index.ts",
+				"apps/web/worker.ts"
 			],
 			"linter": {
 				"rules": {

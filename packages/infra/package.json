@@ -5,7 +5,7 @@
 	"scripts": {
 		"check-types": "tsc --noEmit",
 		"dev": "alchemy dev --force",
-		"deploy": "alchemy deploy",
+		"deploy": "set -a && . ./.env.deploy.local && set +a && NODE_ENV=production alchemy deploy --stage production",
 		"destroy": "alchemy destroy"
 	},
 	"dependencies": {

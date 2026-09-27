@@ -74,14 +74,24 @@ export default Alchemy.Stack(
 	},
 	Effect.gen(function* () {
 		const serverWorker = yield* server;
+		// Deployed, the web Worker forwards the server's paths (apps/web/worker.ts), so the
+		// browser sees one site and Safari keeps the session cookie. Dev's two localhost ports are one site already.
+		const deploying = process.argv.includes("deploy");
 		const webWorker = yield* Cloudflare.Website.Vite("web", {
 			rootDir: "../../apps/web",
+			...(deploying && { main: "worker.ts" }),
 			assets: {
 				htmlHandling: "auto-trailing-slash",
 				notFoundHandling: "single-page-application",
+				...(deploying && { runWorkerFirst: ["/api/*", "/trpc/*", "/rooms/*"] }),
 			},
 			env: {
-				VITE_SERVER_URL: serverWorker.url.as<string>(),
+				// CORS_ORIGIN is the web's own URL once deployed.
+				VITE_SERVER_URL:
+					deploying && process.env.CORS_ORIGIN
+						? process.env.CORS_ORIGIN
+						: serverWorker.url.as<string>(),
+				...(deploying && { SERVER: serverWorker }),
 			},
 			dev: {
 				port: 3001,
