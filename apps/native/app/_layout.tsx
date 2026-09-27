@@ -3,13 +3,13 @@ import "@/global.css";
 import { loadSettings, startI18n } from "@piecemates/client";
 import * as Sentry from "@sentry/react-native";
 import { getLocales } from "expo-localization";
-import { Stack } from "expo-router";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { HeroUINativeProvider } from "heroui-native";
+import { HeroUINativeProvider, useThemeColor } from "heroui-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
-import { AppThemeProvider } from "@/contexts/app-theme-context";
+import { AppThemeProvider, useAppTheme } from "@/contexts/app-theme-context";
 import { useScreenTracking } from "@/hooks/use-screen-tracking";
 import { ensureSession } from "@/lib/auth-client";
 import { startTelemetry } from "@/lib/telemetry";
@@ -35,14 +35,25 @@ export const unstable_settings = {
 function StackLayout() {
 	const { t } = useTranslation();
 	useScreenTracking();
+	const { isLight } = useAppTheme();
+	const base = isLight ? DefaultTheme : DarkTheme;
+	const background = useThemeColor("background");
+	const foreground = useThemeColor("foreground");
+	// Native headers, tab bars and their blurs follow this, not Uniwind.
+	const theme = {
+		...base,
+		colors: { ...base.colors, background, card: background, text: foreground },
+	};
 	return (
-		<Stack screenOptions={{}}>
-			<Stack.Screen
-				name="(tabs)"
-				options={{ headerShown: false, title: t("nav.home") }}
-			/>
-			<Stack.Screen name="room/[code]" />
-		</Stack>
+		<ThemeProvider value={theme}>
+			<Stack screenOptions={{}}>
+				<Stack.Screen
+					name="(tabs)"
+					options={{ headerShown: false, title: t("nav.home") }}
+				/>
+				<Stack.Screen name="room/[code]" />
+			</Stack>
+		</ThemeProvider>
 	);
 }
 
