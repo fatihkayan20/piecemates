@@ -36,7 +36,7 @@ const SampleRoom = Grid.extend({
 const UploadRoom = Grid.extend({ upload: z.uuid() }).refine(fitsPieces);
 
 export const roomsRouter = router({
-	/** Open: my unsolved rooms I haven't abandoned. History: solved or abandoned. Newest first. */
+	/** Open: my unsolved rooms I haven't abandoned. History: solved, abandoned or cleared. Newest first. */
 	list: protectedProcedure
 		.input(z.object({ list: z.enum(["open", "history"]) }))
 		.query(async ({ ctx, input }) => {
@@ -85,6 +85,8 @@ export const roomsRouter = router({
 		// A private room looks the same as a missing one.
 		if (!room || (!mine && !room.shared))
 			throw new TRPCError({ code: "NOT_FOUND" });
+		if (room.expiredAt)
+			throw new TRPCError({ code: "NOT_FOUND", message: "roomExpired" });
 		// Joining it, or coming back to it, counts against the cap like a new room.
 		if (!mine || mine.abandonedAt) {
 			const playing = room.status === "playing";

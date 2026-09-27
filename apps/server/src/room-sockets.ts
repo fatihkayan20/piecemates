@@ -1,6 +1,7 @@
 /// <reference path="../cloudflare-env.d.ts" />
 import { createDb } from "@piecemates/db";
 import { user } from "@piecemates/db/schema/auth";
+import { rooms } from "@piecemates/db/schema/game";
 import {
 	ClientMsg,
 	MAX_MESSAGES_PER_SECOND,
@@ -8,6 +9,7 @@ import {
 	type Player,
 	RenameMsg,
 	type ServerMsg,
+	type State,
 } from "@piecemates/game";
 import { eq } from "drizzle-orm";
 
@@ -103,4 +105,31 @@ export function parseMsg(
 export function broadcast(sockets: WebSocket[], msg: ServerMsg) {
 	const data = JSON.stringify(msg);
 	for (const ws of sockets) if (ws.readyState === WebSocket.OPEN) ws.send(data);
+}
+
+/** Fills in what rooms made before the clock and rotation existed lack. */
+export function upgrade(state: State | undefined) {
+	if (state) {
+		state.clock ??= { played: 0, since: null };
+		state.rotate ??= false;
+		for (const p of state.pieces) p.rot ??= 0;
+	}
+	return state;
+}
+
+/** Saves the room's played time for History, and when it was solved. */
+export async function saveTime(
+	env: Env,
+	code: string,
+	playedMs: number,
+	{ at, done }: { at: Date; done: boolean },
+) {
+	await createDb(env)
+		.update(rooms)
+		.set({
+			playedMs,
+			playedAt: at,
+			...(done && { status: "done", finishedAt: at }),
+		})
+		.where(eq(rooms.code, code));
 }

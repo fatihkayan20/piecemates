@@ -16,15 +16,23 @@ import {
 /** Most rooms one list answer holds, newest first. */
 const LIST_LIMIT = 50;
 
-/** Continue: unsolved rooms I haven't abandoned. History: solved or abandoned. */
+/** Continue: unsolved rooms I haven't abandoned. History: solved, abandoned or cleared. */
 export type RoomList = "open" | "history";
 
 const where = (me: string, list: RoomList) =>
 	and(
 		eq(roomPlayers.userId, me),
 		list === "open"
-			? and(isNull(roomPlayers.abandonedAt), eq(rooms.status, "playing"))
-			: or(isNotNull(roomPlayers.abandonedAt), eq(rooms.status, "done")),
+			? and(
+					isNull(roomPlayers.abandonedAt),
+					eq(rooms.status, "playing"),
+					isNull(rooms.expiredAt),
+				)
+			: or(
+					isNotNull(roomPlayers.abandonedAt),
+					eq(rooms.status, "done"),
+					isNotNull(rooms.expiredAt),
+				),
 	);
 
 /** How many unsolved rooms I still have open; creating a room is capped by it. */
@@ -49,6 +57,7 @@ export async function myRooms(db: Database, me: string, list: RoomList) {
 			playedMs: rooms.playedMs,
 			createdAt: rooms.createdAt,
 			finishedAt: rooms.finishedAt,
+			expiredAt: rooms.expiredAt,
 			abandonedAt: roomPlayers.abandonedAt,
 		})
 		.from(roomPlayers)
@@ -69,8 +78,17 @@ export async function myRooms(db: Database, me: string, list: RoomList) {
 				)
 		: [];
 	return mine.map(
-		({ rows, cols, createdAt, finishedAt, abandonedAt, ...room }) => ({
+		({
+			rows,
+			cols,
+			createdAt,
+			finishedAt,
+			expiredAt,
+			abandonedAt,
+			...room
+		}) => ({
 			...room,
+			expired: expiredAt !== null,
 			pieces: rows * cols,
 			createdAt: createdAt.getTime(),
 			finishedAt: finishedAt?.getTime() ?? null,

@@ -76,6 +76,10 @@ export const photoStorage: Context["images"] = {
 	},
 };
 
+/** Drops an uploaded photo's original; the small resized copies stay for History rows. */
+export const removeOriginal = (id: string) =>
+	ENV.IMAGES_BUCKET.delete(original(id));
+
 /**
  * The photo resized to `width` as WebP (which drops EXIF), made once and kept
  * in R2. Only through a link we signed (`e`, `s`), which expires.

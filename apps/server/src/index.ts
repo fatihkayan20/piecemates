@@ -11,6 +11,7 @@ import { logger } from "hono/logger";
 
 import { cleanUpUploads } from "./cleanup";
 import { ENV } from "./env.server";
+import { expireRooms } from "./expire-rooms";
 import { STATUS } from "./http";
 import { photoStorage, serveImage } from "./images";
 import { Room as RoomObject } from "./room";
@@ -145,5 +146,7 @@ app.get("/rooms/:code/ws", async (c) => {
 export default Sentry.withSentry(sentryFor, {
 	fetch: app.fetch,
 	scheduled: (_event, _env, ctx) =>
-		ctx.waitUntil(Promise.all([cleanUpUploads(), syncSamples()])),
+		ctx.waitUntil(
+			Promise.all([cleanUpUploads(), expireRooms(), syncSamples()]),
+		),
 } satisfies ExportedHandler);

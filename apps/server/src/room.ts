@@ -1,7 +1,5 @@
 /// <reference path="../cloudflare-env.d.ts" />
 import { DurableObject } from "cloudflare:workers";
-import { createDb } from "@piecemates/db";
-import { rooms } from "@piecemates/db/schema/game";
 import {
 	apply,
 	createState,
@@ -12,7 +10,6 @@ import {
 	type ServerMsg,
 	type State,
 } from "@piecemates/game";
-import { eq } from "drizzle-orm";
 
 import {
 	attach,
@@ -24,7 +21,9 @@ import {
 	playerOf,
 	playersOf,
 	readName,
+	saveTime,
 	socketsOf,
+	upgrade,
 } from "./room-sockets";
 
 /**
@@ -40,13 +39,7 @@ export class Room extends DurableObject<Env> {
 		super(ctx, env);
 		ctx.blockConcurrencyWhile(async () => {
 			this.code = (await ctx.storage.get<string>("code")) ?? "";
-			this.state = await ctx.storage.get<State>("state");
-			// Rooms made before the clock and rotation existed.
-			if (this.state) {
-				this.state.clock ??= { played: 0, since: null };
-				this.state.rotate ??= false;
-				for (const p of this.state.pieces) p.rot ??= 0;
-			}
+			this.state = upgrade(await ctx.storage.get<State>("state"));
 		});
 	}
 
@@ -128,6 +121,14 @@ export class Room extends DurableObject<Env> {
 		await this.dropped(userId);
 	}
 
+	/** Deletes the live room for good (the daily cleanup); D1 keeps its row for History. */
+	async expire() {
+		this.state = undefined;
+		for (const ws of this.ctx.getWebSockets())
+			ws.close(CLOSE_POLICY, "Room cleared");
+		await this.ctx.storage.deleteAll();
+	}
+
 	/** After a socket closes: frees the player's pieces once they're gone, and pauses an empty room. */
 	private async dropped(by: string) {
 		// Same user may still be connected from another tab/device.
@@ -152,14 +153,10 @@ export class Room extends DurableObject<Env> {
 		pause(this.state, now);
 		await this.ctx.storage.put("state", this.state);
 		this.broadcast({ type: "clock", clock: this.state.clock });
-		const done = isComplete(this.state);
-		await createDb(this.env)
-			.update(rooms)
-			.set({
-				playedMs: this.state.clock.played,
-				...(done && { status: "done", finishedAt: new Date(now) }),
-			})
-			.where(eq(rooms.code, this.code));
+		await saveTime(this.env, this.code, this.state.clock.played, {
+			at: new Date(now),
+			done: isComplete(this.state),
+		});
 	}
 
 	/** Reads the player's name from D1 again and tells everyone. */
