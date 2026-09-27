@@ -2,6 +2,7 @@ import { user as userTable } from "@piecemates/db/schema/auth";
 import { uploads } from "@piecemates/db/schema/game";
 import {
 	imageProblem,
+	MAX_UPLOAD_ATTEMPTS,
 	MAX_UPLOAD_BYTES,
 	MAX_UPLOADS_PER_IP,
 	UPLOAD_TYPES,
@@ -21,9 +22,10 @@ const NewUpload = z.object({
 export const uploadsRouter = router({
 	/**
 	 * A URL that puts one photo straight into storage; it spends one of my
-	 * credits. While I have an unused upload, it's retried instead: a new URL
-	 * for the same key, which R2 fills once, so R2 never holds more than one
-	 * file per upload. A photo it can use there must be resumed, not replaced.
+	 * credits. While I have an unused upload, it's retried instead (a few
+	 * times at most): a new URL for the same key, which R2 fills once, so R2
+	 * never holds more than one file per upload. A photo it can use there
+	 * must be resumed, not replaced.
 	 */
 	create: protectedProcedure
 		.input(NewUpload)
@@ -36,6 +38,15 @@ export const uploadsRouter = router({
 					.catch(() => "invalid" as const);
 				if (info && info !== "invalid" && !imageProblem(info))
 					throw new TRPCError({ code: "BAD_REQUEST", message: "useUploaded" });
+				const retried = await db.run(
+					sql`update ${uploads} set attempts = attempts + 1
+						where id = ${unused.id} and attempts < ${MAX_UPLOAD_ATTEMPTS}`,
+				);
+				if (retried.meta.changes === 0)
+					throw new TRPCError({
+						code: "TOO_MANY_REQUESTS",
+						message: "tooManyRetries",
+					});
 				if (info) await ctx.images.remove(unused.id);
 				const url = await ctx.images.uploadUrl(
 					unused.id,

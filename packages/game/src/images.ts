@@ -12,6 +12,8 @@ export const MIN_IMAGE_SIDE = 400;
 export const MAX_IMAGE_PIXELS = 50_000_000;
 /** Uploads from one IP in a day, so fresh guest logins can't farm their free uploads. */
 export const MAX_UPLOADS_PER_IP = 10;
+/** Upload URLs one upload can get, the first included: enough for a few failed tries. */
+export const MAX_UPLOAD_ATTEMPTS = 5;
 /** A day. */
 export const UPLOAD_WINDOW_MS = 86_400_000;
 
