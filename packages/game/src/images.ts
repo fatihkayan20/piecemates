@@ -5,6 +5,8 @@ export const UPLOAD_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export type UploadType = (typeof UPLOAD_TYPES)[number];
 /** 20 MB. */
 export const MAX_UPLOAD_BYTES = 20_971_520;
+/** JPEG quality a photo is re-encoded to before upload (upright, at most MAX_IMAGE_WIDTH wide). */
+export const UPLOAD_QUALITY = 0.85;
 /** A smaller photo is too blurry to cut into pieces. */
 export const MIN_IMAGE_SIDE = 400;
 export const MAX_IMAGE_PIXELS = 50_000_000;

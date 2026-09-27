@@ -1,7 +1,9 @@
-import { imageProblem, MAX_IMAGE_WIDTH, uploadType } from "@piecemates/game";
-
-/** JPEG quality for a photo made ready to upload. */
-const JPEG_QUALITY = 0.85;
+import {
+	imageProblem,
+	MAX_IMAGE_WIDTH,
+	UPLOAD_QUALITY,
+	uploadType,
+} from "@piecemates/game";
 
 /**
  * Makes a picked photo ready to upload: checked, turned upright (the browser
@@ -24,7 +26,7 @@ export async function preparePhoto(file: File) {
 	canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 	bitmap.close();
 	const blob = await new Promise<Blob | null>((done) =>
-		canvas.toBlob(done, "image/jpeg", JPEG_QUALITY),
+		canvas.toBlob(done, "image/jpeg", UPLOAD_QUALITY),
 	);
 	if (!blob) throw new Error("notAnImage");
 	return { blob, width: canvas.width, height: canvas.height };
