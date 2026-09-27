@@ -14,6 +14,7 @@ test("history rows read the same everywhere", () => {
 		createdAt: Date.UTC(2026, 8, 1),
 		finishedAt: Date.UTC(2026, 8, 2, 12),
 		abandonedAt: null,
+		expired: false,
 		players: ["Ada", "Bo"],
 	};
 	const done = historyLines(room);
@@ -25,4 +26,6 @@ test("history rows read the same everywhere", () => {
 	assert.equal(open.players, "Solo");
 	const gaveUp = historyLines({ ...room, status: "playing", abandonedAt: 1 });
 	assert.equal(gaveUp.status, "Abandoned after 1:20");
+	const idle = historyLines({ ...room, status: "playing", expired: true });
+	assert.equal(idle.status, "Cleared after 1:20 played");
 });

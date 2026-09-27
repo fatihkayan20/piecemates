@@ -7,15 +7,13 @@ import { Link } from "@tanstack/react-router";
 
 import { Photo } from "@/components/photo";
 
-/** One of my rooms, for Continue and History; opens the room. */
+const ROW = "flex items-center gap-3 rounded border p-2";
+
+/** One of my rooms, for Continue and History; opens the room unless it was cleared. */
 export function RoomRow({ room }: { room: RoomSummary }) {
 	const lines = historyLines(room);
-	return (
-		<Link
-			to="/room/$code"
-			params={{ code: room.code }}
-			className="flex items-center gap-3 rounded border p-2 hover:bg-muted"
-		>
+	const content = (
+		<>
 			<Photo
 				url={room.imageUrl}
 				sizes={`${ROW_IMAGE_SIZE}px`}
@@ -26,6 +24,16 @@ export function RoomRow({ room }: { room: RoomSummary }) {
 				<span className="text-sm">{lines.status}</span>
 				<span className="text-muted-foreground text-sm">{lines.players}</span>
 			</span>
+		</>
+	);
+	if (room.expired) return <div className={ROW}>{content}</div>;
+	return (
+		<Link
+			to="/room/$code"
+			params={{ code: room.code }}
+			className={`${ROW} hover:bg-muted`}
+		>
+			{content}
 		</Link>
 	);
 }

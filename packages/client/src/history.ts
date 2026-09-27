@@ -15,7 +15,9 @@ export function historyLines(room: RoomSummary) {
 			? i18next.t("history.abandoned", { time })
 			: room.status === "done"
 				? i18next.t("history.solved", { time })
-				: i18next.t("history.playing", { time }),
+				: room.expired
+					? i18next.t("history.expired", { time })
+					: i18next.t("history.playing", { time }),
 		players: room.players.length
 			? i18next.t("history.with", { names: room.players.join(", ") })
 			: i18next.t("history.solo"),

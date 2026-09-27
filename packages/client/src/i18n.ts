@@ -44,8 +44,10 @@ export const isNameNeeded = (error: unknown) =>
 /** Opening the room would put me over the open-room cap. */
 export const isRoomsFull = (error: unknown) => errorCode(error) === "CONFLICT";
 
-/** What to show when a room can't be opened: a wrong code, too many open, or anything else. */
+/** What to show when a room can't be opened: a wrong code, a cleared room, too many open, or anything else. */
 export function roomErrorText(error: unknown) {
+	if (error instanceof Error && error.message === "roomExpired")
+		return i18next.t("room.expired");
 	if (errorCode(error) === "NOT_FOUND") return i18next.t("room.notFound");
 	if (error instanceof Error && error.message === "roomFull")
 		return i18next.t("room.full", { max: MAX_PLAYERS });

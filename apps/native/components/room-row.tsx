@@ -4,12 +4,13 @@ import { Pressable, Text, View } from "react-native";
 
 import { Photo } from "@/components/photo";
 
-/** One of my rooms, for Continue and History; opens the room. */
+/** One of my rooms, for Continue and History; opens the room unless it was cleared. */
 export function RoomRow({ room }: { room: RoomSummary }) {
 	const lines = historyLines(room);
 	return (
 		<Pressable
 			accessibilityRole="button"
+			disabled={room.expired}
 			className="flex-row items-center gap-3 rounded border border-border p-2 active:opacity-70"
 			onPress={() =>
 				router.push({ pathname: "/room/[code]", params: { code: room.code } })

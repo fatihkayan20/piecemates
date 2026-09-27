@@ -97,6 +97,7 @@ export const en = {
 	room: {
 		title: "Room {{code}}",
 		notFound: "Room not found",
+		expired: "This puzzle has been cleared",
 		full: "This room already has {{max}} players",
 		openFailed: "Could not open the room",
 		tidy: "Tidy pile",
@@ -141,6 +142,7 @@ export const en = {
 		solved: "Solved in {{time}}",
 		playing: "{{time}} played",
 		abandoned: "Abandoned after {{time}}",
+		expired: "Cleared after {{time}} played",
 		with: "With {{names}}",
 		solo: "Solo",
 	},
