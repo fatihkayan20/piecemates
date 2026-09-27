@@ -1,19 +1,17 @@
-import { BOARD_STYLE, imageSrc, type RoomInfo } from "@piecemates/client";
-import { Canvas, Group, Rect, useImage } from "@shopify/react-native-skia";
+import { BOARD_STYLE, type RoomInfo } from "@piecemates/client";
+import { Canvas, Group, Rect } from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
 
+import { useBoardImage } from "@/hooks/use-board-image";
 import { useRoom } from "@/hooks/use-room";
 import { camera, dragOffset } from "@/lib/camera";
 import { piecePaths } from "@/lib/piece-paths";
 
 import { Piece } from "./piece";
 
-/** Enough detail to zoom in on a phone without holding the 3072 web copy in memory. */
-const BOARD_IMAGE_WIDTH = 2048;
-
 /** The table: board frame, pieces in draw order, and my dragged group on top. */
 export function BoardCanvas({ room }: { room: RoomInfo }) {
-	const image = useImage(imageSrc(room.imageUrl, BOARD_IMAGE_WIDTH, 1));
+	const image = useBoardImage(room.imageUrl);
 	const grid = useRoom((r) => r.grid);
 	const order = useRoom((r) => r.order);
 	const drag = useRoom((r) => r.drag);

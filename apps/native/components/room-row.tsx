@@ -1,11 +1,8 @@
-import {
-	historyLines,
-	imageSrc,
-	ROW_IMAGE_SIZE,
-	type RoomSummary,
-} from "@piecemates/client";
+import { historyLines, type RoomSummary } from "@piecemates/client";
 import { router } from "expo-router";
-import { Image, PixelRatio, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+
+import { Photo } from "@/components/photo";
 
 /** One of my rooms, for Continue and History; opens the room. */
 export function RoomRow({ room }: { room: RoomSummary }) {
@@ -18,12 +15,7 @@ export function RoomRow({ room }: { room: RoomSummary }) {
 				router.push({ pathname: "/room/[code]", params: { code: room.code } })
 			}
 		>
-			<Image
-				source={{
-					uri: imageSrc(room.imageUrl, ROW_IMAGE_SIZE, PixelRatio.get()),
-				}}
-				className="aspect-video w-24 rounded"
-			/>
+			<Photo url={room.imageUrl} className="aspect-video w-24 rounded" />
 			<View className="flex-1 gap-0.5">
 				<Text className="font-medium text-foreground">{lines.title}</Text>
 				<Text className="text-foreground text-sm">{lines.status}</Text>

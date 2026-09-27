@@ -50,7 +50,16 @@
 					"project": "native"
 				}
 			],
-			"expo-localization"
+			"expo-localization",
+			"expo-image",
+			[
+				"expo-image-picker",
+				{
+					"photosPermission": "Piecemates opens your photos so you can turn one into a puzzle.",
+					"cameraPermission": false,
+					"microphonePermission": false
+				}
+			]
 		],
 		"experiments": {
 			"typedRoutes": true,
