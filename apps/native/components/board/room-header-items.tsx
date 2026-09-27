@@ -40,7 +40,7 @@ export function RoomHeaderItems({ code }: { code: string }) {
 					},
 				}}
 			/>
-			{sheet === "settings" && <SettingsSheet onClose={close} />}
+			{sheet === "settings" && <SettingsSheet code={code} onClose={close} />}
 			{sheet === "players" && <PlayersSheet code={code} onClose={close} />}
 		</>
 	);

@@ -2,7 +2,7 @@ import {
 	BottomSheet,
 	Button,
 	Host,
-	Picker,
+	HStack,
 	Text,
 	Toggle,
 	VStack,
@@ -11,12 +11,11 @@ import {
 	buttonStyle,
 	font,
 	foregroundStyle,
+	frame,
 	padding,
-	pickerStyle,
 	presentationDragIndicator,
-	tag,
 } from "@expo/ui/swift-ui/modifiers";
-import { defaultGrid } from "@piecemates/client";
+import { createErrorText, defaultGrid } from "@piecemates/client";
 import { gridOptions } from "@piecemates/game";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -27,7 +26,9 @@ import { api } from "@/lib/api";
 
 export type PickedImage = { url: string; width: number; height: number };
 
-const SHEET = { spacing: 16, padding: 24, titleSize: 20 };
+const SHEET = { spacing: 16, padding: 24, titleSize: 20, buttonGap: 8 };
+/** Piece count buttons per row, so every option shows at once. */
+const COUNTS_PER_ROW = 4;
 
 /** Room options for a picked image: piece count and turned pieces. */
 export function NewRoomSheet({
@@ -44,6 +45,10 @@ export function NewRoomSheet({
 	const [busy, setBusy] = useState(false);
 	const [open, setOpen] = useState(true);
 	const grid = options.find((o) => o.count === count);
+	const rows = Array.from(
+		{ length: Math.ceil(options.length / COUNTS_PER_ROW) },
+		(_, r) => options.slice(r * COUNTS_PER_ROW, (r + 1) * COUNTS_PER_ROW),
+	);
 
 	const create = async () => {
 		if (!grid) return;
@@ -59,8 +64,8 @@ export function NewRoomSheet({
 			});
 			setOpen(false);
 			router.push({ pathname: "/room/[code]", params: { code: room.code } });
-		} catch {
-			Alert.alert(t("home.createFailed"));
+		} catch (e) {
+			Alert.alert(createErrorText(e));
 		} finally {
 			setBusy(false);
 		}
@@ -87,18 +92,26 @@ export function NewRoomSheet({
 					>
 						{t("home.newRoom")}
 					</Text>
-					<Picker
-						label={t("home.pieceCount")}
-						selection={count}
-						onSelectionChange={(c: number) => setCount(c)}
-						modifiers={[pickerStyle("menu")]}
-					>
-						{options.map((o) => (
-							<Text key={o.count} modifiers={[tag(o.count)]}>
-								{t("home.pieces", { count: o.count })}
-							</Text>
-						))}
-					</Picker>
+					<Text modifiers={[foregroundStyle("secondary")]}>
+						{t("home.pieceCount")}
+					</Text>
+					{rows.map((row) => (
+						<HStack key={row[0]?.count} spacing={SHEET.buttonGap}>
+							{row.map((o) => (
+								<Button
+									key={o.count}
+									label={String(o.count)}
+									onPress={() => setCount(o.count)}
+									modifiers={[
+										buttonStyle(
+											o.count === count ? "borderedProminent" : "bordered",
+										),
+										frame({ maxWidth: Number.POSITIVE_INFINITY }),
+									]}
+								/>
+							))}
+						</HStack>
+					))}
 					<Toggle
 						label={t("home.rotate")}
 						isOn={rotate}
