@@ -8,7 +8,7 @@ import {
 	UPLOAD_WINDOW_MS,
 } from "@piecemates/game";
 import { TRPCError } from "@trpc/server";
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { protectedProcedure, router } from "./trpc";
 import { unusedUpload } from "./uploaded-image";
@@ -20,38 +20,49 @@ const NewUpload = z.object({
 
 export const uploadsRouter = router({
 	/**
-	 * A URL that puts one photo straight into storage. An upload no room uses
-	 * yet is reused without a credit: its old file goes and it gets a new id
-	 * (one URL puts one file); otherwise it spends one of my credits.
+	 * A URL that puts one photo straight into storage; it spends one of my
+	 * credits. While I have an unused upload, it's retried instead: a new URL
+	 * for the same key, which R2 fills once, so R2 never holds more than one
+	 * file per upload. A photo it can use there must be resumed, not replaced.
 	 */
 	create: protectedProcedure
 		.input(NewUpload)
 		.mutation(async ({ ctx, input }) => {
 			const { db, user, ip } = ctx;
-			const id = crypto.randomUUID();
 			const unused = await unusedUpload(ctx);
 			if (unused) {
-				await db.update(uploads).set({ id }).where(eq(uploads.id, unused.id));
-			} else {
-				const since = Date.now() - UPLOAD_WINDOW_MS;
-				// All or nothing: the row is only added with a credit left and under the IP cap, and only then is a credit spent.
-				const [added] = await db.batch([
-					db.run(
-						sql`insert into ${uploads} (id, user_id, ip) select ${id}, ${user.id}, ${ip}
+				const info = await ctx.images
+					.info(unused.id)
+					.catch(() => "invalid" as const);
+				if (info && info !== "invalid" && !imageProblem(info))
+					throw new TRPCError({ code: "BAD_REQUEST", message: "useUploaded" });
+				if (info) await ctx.images.remove(unused.id);
+				const url = await ctx.images.uploadUrl(
+					unused.id,
+					input.type,
+					input.size,
+				);
+				return { id: unused.id, url };
+			}
+			const id = crypto.randomUUID();
+			const since = Date.now() - UPLOAD_WINDOW_MS;
+			// All or nothing: the row is only added with a credit left and under the IP cap, and only then is a credit spent.
+			const [added] = await db.batch([
+				db.run(
+					sql`insert into ${uploads} (id, user_id, ip) select ${id}, ${user.id}, ${ip}
 						where (select upload_credits from ${userTable} where id = ${user.id}) > 0
 						and (select count(*) from ${uploads} where ip = ${ip} and created_at > ${since}) < ${MAX_UPLOADS_PER_IP}`,
-					),
-					db.run(
-						sql`update ${userTable} set upload_credits = upload_credits - 1
+				),
+				db.run(
+					sql`update ${userTable} set upload_credits = upload_credits - 1
 						where id = ${user.id} and exists (select 1 from ${uploads} where id = ${id})`,
-					),
-				]);
-				if (added.meta.changes === 0) {
-					const me = await db.query.user.findFirst({ where: { id: user.id } });
-					throw me?.uploadCredits
-						? new TRPCError({ code: "TOO_MANY_REQUESTS" })
-						: new TRPCError({ code: "FORBIDDEN", message: "noUploadCredits" });
-				}
+				),
+			]);
+			if (added.meta.changes === 0) {
+				const me = await db.query.user.findFirst({ where: { id: user.id } });
+				throw me?.uploadCredits
+					? new TRPCError({ code: "TOO_MANY_REQUESTS" })
+					: new TRPCError({ code: "FORBIDDEN", message: "noUploadCredits" });
 			}
 			return {
 				id,
