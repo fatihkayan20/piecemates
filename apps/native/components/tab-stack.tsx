@@ -11,10 +11,14 @@ export function TabStack({
 	large?: boolean;
 }) {
 	const foreground = useThemeColor("foreground");
+	const background = useThemeColor("background");
 	return (
 		<Stack
 			screenOptions={{
 				headerLargeTitle: large,
+				// A large title's bar is transparent over the screen; an inline bar
+				// paints the system background, so it gets the app's instead.
+				headerStyle: large ? undefined : { backgroundColor: background },
 				headerTintColor: foreground,
 				headerTitleStyle: { color: foreground },
 				headerLargeTitleStyle: { color: foreground },
