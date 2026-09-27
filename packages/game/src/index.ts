@@ -3,6 +3,7 @@ export * from "./clock.ts";
 export * from "./images.ts";
 export * from "./messages.ts";
 export * from "./rotate.ts";
+export * from "./samples.ts";
 export * from "./shape.ts";
 export * from "./state.ts";
 export * from "./table.ts";
