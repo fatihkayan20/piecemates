@@ -1,5 +1,5 @@
 import type { PickedImage } from "@piecemates/client";
-import { MAX_OPEN_ROOMS } from "@piecemates/game";
+import { MAX_OPEN_ROOMS, ROOM_CODE_LENGTH } from "@piecemates/game";
 import { Button } from "@piecemates/ui/components/button";
 import { Input } from "@piecemates/ui/components/input";
 import { useQuery } from "@tanstack/react-query";
@@ -42,6 +42,7 @@ function HomeComponent() {
 					<Input
 						aria-label={t("home.roomCode")}
 						placeholder="ABCD2345"
+						maxLength={ROOM_CODE_LENGTH}
 						value={code}
 						onChange={(e) => setCode(e.target.value)}
 						className="font-mono uppercase"

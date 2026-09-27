@@ -3,6 +3,8 @@
 // identical everywhere without sending positions of anything but the dropped piece.
 
 export const MAX_PLAYERS = 4;
+/** Room codes are this many characters (31^8 ≈ 850 billion, too many to guess). */
+export const ROOM_CODE_LENGTH = 8;
 /** API calls one HTTP request may batch; the client link and the server both use it. */
 export const MAX_API_BATCH = 8;
 /** The name Better Auth gives a new guest. */

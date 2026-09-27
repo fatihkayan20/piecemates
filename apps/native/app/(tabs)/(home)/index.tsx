@@ -1,5 +1,5 @@
 import type { PickedImage } from "@piecemates/client";
-import { MAX_OPEN_ROOMS } from "@piecemates/game";
+import { MAX_OPEN_ROOMS, ROOM_CODE_LENGTH } from "@piecemates/game";
 import { useQuery } from "@tanstack/react-query";
 import { router, useIsFocused } from "expo-router";
 import { useState } from "react";
@@ -38,6 +38,7 @@ export default function Home() {
 					<TextInput
 						accessibilityLabel={t("home.roomCode")}
 						placeholder="ABCD2345"
+						maxLength={ROOM_CODE_LENGTH}
 						autoCapitalize="characters"
 						autoCorrect={false}
 						value={code}

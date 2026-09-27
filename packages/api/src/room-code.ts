@@ -1,7 +1,7 @@
+import { ROOM_CODE_LENGTH as CODE_LENGTH } from "@piecemates/game";
+
 // No 0/O/1/I/L so codes are easy to read out loud.
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-// 31^8 ≈ 850 billion codes, too many to guess one; still short to type.
-const CODE_LENGTH = 8;
 const BYTE_VALUES = 256;
 // Bytes at or above this are skipped so every letter is equally likely.
 const BYTE_LIMIT = BYTE_VALUES - (BYTE_VALUES % CODE_ALPHABET.length);

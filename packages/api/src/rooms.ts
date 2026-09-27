@@ -1,5 +1,10 @@
 import { roomPlayers, rooms } from "@piecemates/db/schema/game";
-import { isImageAspect, MAX_PLAYERS, needsName } from "@piecemates/game";
+import {
+	isImageAspect,
+	MAX_PLAYERS,
+	needsName,
+	ROOM_CODE_LENGTH,
+} from "@piecemates/game";
 import { TRPCError } from "@trpc/server";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -18,7 +23,7 @@ import { uploadedImage } from "./uploaded-image";
 // Sample photos; uploads come in by id instead.
 const ALLOWED_IMAGE_HOSTS = ["images.unsplash.com"];
 
-const Code = z.object({ code: z.string().toUpperCase() });
+const Code = z.object({ code: z.string().max(ROOM_CODE_LENGTH).toUpperCase() });
 
 /** Players meet others only under a name they picked. */
 const checkName = (ctx: { user: { name: string } }) => {
