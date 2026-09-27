@@ -1,7 +1,14 @@
-import type { RoomInfo } from "@piecemates/client";
+import { imageSrc, type RoomInfo } from "@piecemates/client";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Image, Modal, Pressable, Text } from "react-native";
+import {
+	Image,
+	Modal,
+	PixelRatio,
+	Pressable,
+	Text,
+	useWindowDimensions,
+} from "react-native";
 
 import { useRoom } from "@/hooks/use-room";
 
@@ -10,6 +17,7 @@ export function ReferenceImage({ room }: { room: RoomInfo }) {
 	const { t } = useTranslation();
 	const [open, setOpen] = useState(false);
 	const grid = useRoom((r) => r.grid);
+	const { width } = useWindowDimensions();
 	const aspectRatio = grid ? (grid.cols * grid.w) / (grid.rows * grid.h) : 1;
 
 	return (
@@ -34,7 +42,7 @@ export function ReferenceImage({ room }: { room: RoomInfo }) {
 					onPress={() => setOpen(false)}
 				>
 					<Image
-						source={{ uri: room.imageUrl }}
+						source={{ uri: imageSrc(room.imageUrl, width, PixelRatio.get()) }}
 						accessibilityLabel={t("room.finishedPuzzle")}
 						resizeMode="contain"
 						className="w-full"
