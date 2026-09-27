@@ -24,9 +24,12 @@ flowchart LR
 
   subgraph CF["Cloudflare (local: workerd via alchemy dev, packages/infra)"]
     direction TB
-    Worker["apps/server Worker (Hono)<br/>/api/auth/*, /rooms/:code/ws,<br/>/trpc/* (packages/api): rooms.list, rooms.create (max 3 open),<br/>rooms.open (reopen counts to the cap), rooms.abandon"]
+    Worker["apps/server Worker (Hono)<br/>/api/auth/* (guest + sign-up limit per IP),<br/>/trpc/* (packages/api, rate limited per player):<br/>rooms.list, create, createFromUpload (max 3 open),<br/>open (members, or shared rooms + a name), share, abandon,<br/>uploads.create (signed R2 PUT), credits, unused;<br/>/images/:id?w= (signed, expiring links),<br/>/rooms/:code/ws (members only, our origins);<br/>daily Cron: cleanup of unused uploads"]
     DO[("Room Durable Object<br/>one per room code<br/>authoritative State, hibernating sockets")]
-    D1[("D1 (SQLite)<br/>user, session, account,<br/>rooms, room_players (+ abandoned_at)")]
+    D1[("D1 (SQLite)<br/>user, session, account, rate_limit,<br/>rooms (+ shared), room_players (+ abandoned_at),<br/>uploads (credits per user and IP, attempts)")]
+    R2[("R2 bucket images<br/>uploads/&lt;id&gt; originals (private),<br/>variants/&lt;id&gt;/&lt;w&gt;.webp")]
+    Images["Images binding<br/>(real format + size, resize to WebP)"]
+    Limits["Rate limit bindings<br/>API_LIMIT (writes, socket connects),<br/>READ_LIMIT (reads)"]
     Assets["Web static assets<br/>(Cloudflare Website)"]
   end
 
@@ -51,10 +54,15 @@ flowchart LR
   Native -. "WebSocket" .-> Worker
   Worker -- "getByName(code).fetch / init()" --> DO
   Worker -- "Drizzle" --> D1
+  Worker -- "info, resize, store variants" --> R2
+  Worker --> Images
+  Worker --> Limits
+  Web -- "PUT photo (signed URL)" --> R2
+  Native -- "PUT photo (signed URL)" --> R2
   DO -- "played_ms, status, finished_at" --> D1
   Assets --> Web
-  Web -- "image pixels" --> Unsplash
-  Native -- "image pixels" --> Unsplash
+  Web -- "sample pixels" --> Unsplash
+  Native -- "sample pixels" --> Unsplash
   Clients -.-> Sentry
   Worker -.-> Sentry
   Clients -.-> PostHog
@@ -62,7 +70,8 @@ flowchart LR
 
 - **Who decides:** the Room Durable Object runs `apply()` from `@piecemates/game` on every message and broadcasts what it accepted. Clients run the same `apply()` on the echo, so everyone's state stays identical. Only the dropped piece's position travels.
 - **What is stored where:** live piece state lives in the Durable Object's storage (one `state` key per room). D1 only indexes rooms: who owns them, who played (and who abandoned), the seed and grid, play time and whether it's solved (for Continue and History).
-- **The server never touches pixels:** piece shapes come from `(seed, rows, cols)`, so every client cuts the same puzzle from the image URL.
+- **The server only touches pixels for uploads:** piece shapes come from `(seed, rows, cols)`, so every client cuts the same puzzle from the image URL. An uploaded photo goes from the device straight to R2; the Worker checks its real format and size, then serves WebP at the width asked for (steps of 256, up to 3072), made once and kept in R2. Photo links are signed and expire after one to two weeks; list and open sign them again.
+- **Limits:** guests and email sign-ups per IP (Better Auth, `rate_limit` table), API writes and reads per player (rate limit bindings), upload credits per player and per IP over 24h (`uploads` table), 3 open rooms, 4 players, 20 room messages a second per player, 20 bags. Caps are checked inside the insert, so parallel requests can't pass them.
 - **Per device, never sent:** the camera, which bag I'm looking at, my tidy positions, and my settings (table colour, sounds, haptics, music).
 
 ## A room's life
@@ -76,13 +85,21 @@ sequenceDiagram
   participant A as Better Auth
   participant D1 as D1
   participant R as Room DO
+  participant R2 as R2
 
   P->>C: open the app
   C->>A: getSession, else sign in anonymously
   A->>D1: user + session rows
   P->>C: Home
-  C->>W: rooms.list {open} (Continue; cached, refetched after a mutation or opening a room)
-  P->>C: pick image, piece count, rotated pieces (sheet)
+  C->>W: rooms.list {open} (Continue, cached, refetched after a mutation or opening a room)
+  P->>C: pick a sample or a photo, piece count, rotated pieces (sheet)
+  opt a photo
+    C->>W: uploads.create {type, size}
+    W->>D1: check credits (user and IP), insert uploads row
+    W-->>C: {id, putUrl} (5 min, type and length signed)
+    C->>R2: PUT the photo
+    Note over C,W: rooms.createFromUpload {upload} instead of rooms.create
+  end
   C->>W: rooms.create {imageUrl, size, rows, cols, rotate}
   W->>D1: count my open rooms (CONFLICT at 3), else insert rooms + room_players
   W->>R: init(code, seed, rows, cols, w, h, rotate)
@@ -100,10 +117,17 @@ sequenceDiagram
     C->>C: apply() on the echo, store snapshot, camera follows
   end
   R->>D1: last player leaves or solved: played_ms (+ done, finished_at)
+  opt play with others
+    P->>C: Share (asks for a name first if I'm still "Anonymous")
+    C->>W: rooms.share {code}
+    W->>D1: rooms.shared = 1
+    Note over P,W: a friend's rooms.open needs a name too, and a free open-room slot
+  end
   opt give up
     P->>C: Abandon (settings sheet, confirmed)
     C->>W: rooms.abandon {code}
     W->>D1: room_players.abandoned_at = now
+    W->>R: leave(userId): closes my sockets
   end
   P->>C: History
   C->>W: rooms.list {history}
@@ -121,8 +145,10 @@ sequenceDiagram
 | Web board | `apps/web/src/hooks/use-pixi-board.ts`, `lib/pixi/*` |
 | Native board | `apps/native/components/board/*`, `hooks/use-board-gestures.ts`, `lib/camera.ts` |
 | Native tabs | `apps/native/app/(tabs)/*`, `components/tab-stack.tsx` |
-| HTTP API (tRPC router) | `packages/api/src/rooms.ts`, `my-rooms.ts`; mounted in `apps/server/src/index.ts` |
+| HTTP API (tRPC router) | `packages/api/src/rooms.ts`, `new-room.ts`, `uploads.ts`, `my-rooms.ts`, rate limits in `trpc.ts`; mounted in `apps/server/src/index.ts` |
+| Photos: resize, signed links, cleanup | `apps/server/src/images.ts`, `image-links.ts`, `cleanup.ts`; shared checks in `packages/game/src/images.ts` |
+| Sign-in limits and name rules | `packages/auth/src/index.ts`, `needsName` in `packages/game/src/types.ts` |
 | API client and query cache | `packages/client/src/api.ts` |
-| Room authority | `apps/server/src/room.ts` |
+| Room authority | `apps/server/src/room.ts`, socket helpers in `room-sockets.ts` |
 | Tables | `packages/db/src/schema/*.ts`, migrations in `packages/db/src/migrations` |
 | Cloudflare resources | `packages/infra/alchemy.run.ts` |
