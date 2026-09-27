@@ -9,6 +9,7 @@ import {
 	generateEdges,
 	gridOptions,
 	isComplete,
+	MAX_BAGS,
 	needsName,
 	pause,
 	piecePath,
@@ -316,4 +317,48 @@ test("a guest picks a name before meeting others", () => {
 	assert.equal(needsName("Anonymous"), true);
 	assert.equal(needsName("  "), true);
 	assert.equal(needsName("Ada"), false);
+});
+
+test("bags are own, capped, printable and hex coloured", () => {
+	const s = createState({ seed: 1, rows: 2, cols: 2, w: 100, h: 100 });
+	for (const bag of ["toString", "constructor"])
+		assert.equal(
+			apply(s, "a", { type: "bag:put", piece: 0, bag }),
+			false,
+			`${bag} isn't a bag`,
+		);
+	const bag = (id: string) => ({
+		type: "bag:create",
+		bag: id,
+		name: "x",
+		color: "#38bdf8",
+	});
+	assert.equal(ClientMsg.safeParse(bag("__proto__")).success, false);
+	assert.equal(
+		ClientMsg.safeParse({ ...bag("a"), name: "a\u0001" }).success,
+		false,
+	);
+	assert.equal(
+		ClientMsg.safeParse({ ...bag("a"), color: "red" }).success,
+		false,
+	);
+	for (let i = 0; i < MAX_BAGS; i++)
+		assert.ok(
+			apply(s, "a", {
+				type: "bag:create",
+				bag: `b${i}`,
+				name: "x",
+				color: "#38bdf8",
+			}),
+		);
+	assert.equal(
+		apply(s, "a", {
+			type: "bag:create",
+			bag: "one",
+			name: "x",
+			color: "#38bdf8",
+		}),
+		false,
+		"at most MAX_BAGS",
+	);
 });

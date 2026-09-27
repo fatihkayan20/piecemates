@@ -2,10 +2,11 @@ import { z } from "zod";
 
 import { BAG_NAME_MAX, type Clock, type Player, type State } from "./types.ts";
 
-/** Long enough for any CSS colour we pick, e.g. "#38bdf8" or "rgb(…)". */
-const COLOR_MAX = 20;
-
 const pieceIndex = z.int().nonnegative();
+/** Short random ids (bags.ts); no "_", so never "__proto__". */
+const bagId = z.string().regex(/^[a-z0-9]{1,16}$/);
+/** Printable text only: no control, format or bidi characters. */
+const printable = /^\P{C}*$/u;
 
 export const ClientMsg = z.discriminatedUnion("type", [
 	z.object({ type: z.literal("lock"), piece: pieceIndex }),
@@ -20,16 +21,16 @@ export const ClientMsg = z.discriminatedUnion("type", [
 	}),
 	z.object({
 		type: z.enum(["bag:create", "bag:update"]),
-		bag: z.string().min(1).max(BAG_NAME_MAX),
-		name: z.string().max(BAG_NAME_MAX),
-		color: z.string().max(COLOR_MAX),
+		bag: bagId,
+		name: z.string().max(BAG_NAME_MAX).regex(printable),
+		color: z.string().regex(/^#[0-9a-f]{6}$/i),
 	}),
-	z.object({ type: z.literal("bag:delete"), bag: z.string() }),
+	z.object({ type: z.literal("bag:delete"), bag: bagId }),
 	/** Moves the piece's whole group into a bag, or back to the table (null). */
 	z.object({
 		type: z.literal("bag:put"),
 		piece: pieceIndex,
-		bag: z.string().nullable(),
+		bag: bagId.nullable(),
 	}),
 ]);
 export type ClientMsg = z.infer<typeof ClientMsg>;

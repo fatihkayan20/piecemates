@@ -3,7 +3,7 @@ import { rotateGroup } from "./rotate.ts";
 import { snap } from "./snap.ts";
 import { groupOf, isPlaced, lockedByOther, piecesInGroup } from "./state.ts";
 import { clampToTable } from "./table.ts";
-import type { State } from "./types.ts";
+import { MAX_BAGS, type State } from "./types.ts";
 import { moveToView } from "./views.ts";
 
 /** Applies a message in place. Returns false (and changes nothing) if it's not allowed. */
@@ -14,11 +14,18 @@ export function apply(state: State, by: string, msg: Msg): boolean {
 			return true;
 		case "bag:create":
 		case "bag:update":
-			if (msg.bag in state.bags !== (msg.type === "bag:update")) return false;
+			// Own keys only: "constructor" and the like are on every object.
+			if (Object.hasOwn(state.bags, msg.bag) !== (msg.type === "bag:update"))
+				return false;
+			if (
+				msg.type === "bag:create" &&
+				Object.keys(state.bags).length >= MAX_BAGS
+			)
+				return false;
 			state.bags[msg.bag] = { name: msg.name, color: msg.color };
 			return true;
 		case "bag:delete": {
-			if (!(msg.bag in state.bags)) return false;
+			if (!Object.hasOwn(state.bags, msg.bag)) return false;
 			const groups = new Set(
 				state.pieces.flatMap((p) => (p.bag === msg.bag ? [p.group] : [])),
 			);
@@ -31,7 +38,7 @@ export function apply(state: State, by: string, msg: Msg): boolean {
 			if (
 				!piece ||
 				piece.bag === msg.bag ||
-				(msg.bag !== null && !(msg.bag in state.bags)) ||
+				(msg.bag !== null && !Object.hasOwn(state.bags, msg.bag)) ||
 				lockedByOther(state, msg.piece, by) ||
 				isPlaced(state, msg.piece)
 			)

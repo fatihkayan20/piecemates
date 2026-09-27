@@ -15,6 +15,8 @@ export const needsName = (name: string) => {
 /** Room messages one socket may send a second; a player's action sends one or two. */
 export const MAX_MESSAGES_PER_SECOND = 20;
 export const BAG_NAME_MAX = 40;
+/** Bags a room may have; each one is sent to every player who joins. */
+export const MAX_BAGS = 20;
 /** Most pieces a room may have (the largest grid option, with rounding room). */
 export const MAX_PIECES = 1100;
 /** Unsolved rooms a player may have before they must finish or abandon one. */
