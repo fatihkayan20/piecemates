@@ -4,12 +4,18 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Urgent or easy fixes Prio 1
 
+- [ ] **Unsplash terms: close these gaps before launch** (checked against the [API Terms](https://unsplash.com/api-terms), [API Guidelines](https://help.unsplash.com/en/articles/2511245-unsplash-api-guidelines) and [License](https://unsplash.com/license) on 2026-09-27; not legal advice). Breaking §6 is a "material breach", and any breach ends our API rights without notice (§19).
+  - **Credit wherever a sample shows (§9, §4).** §9 says "each time" an image is displayed it must credit Unsplash and the photographer, with a link to the photographer's profile. Today only the new room sheet does. Missing on: Home's featured and category tiles (the name is only in the accessibility label), the Continue and History rows, and inside the room (board and reference image). §4 also forbids mixing Unsplash photos with other content so users can't tell they're from Unsplash, and Home mixes them with uploads. Fix: a small "name" line on tiles, and store the sample id on `rooms` so rows and the room can show "Photo by … on Unsplash".
+  - **A published privacy policy (§5)**: required for every app using the API (and by the App Store anyway). It must say what we collect, store and delete, and what we share with third parties (Unsplash gets image views through the hotlinked URLs and downloads through our calls).
+  - **"Non-automated" use**: the guidelines say the API is for "non-automated, high-quality, and authentic experiences", and §12 lets Unsplash add rules for automated use. Our daily Cron sync is automated (at most 30 calls a run). Say so plainly in the production application (curated catalogue, daily sync, hotlinked, downloads tracked) and get their OK in writing.
+  - **Stopping means stopping (§19)**: if Unsplash ends our access, we must stop using the API at once, but §6 (hotlinking and download tracking) keeps applying forever. So "turn the sync off and keep the photos" only works while we keep hotlinking and sending download events; if access ends, hide the Unsplash samples. Never copy them to R2: §6 requires the hotlinked URLs, and the Unsplash License forbids compiling its photos into a similar or competing service.
+  - **Keep it a puzzle app**: the guidelines forbid selling unaltered photos and replicating Unsplash's core experience (unofficial clients, wallpaper apps). Don't add photo search, downloading or saving the original, or a wallpaper feature.
+- [ ] **Apply for Unsplash's production API key**: the demo key allows 50 calls an hour, and each room started from a sample is one of them. Apply once the gaps above are closed and the app is public: screenshots of the credit and a description of the download tracking. Use `utm_source` matching the app name registered there (we send `piecemates`). More at partnerships@unsplash.com if 1000 an hour isn't enough.
+
 ## Polish and user engagement features Prio 2
 
 ## Game features Prio 3
 
-- [ ] **Better home screen and room creation**: image lists by category (e.g. today's selection).
-  - **Unsplash search**: a server route `GET /images/search` keeps the API key server-side and handles attribution plus the required download-tracking call.
 - [ ] **Stale data cleanup**: the daily Cron Trigger already removes unused uploads and stray R2 files; extend it to remove expired rooms and their images. Keep the D1 `rooms` and `room_players` rows (History reads them); delete the Durable Object's storage and the image, and mark the room expired.
 - [ ] **Store review prompt**: ask for an App Store / Play Store review at a good moment.
 
@@ -21,6 +27,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Reconnect**: the room socket reconnects on its own after a drop (web and native), instead of showing "disconnected".
 - [ ] **Player colours**: pieces locked by others are tinted in that player's colour instead of only dimmed.
 - [ ] **Name prompt on Android**: `askName` uses `Alert.prompt`, which is iOS only; Android needs its own input.
+- [ ] **More samples per category**: `samples.list` already pages by 30; Home shows only the first page. Add "Show more" once categories grow past it.
 - [ ] **Photo uploads, later steps**:
   - Resize on the client before uploading if upload times hurt (the 20 MB cap and iOS's JPEG re-encode keep it reasonable for now).
   - The first request for a new width is resized on the spot and takes a few seconds; make the common widths right after upload if it shows.
@@ -60,6 +67,8 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Abuse test in production**: right after the first deploy, run the abuse sub-agent against the deployed apps. Locally every request comes from 127.0.0.1 and a client can set `cf-connecting-ip` itself; in production Cloudflare sets it, so check the guest sign-in limit, the upload IP cap (IPv6 /64 too), the per-user write limit, signed photo links and the daily cleanup Cron Trigger there.
 
 ## Done
+
+- [x] **Sample catalogue from Unsplash (better Home and room creation)**: a daily Cron sync fills a D1 catalogue to 200 photos, then adds 5 per category a day, marking a few featured. Home shows a featured row, category chips (Nature, Cities, Animals, Food, Art, Space) and the grid with the upload tile, on web and iOS. Rooms start from a sample id, so clients never send image URLs. Following Unsplash's rules: photos load from Unsplash's CDN (never copied), the API key stays on the server, each room started from a sample sends Unsplash a download event (with `ixid`), Unsplash+ photos are skipped, the new room sheet credits "Photo by … on Unsplash" with referral links, and a sync makes at most 30 calls. `8629cb2` `2aadd1b` `2e9c0df`
 
 - [x] **Photo upload with limits**: a photo goes from the device straight to R2 through a signed URL (type, size and one file per upload are signed), and the server checks its real format and size before a room uses it. Players see WebP resized to the width on screen (steps of 256, cached in R2, and in expo-image on iOS); originals stay private and links to photos expire. Uploads cost a daily credit per player and per IP, so fresh guest logins can't get around it; an unused upload can be resumed or retried (up to 5 times), and a daily Cron Trigger removes unused uploads and stray files. `057f8b2` `ff0e784` `5a20b0f` `266e32e` `52c680c` `1b425d8` `a33dc93` `8e27ac6` `b979381` `56c2b57` `b0e20a2` `75e9f86` `2031884` `9722156` `2fba25b`
 - [x] **Abuse-tested and hardened**: three rounds of an abuse sub-agent against the dev server, plus a full web and iOS test round.
