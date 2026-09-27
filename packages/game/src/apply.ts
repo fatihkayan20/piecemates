@@ -1,4 +1,5 @@
 import type { Msg } from "./messages.ts";
+import { rotateGroup } from "./rotate.ts";
 import { snap } from "./snap.ts";
 import { groupOf, isPlaced, lockedByOther, piecesInGroup } from "./state.ts";
 import { clampToTable } from "./table.ts";
@@ -48,6 +49,27 @@ export function apply(state: State, by: string, msg: Msg): boolean {
 				return false;
 			release(state, by); // one piece per hand
 			state.locks[piece.group] = by;
+			return true;
+		}
+		case "rotate": {
+			const piece = state.pieces[msg.piece];
+			if (
+				!state.rotate ||
+				!piece ||
+				lockedByOther(state, msg.piece, by) ||
+				isPlaced(state, msg.piece)
+			)
+				return false;
+			delete state.locks[piece.group];
+			rotateGroup(state, msg.piece);
+			const members = groupOf(state, msg.piece);
+			const { x: dx, y: dy } = clampToTable(state, members, 0, 0);
+			for (const i of members) {
+				const m = state.pieces[i];
+				if (m) Object.assign(m, { x: m.x + dx, y: m.y + dy });
+			}
+			// A pile piece is drawn at my own tidy spot, so only a moved one snaps.
+			if (piece.touched) snap(state, piece.group);
 			return true;
 		}
 		case "unlock": {

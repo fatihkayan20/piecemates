@@ -18,6 +18,8 @@ export type Piece = {
 	bag: string | null;
 	/** False while the piece sits in its view's pile (the table's or its bag's). */
 	touched: boolean;
+	/** Quarter turns clockwise around the piece's centre; 0 is upright. */
+	rot: number;
 };
 
 export type Bag = { name: string; color: string };
@@ -42,6 +44,8 @@ export type State = {
 	/** bag id -> bag */
 	bags: Record<string, Bag>;
 	clock: Clock;
+	/** Pieces start turned and players turn them (a room option). */
+	rotate: boolean;
 };
 
 export type Player = { id: string; name: string };

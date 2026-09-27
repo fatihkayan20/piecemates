@@ -160,10 +160,15 @@ export function clampToTable(
 	for (const i of members) {
 		const p = state.pieces[i];
 		if (!p) continue;
-		minX = Math.min(minX, p.x + dx);
-		minY = Math.min(minY, p.y + dy);
-		maxX = Math.max(maxX, p.x + dx + state.w);
-		maxY = Math.max(maxY, p.y + dy + state.h);
+		// A piece turned sideways swaps its width and height around its centre.
+		const halfW = (p.rot % 2 ? state.h : state.w) / 2;
+		const halfH = (p.rot % 2 ? state.w : state.h) / 2;
+		const cx = p.x + dx + state.w / 2;
+		const cy = p.y + dy + state.h / 2;
+		minX = Math.min(minX, cx - halfW);
+		minY = Math.min(minY, cy - halfH);
+		maxX = Math.max(maxX, cx + halfW);
+		maxY = Math.max(maxY, cy + halfH);
 	}
 	const shiftX = Math.max(0, t.x - minX) - Math.max(0, maxX - (t.x + t.width));
 	const shiftY = Math.max(0, t.y - minY) - Math.max(0, maxY - (t.y + t.height));

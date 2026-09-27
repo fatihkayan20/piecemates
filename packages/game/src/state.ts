@@ -1,9 +1,12 @@
+import { QUARTERS } from "./rotate.ts";
 import { seededRandom } from "./shape.ts";
 import { type Point, pileSlots } from "./table.ts";
 import type { Piece, State } from "./types.ts";
 
 /** Keeps the pile shuffle apart from the edge shapes drawn from the same seed. */
 const SHUFFLE_SALT = 0x9e3779b9;
+/** Keeps the starting turns apart from the shuffle. */
+const TURN_SALT = 0x85ebca6b;
 /** Float drift allowed for a piece to still count as in its spot. */
 export const PLACED_EPSILON = 1e-6;
 
@@ -13,15 +16,18 @@ export function createState(opts: {
 	cols: number;
 	w: number;
 	h: number;
+	rotate?: boolean;
 }): State {
-	const { seed, rows, cols, w, h } = opts;
+	const { seed, rows, cols, w, h, rotate = false } = opts;
 	const random = seededRandom(seed ^ SHUFFLE_SALT);
+	const turns = seededRandom(seed ^ TURN_SALT);
 	const pieces: Piece[] = Array.from({ length: rows * cols }, (_, i) => ({
 		x: 0,
 		y: 0,
 		group: i,
 		bag: null,
 		touched: false,
+		rot: rotate ? Math.floor(turns() * QUARTERS) : 0,
 	}));
 	const state: State = {
 		rows,
@@ -32,6 +38,7 @@ export function createState(opts: {
 		locks: {},
 		bags: {},
 		clock: { played: 0, since: null },
+		rotate,
 	};
 	// Shuffle the pieces into the pile slots around the board.
 	const order = pieces.map((_, i) => i);
@@ -64,10 +71,14 @@ export function homeError(state: State, index: number) {
 	return { x: col * state.w - piece.x, y: row * state.h - piece.y };
 }
 
-/** Whether the piece sits in its correct spot (up to float drift), so it can't move any more. */
+/** Whether the piece sits upright in its correct spot (up to float drift), so it can't move any more. */
 export function isPlaced(state: State, index: number) {
 	const err = homeError(state, index);
-	return Math.abs(err.x) < PLACED_EPSILON && Math.abs(err.y) < PLACED_EPSILON;
+	return (
+		state.pieces[index]?.rot === 0 &&
+		Math.abs(err.x) < PLACED_EPSILON &&
+		Math.abs(err.y) < PLACED_EPSILON
+	);
 }
 
 /** True when another player holds the piece's group. */
@@ -80,6 +91,8 @@ export function lockedByOther(state: State, index: number, me: string) {
 export const piecesInGroup = (state: State, group: number) =>
 	state.pieces.filter((p) => p.group === group);
 
+/** Every piece joined into one group, the right way up. */
 export function isComplete(state: State) {
-	return state.pieces.every((p) => p.group === state.pieces[0]?.group);
+	const first = state.pieces[0];
+	return first?.rot === 0 && state.pieces.every((p) => p.group === first.group);
 }

@@ -1,6 +1,7 @@
 export * from "./apply.ts";
 export * from "./clock.ts";
 export * from "./messages.ts";
+export * from "./rotate.ts";
 export * from "./shape.ts";
 export * from "./state.ts";
 export * from "./table.ts";

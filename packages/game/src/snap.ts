@@ -1,3 +1,4 @@
+import { turn } from "./rotate.ts";
 import { cellOf, homeError, isPlaced, piecesInGroup } from "./state.ts";
 import type { Piece, State } from "./types.ts";
 import { visibleIn } from "./views.ts";
@@ -26,7 +27,7 @@ const onFrame = (state: State, index: number) => {
  */
 function stick(state: State, group: number, tolerance: number) {
 	for (const [index, p] of state.pieces.entries()) {
-		if (p.group !== group || !onFrame(state, index)) continue;
+		if (p.group !== group || p.rot !== 0 || !onFrame(state, index)) continue;
 		if (isPlaced(state, index)) return false;
 		const err = homeError(state, index);
 		if (Math.abs(err.x) > tolerance || Math.abs(err.y) > tolerance) continue;
@@ -65,13 +66,16 @@ export function snap(state: State, group: number) {
 				const neighbour = state.pieces[nIndex] as Piece;
 				if (
 					neighbour.group === group ||
+					neighbour.rot !== member.rot ||
 					!visible.has(nIndex) ||
 					state.locks[neighbour.group] !== undefined
 				)
 					continue;
-				// How far the neighbour is from where it should sit relative to `member`.
-				const errX = neighbour.x - (member.x + dCol * state.w);
-				const errY = neighbour.y - (member.y + dRow * state.h);
+				// How far the neighbour is from where it should sit relative to `member`,
+				// with the offset turned the way both pieces are turned.
+				const offset = turn(dCol * state.w, dRow * state.h, member.rot);
+				const errX = neighbour.x - (member.x + offset.x);
+				const errY = neighbour.y - (member.y + offset.y);
 				if (Math.abs(errX) > tolerance || Math.abs(errY) > tolerance) continue;
 				const other = neighbour.group;
 				for (const p of state.pieces) {

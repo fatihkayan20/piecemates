@@ -10,6 +10,8 @@ const pieceIndex = z.int().nonnegative();
 export const ClientMsg = z.discriminatedUnion("type", [
 	z.object({ type: z.literal("lock"), piece: pieceIndex }),
 	z.object({ type: z.literal("unlock"), piece: pieceIndex }),
+	/** Turns the piece's group a quarter turn clockwise, in a rotation room. */
+	z.object({ type: z.literal("rotate"), piece: pieceIndex }),
 	z.object({
 		type: z.literal("drop"),
 		piece: pieceIndex,

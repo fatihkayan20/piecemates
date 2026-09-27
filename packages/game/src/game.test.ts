@@ -255,3 +255,58 @@ test("the clock only runs while someone is in an unsolved room", () => {
 	resume(s, 20000); // solved rooms stay stopped
 	assert.equal(elapsed(s.clock, 30000), 2500, "solved");
 });
+
+test("rotation rooms: pieces start turned, turn in groups and only join the same way up", () => {
+	const plain = createState({ seed: 3, rows: 4, cols: 4, w: 100, h: 100 });
+	assert.ok(plain.pieces.every((p) => p.rot === 0));
+	assert.equal(apply(plain, "a", { type: "rotate", piece: 0 }), false);
+	const turned = createState({
+		seed: 3,
+		rows: 4,
+		cols: 4,
+		w: 100,
+		h: 100,
+		rotate: true,
+	});
+	assert.ok(
+		turned.pieces.some((p) => p.rot !== 0),
+		"some start turned",
+	);
+
+	const s = createState({
+		seed: 1,
+		rows: 1,
+		cols: 2,
+		w: 100,
+		h: 100,
+		rotate: true,
+	});
+	const [a, b] = s.pieces;
+	assert.ok(a && b);
+	Object.assign(a, { x: 300, y: 300, rot: 1, touched: true });
+	Object.assign(b, { x: 305, y: 395, rot: 0, touched: true });
+	assert.ok(apply(s, "p", { type: "lock", piece: 1 }));
+	assert.ok(apply(s, "p", { type: "drop", piece: 1, x: 305, y: 395 }));
+	assert.notEqual(b.group, a.group, "different turns don't join");
+
+	assert.ok(apply(s, "q", { type: "lock", piece: 1 }));
+	assert.equal(apply(s, "p", { type: "rotate", piece: 1 }), false, "held");
+	assert.ok(apply(s, "q", { type: "rotate", piece: 1 }), "my own lock");
+	assert.equal(s.locks[b.group], undefined, "turning lets go");
+	// Piece 1 sits right of piece 0; turned a quarter, that's below it.
+	assert.equal(b.group, a.group, "joined once turned the same way");
+	assert.deepEqual([b.x, b.y], [300, 400]);
+
+	for (let i = 0; i < 3; i++) apply(s, "p", { type: "rotate", piece: 0 });
+	assert.deepEqual(
+		s.pieces.map((p) => [p.rot, Math.round(p.x), Math.round(p.y)]),
+		[
+			[0, 300, 300],
+			[0, 400, 300],
+		],
+		"a group turns around the piece I turned",
+	);
+	assert.equal(isComplete(s), true, "one group, upright");
+	a.rot = 1;
+	assert.equal(isComplete(s), false, "not upright yet");
+});
