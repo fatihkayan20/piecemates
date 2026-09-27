@@ -54,6 +54,7 @@ export const en = {
 		pieces_one: "{{count}} piece",
 		pieces_other: "{{count}} pieces",
 		createFailed: "Could not create the room",
+		slowDown: "You're going too fast. Wait a minute and try again.",
 		newRoom: "New room",
 		pieceCount: "Pieces",
 		rotate: "Rotated pieces",
@@ -77,7 +78,9 @@ export const en = {
 		uploadFailed: "Could not upload the photo",
 		useUploaded: "Start a puzzle with your uploaded photo first",
 		noCredits: "You have no uploads left",
-		tooMany: "Too many uploads from your network today. Try again tomorrow.",
+		tooManyUploads:
+			"Too many uploads from your network today. Try again tomorrow.",
+		tooManyRetries: "Too many tries with this upload. Try again tomorrow.",
 	},
 	room: {
 		title: "Room {{code}}",

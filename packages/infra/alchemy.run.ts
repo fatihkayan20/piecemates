@@ -30,6 +30,11 @@ export const server = Effect.flatMap(images, (bucket) =>
 			ROOM: Cloudflare.DurableObject<Room>("Room"),
 			IMAGES_BUCKET: images,
 			IMAGES: Cloudflare.Images.Images("IMAGES"),
+			// Writes one user can make per minute (API mutations).
+			API_LIMIT: Cloudflare.RateLimit("API_LIMIT", {
+				namespaceId: 1001,
+				simple: { limit: 30, period: 60 },
+			}),
 			// For presigned upload URLs to R2's S3 API.
 			R2_ACCOUNT_ID: bucket.accountId,
 			R2_BUCKET: bucket.bucketName,

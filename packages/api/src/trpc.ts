@@ -23,6 +23,8 @@ export type Context = {
 	/** The caller's IP, for the upload cap guests can't reset by signing in again. */
 	ip: string;
 	initRoom: (room: RoomInit) => Promise<void>;
+	/** False once this key (a user) is over its per-minute budget of writes. */
+	allow: (key: string) => Promise<boolean>;
 	images: {
 		/** A short-lived URL that takes exactly this type and size. */
 		uploadUrl: (id: string, type: string, size: number) => Promise<string>;
@@ -49,8 +51,12 @@ const t = initTRPC.context<Context>().create({
 
 export const router = t.router;
 
-/** A call that needs a session. */
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-	if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
-	return next({ ctx: { ...ctx, user: ctx.user } });
-});
+/** A call that needs a session; my writes are rate limited, so no loop can hammer D1, R2 or rooms. */
+export const protectedProcedure = t.procedure.use(
+	async ({ ctx, type, next }) => {
+		if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+		if (type === "mutation" && !(await ctx.allow(ctx.user.id)))
+			throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "slowDown" });
+		return next({ ctx: { ...ctx, user: ctx.user } });
+	},
+);

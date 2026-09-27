@@ -61,7 +61,10 @@ export const uploadsRouter = router({
 			if (added.meta.changes === 0) {
 				const me = await db.query.user.findFirst({ where: { id: user.id } });
 				throw me?.uploadCredits
-					? new TRPCError({ code: "TOO_MANY_REQUESTS" })
+					? new TRPCError({
+							code: "TOO_MANY_REQUESTS",
+							message: "tooManyUploads",
+						})
 					: new TRPCError({ code: "FORBIDDEN", message: "noUploadCredits" });
 			}
 			return {

@@ -40,6 +40,8 @@ export function roomErrorText(error: unknown) {
 	if (errorCode(error) === "NOT_FOUND") return i18next.t("room.notFound");
 	if (errorCode(error) === "CONFLICT")
 		return i18next.t("home.openRoomsFull", { max: MAX_OPEN_ROOMS });
+	if (errorCode(error) === "TOO_MANY_REQUESTS")
+		return i18next.t("home.slowDown");
 	return i18next.t("room.openFailed");
 }
 
@@ -50,18 +52,19 @@ const UPLOAD_PROBLEMS = [
 	"imageTooLarge",
 	"uploadFailed",
 	"useUploaded",
+	"tooManyUploads",
+	"tooManyRetries",
 ] as const;
 
-/** What to show when a room can't be created: too many open, a photo we can't use, no uploads left, or anything else. */
+/** What to show when a room can't be created: a photo or upload problem, too many open, going too fast, no uploads left, or anything else. */
 export function createErrorText(error: unknown) {
+	const problem =
+		error instanceof Error && UPLOAD_PROBLEMS.find((p) => p === error.message);
+	if (problem) return i18next.t(`upload.${problem}`, { min: MIN_IMAGE_SIDE });
 	const code = errorCode(error);
 	if (code === "CONFLICT")
 		return i18next.t("home.openRoomsFull", { max: MAX_OPEN_ROOMS });
 	if (code === "FORBIDDEN") return i18next.t("upload.noCredits");
-	if (code === "TOO_MANY_REQUESTS") return i18next.t("upload.tooMany");
-	const problem =
-		error instanceof Error && UPLOAD_PROBLEMS.find((p) => p === error.message);
-	return problem
-		? i18next.t(`upload.${problem}`, { min: MIN_IMAGE_SIDE })
-		: i18next.t("home.createFailed");
+	if (code === "TOO_MANY_REQUESTS") return i18next.t("home.slowDown");
+	return i18next.t("home.createFailed");
 }
