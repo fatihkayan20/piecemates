@@ -30,8 +30,10 @@ export type Context = {
 		uploadUrl: (id: string, type: string, size: number) => Promise<string>;
 		/** Null when nothing was uploaded; throws when the file isn't an image. */
 		info: (id: string) => Promise<ImageInfo | null>;
-		/** Where players load the photo from. */
+		/** Where the photo lives; rooms store this. */
 		url: (id: string) => string;
+		/** A stored photo URL signed for players to load for a while; other URLs pass through. */
+		link: (url: string) => Promise<string>;
 		/** Deletes the photo and its resized copies. */
 		remove: (id: string) => Promise<void>;
 	};

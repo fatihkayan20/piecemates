@@ -99,6 +99,7 @@ export const uploadsRouter = router({
 		const info = unused && (await ctx.images.info(unused.id).catch(() => null));
 		if (!unused || !info || imageProblem(info)) return null;
 		const { width, height } = info;
-		return { id: unused.id, url: ctx.images.url(unused.id), width, height };
+		const url = await ctx.images.link(ctx.images.url(unused.id));
+		return { id: unused.id, url, width, height };
 	}),
 });

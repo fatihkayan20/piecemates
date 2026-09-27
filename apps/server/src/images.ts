@@ -4,11 +4,11 @@ import { AwsClient } from "aws4fetch";
 
 import { ENV } from "./env.server";
 import { STATUS } from "./http";
+import { checkImage, signImage } from "./image-links";
 
 const UPLOAD_URL_TTL_S = 300;
 const WEBP_QUALITY = 85;
-/** A variant never changes, so clients keep it. */
-const CACHE_FOREVER = "public, max-age=31536000, immutable";
+const MS_PER_S = 1000;
 const UPLOAD_ID =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -59,6 +59,14 @@ export const photoStorage: Context["images"] = {
 		return file && measure(file.body);
 	},
 	url: (id) => `${ENV.BETTER_AUTH_URL}/images/${id}`,
+	link: async (url) => {
+		const ours = `${ENV.BETTER_AUTH_URL}/images/`;
+		if (!url.startsWith(ours)) return url;
+		const signed = new URL(url);
+		const params = await signImage(url.slice(ours.length));
+		for (const [k, v] of Object.entries(params)) signed.searchParams.set(k, v);
+		return signed.toString();
+	},
 	remove: async (id) => {
 		const { objects } = await ENV.IMAGES_BUCKET.list({ prefix: variants(id) });
 		await ENV.IMAGES_BUCKET.delete([
@@ -68,13 +76,24 @@ export const photoStorage: Context["images"] = {
 	},
 };
 
-/** The photo resized to `width` as WebP (which drops EXIF), made once and kept in R2. */
-export async function serveImage(id: string, width: number) {
+/**
+ * The photo resized to `width` as WebP (which drops EXIF), made once and kept
+ * in R2. Only through a link we signed (`e`, `s`), which expires.
+ */
+export async function serveImage(
+	id: string,
+	width: number,
+	link: { e?: string; s?: string },
+) {
 	if (!UPLOAD_ID.test(id) || !isImageWidth(width))
 		return new Response("Bad request", { status: STATUS.badRequest });
+	if (!(await checkImage(id, link.e, link.s)))
+		return new Response("Forbidden", { status: STATUS.forbidden });
+	// A variant never changes, so clients keep it as long as the link works.
+	const secondsLeft = Math.floor((Number(link.e) - Date.now()) / MS_PER_S);
 	const headers = {
 		"content-type": "image/webp",
-		"cache-control": CACHE_FOREVER,
+		"cache-control": `public, max-age=${secondsLeft}, immutable`,
 	};
 	const kept = await ENV.IMAGES_BUCKET.get(variant(id, width));
 	if (kept) return new Response(kept.body, { headers });

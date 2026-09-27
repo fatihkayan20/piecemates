@@ -28,7 +28,15 @@ export const roomsRouter = router({
 	/** Open: my unsolved rooms I haven't abandoned. History: solved or abandoned. Newest first. */
 	list: protectedProcedure
 		.input(z.object({ list: z.enum(["open", "history"]) }))
-		.query(({ ctx, input }) => myRooms(ctx.db, ctx.user.id, input.list)),
+		.query(async ({ ctx, input }) => {
+			const list = await myRooms(ctx.db, ctx.user.id, input.list);
+			return Promise.all(
+				list.map(async (room) => ({
+					...room,
+					imageUrl: await ctx.images.link(room.imageUrl),
+				})),
+			);
+		}),
 
 	/** A room from a sample photo. */
 	create: protectedProcedure
@@ -71,7 +79,8 @@ export const roomsRouter = router({
 				target: [roomPlayers.roomCode, roomPlayers.userId],
 				set: { abandonedAt: null },
 			});
-		const { imageUrl, seed, rows, cols, status } = room;
+		const { seed, rows, cols, status } = room;
+		const imageUrl = await ctx.images.link(room.imageUrl);
 		return { code, imageUrl, seed, rows, cols, status };
 	}),
 

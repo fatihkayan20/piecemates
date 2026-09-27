@@ -71,7 +71,10 @@ app.all(`${API_PATH}/*`, async (c) =>
 );
 
 app.get("/images/:id", (c) =>
-	serveImage(c.req.param("id"), Number(c.req.query("w"))),
+	serveImage(c.req.param("id"), Number(c.req.query("w")), {
+		e: c.req.query("e"),
+		s: c.req.query("s"),
+	}),
 );
 
 // The room socket needs a session too (guests get an anonymous one).

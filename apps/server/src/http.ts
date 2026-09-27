@@ -2,6 +2,7 @@
 export const STATUS = {
 	badRequest: 400,
 	unauthorized: 401,
+	forbidden: 403,
 	notFound: 404,
 	upgradeRequired: 426,
 	internalError: 500,
