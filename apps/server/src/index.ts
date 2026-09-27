@@ -1,4 +1,5 @@
 import { API_PATH, handleApi } from "@piecemates/api";
+import { clientIp } from "@piecemates/auth";
 import { rooms } from "@piecemates/db/schema/game";
 import { TRACE_HEADERS } from "@piecemates/telemetry";
 import * as Sentry from "@sentry/cloudflare";
@@ -59,7 +60,7 @@ app.all(`${API_PATH}/*`, async (c) =>
 		{
 			db: getDb(),
 			user: await sessionUser(c.req.raw.headers),
-			ip: c.req.header("cf-connecting-ip") ?? "local",
+			ip: clientIp(c.req.raw.headers),
 			initRoom: (room) => ENV.ROOM.getByName(room.code).init(room),
 			images: photoStorage,
 		},

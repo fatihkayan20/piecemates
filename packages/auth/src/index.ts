@@ -1,3 +1,4 @@
+import { normalizeIP } from "@better-auth/core/utils/ip";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { expo } from "@better-auth/expo";
 import type { Database } from "@piecemates/db";
@@ -6,6 +7,18 @@ import { rooms, uploads } from "@piecemates/db/schema/game";
 import { betterAuth } from "better-auth";
 import { anonymous } from "better-auth/plugins";
 import { eq, sql } from "drizzle-orm";
+
+/** Where Cloudflare puts the caller's IP; callers can't set it themselves. */
+const IP_HEADER = "cf-connecting-ip";
+const HOUR_S = 3600;
+/** Guests one IP can start in an hour, so nobody mints endless free accounts. */
+const GUESTS_PER_HOUR = 10;
+
+/** The caller's IP as every limit counts it: an IPv6 /64 is one caller, since one home or phone gets a whole /64. */
+export const clientIp = (headers: Headers) => {
+	const ip = headers.get(IP_HEADER);
+	return ip ? normalizeIP(ip) : "unknown";
+};
 
 export type AuthConfig = {
 	BETTER_AUTH_URL: string;
@@ -33,7 +46,16 @@ export function createAuth(
 		emailAndPassword: { enabled: true },
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: env.BETTER_AUTH_URL,
+		// Counted in D1, since each Worker isolate has its own memory.
+		rateLimit: {
+			enabled: true,
+			storage: "database",
+			customRules: {
+				"/sign-in/anonymous": { window: HOUR_S, max: GUESTS_PER_HOUR },
+			},
+		},
 		advanced: {
+			ipAddress: { ipAddressHeaders: [IP_HEADER] },
 			defaultCookieAttributes: {
 				sameSite: "none",
 				secure: true,
