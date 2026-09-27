@@ -1,9 +1,12 @@
 import {
 	BACKGROUNDS,
+	MUSIC_TRACKS,
 	setBackground,
 	setHaptics,
+	setMusic,
 	setSounds,
 } from "@piecemates/client";
+import { Button } from "@piecemates/ui/components/button";
 import { Checkbox } from "@piecemates/ui/components/checkbox";
 import { Label } from "@piecemates/ui/components/label";
 import {
@@ -27,6 +30,7 @@ export function SettingsSheet() {
 	const background = useSettings((s) => s.background);
 	const sounds = useSettings((s) => s.sounds);
 	const haptics = useSettings((s) => s.haptics);
+	const music = useSettings((s) => s.music);
 
 	return (
 		<Sheet>
@@ -54,6 +58,20 @@ export function SettingsSheet() {
 						<Checkbox checked={haptics} onCheckedChange={setHaptics} />
 						{t("settings.haptics")}
 					</Label>
+					<p className="text-muted-foreground text-sm">{t("settings.music")}</p>
+					<div className="flex flex-wrap gap-2">
+						{[null, ...MUSIC_TRACKS].map((track) => (
+							<Button
+								key={track ?? "off"}
+								size="sm"
+								variant={music === track ? "default" : "outline"}
+								aria-pressed={music === track}
+								onClick={() => setMusic(track)}
+							>
+								{t(`music.${track ?? "off"}`)}
+							</Button>
+						))}
+					</div>
 				</div>
 			</SheetContent>
 		</Sheet>

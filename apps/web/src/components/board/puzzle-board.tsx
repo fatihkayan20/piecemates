@@ -5,6 +5,7 @@ import { BagBar } from "@/components/bags/bag-bar";
 import { Confetti } from "@/components/win/confetti";
 import { SolvedBar } from "@/components/win/solved-bar";
 import { WinCat } from "@/components/win/win-cat";
+import { useMusic } from "@/hooks/use-music";
 import { usePixiBoard } from "@/hooks/use-pixi-board";
 import { useRoom } from "@/hooks/use-room";
 import { useSettings } from "@/hooks/use-settings";
@@ -18,6 +19,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const background = useSettings((s) => s.background);
 	const solved = useRoom((r) => r.status === "done");
 	usePixiBoard(host, room);
+	useMusic();
 
 	return (
 		<div
