@@ -16,7 +16,7 @@ export const images = Cloudflare.R2.Bucket("images", {
 		{
 			allowedMethods: ["PUT"],
 			allowedOrigins: [process.env.CORS_ORIGIN ?? ""],
-			allowedHeaders: ["content-type"],
+			allowedHeaders: ["content-type", "if-none-match"],
 		},
 	],
 }).pipe(Alchemy.remote());
