@@ -4,7 +4,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Urgent or easy fixes Prio 1
 
-- [ ] **iOS sheets match the app theme**: the SwiftUI sheets (new room, settings, players, bags) use the system grey material and blue accent, while the app is monochrome on its own background. `Host` takes `colorScheme` and `seedColor`; pick the look first.
 - [ ] **Data fetching library**: replace the inline `fetch`/`useFocusEffect` loads (Home's Continue, History, the room info) with TanStack Query (or tRPC on top of Hono) for caching, refetch on focus and loading/error states.
 
 ## Polish and user engagement features Prio 2
@@ -55,6 +54,8 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **First deploy**: `pnpm run deploy`, set `CORS_ORIGIN` to the deployed web origin, then deploy again. Host the web app and server on sibling subdomains (`app.` / `api.`) so the auth cookie works for WebSockets.
 
 ## Done
+
+- [x] **iOS sheets in the app theme**: SwiftUI sheets use the app's (or the board's) light/dark scheme and background, with monochrome buttons like the rest of the app; toggles stay green. `34f1309`
 
 - [x] **Native tab bar**: the iOS drawer is replaced by native tabs (Home, History, Settings; the room opens over them, without the bar). Settings holds the view settings and dark mode. `Container` now pads the scroll content, so the tab screens' gaps and the large titles show. `799ac1d`
 - [x] **Continue, open-room limit and Abandon**: Home lists my unsolved rooms; History lists only solved ones (abandoned rooms show in neither). A player may have 3 open rooms (`MAX_OPEN_ROOMS`); Abandon in the room settings (confirmed: inline on web, the native dialog on iOS) frees one, and opening the room again brings it back. `4da2da8` `b195415` `9ce21f5` `41ef88d` `f9e72fd`
