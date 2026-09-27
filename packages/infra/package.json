@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "check-types": "tsc --noEmit",
-    "dev": "alchemy dev",
+    "dev": "alchemy dev --force",
     "deploy": "alchemy deploy",
     "destroy": "alchemy destroy"
   },
