@@ -8,11 +8,9 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Game features Prio 3
 
-- [ ] **Upload limits**: room creation with uploads is free for now but will be paid later; limit it and make sure anonymous logins can't be used to get around the limit.
-  - **Photo upload**: `POST /uploads` returns a direct upload URL for R2. The client resizes to about 2048px first (canvas on web, `expo-image-manipulator` on native). Add the R2 host to `ALLOWED_IMAGE_HOSTS` in `apps/server/src/index.ts`.
 - [ ] **Better home screen and room creation**: image lists by category (e.g. today's selection).
   - **Unsplash search**: a server route `GET /images/search` keeps the API key server-side and handles attribution plus the required download-tracking call.
-- [ ] **Stale data cleanup**: a background job removes expired rooms and their images. Keep the D1 `rooms` and `room_players` rows (History reads them); delete the Durable Object's storage and the image, and mark the room expired.
+- [ ] **Stale data cleanup**: the daily Cron Trigger already removes unused uploads and stray R2 files; extend it to remove expired rooms and their images. Keep the D1 `rooms` and `room_players` rows (History reads them); delete the Durable Object's storage and the image, and mark the room expired.
 - [ ] **Store review prompt**: ask for an App Store / Play Store review at a good moment.
 
 ## Later
@@ -21,7 +19,13 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Room header buttons on Android**: share, players and settings use `unstable_headerRightItems`, which is iOS only; add `headerRight` buttons for Android (TODO in `room-header-items.tsx`).
 - [ ] **Replace `with-ios-scene.js`**: try `expo-build-properties` instead of the custom plugin.
 - [ ] **Reconnect**: the room socket reconnects on its own after a drop (web and native), instead of showing "disconnected".
-- [ ] **Nicknames and player colours**: guests pick a name, and pieces locked by others are tinted in that player's colour instead of only dimmed.
+- [ ] **Player colours**: pieces locked by others are tinted in that player's colour instead of only dimmed.
+- [ ] **Name prompt on Android**: `askName` uses `Alert.prompt`, which is iOS only; Android needs its own input.
+- [ ] **Photo uploads, later steps**:
+  - Resize on the client before uploading if upload times hurt (the 20 MB cap and iOS's JPEG re-encode keep it reasonable for now).
+  - The first request for a new width is resized on the spot and takes a few seconds; make the common widths right after upload if it shows.
+  - `caches.default` in front of `/images` once we're on a custom domain (it does nothing on workers.dev).
+  - Uploads are free with daily credits; charge for them later.
 - [ ] **Accounts**: add email and social login in Better Auth. Guest data already moves to the real account through `onLinkAccount`.
 - [ ] **Portrait phones**: the table has one shape for everyone, so a landscape puzzle leaves empty space above and below on a portrait phone. Consider laying the pile out to suit portrait screens.
 - [ ] **Who is in which bag**: show on each bag chip which players are looking at it (a presence field).
@@ -56,6 +60,14 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Abuse test in production**: right after the first deploy, run the abuse sub-agent against the deployed apps. Locally every request comes from 127.0.0.1 and a client can set `cf-connecting-ip` itself; in production Cloudflare sets it, so check the guest sign-in limit, the upload IP cap (IPv6 /64 too), the per-user write limit, signed photo links and the daily cleanup Cron Trigger there.
 
 ## Done
+
+- [x] **Photo upload with limits**: a photo goes from the device straight to R2 through a signed URL (type, size and one file per upload are signed), and the server checks its real format and size before a room uses it. Players see WebP resized to the width on screen (steps of 256, cached in R2, and in expo-image on iOS); originals stay private and links to photos expire. Uploads cost a daily credit per player and per IP, so fresh guest logins can't get around it; an unused upload can be resumed or retried (up to 5 times), and a daily Cron Trigger removes unused uploads and stray files. `057f8b2` `ff0e784` `5a20b0f` `266e32e` `52c680c` `1b425d8` `a33dc93` `8e27ac6` `b979381` `56c2b57` `b0e20a2` `75e9f86` `2031884` `9722156` `2fba25b`
+- [x] **Abuse-tested and hardened**: three rounds of an abuse sub-agent against the dev server, plus a full web and iOS test round.
+  - Guest and email sign-ups are limited per IP (an IPv6 /64 counts as one), each player's API writes and reads are rate limited, and batches are capped at 8 calls. `b023050` `8175ade` `4b1996d` `533725f` `7e93f56`
+  - Rooms are private until shared, and a player picks a readable name (max 40 characters) before sharing or joining; a new name shows to everyone in the room at once. `7ec5da5` `7806715` `1b1de08` `f87be3f` `226573f` `4e79b95`
+  - The open-room cap and the 4-player limit hold under parallel requests, and a room over the cap sends the player Home. `d73a7b2`
+  - Only a room's players can open its socket, and only from our apps; messages are limited to 20 a second per player over all their sockets, and abandoning cuts their sockets off. `e2d667d` `1389c04` `5c3a12e`
+  - Bags are checked (own keys, max 20, printable names, hex colours), long thin photos are refused, photo link expiries must be plain digits, and room codes are 8 characters everywhere. `d1494fd` `4c042cb` `3104b6d` `82d6289`
 
 - [x] **Data fetching library**: the room API is a tRPC router (`packages/api`) and both apps read it through one shared TanStack Query cache. Lists refetch after mutations and after opening a room, not on every focus. `8ca15be`
 - [x] **Abandoned puzzles in History**: History lists rooms I abandoned ("Abandoned after 1:07") next to solved ones. Reopening one counts against the open-room cap. `0163109`
