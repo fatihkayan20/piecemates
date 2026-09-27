@@ -1,4 +1,5 @@
 import {
+	type Camera,
 	type DropRect,
 	dropTargetAt,
 	finishDrag,
@@ -21,9 +22,19 @@ import { place } from "./scene";
 /** A press that moves less than this many screen pixels is a tap (it turns the piece). */
 const TAP_SLOP_PX = 4;
 
+type Point = { x: number; y: number };
+
+/** The midpoint of the first two fingers and how far apart they are. */
+const span = (fingers: Map<number, Point>) => {
+	const [a, b] = [...fingers.values()];
+	if (!a || !b) return null;
+	const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+	return { mid, dist: Math.hypot(a.x - b.x, a.y - b.y) };
+};
+
 /**
  * Pointer input on the table: grab a piece and drop it (on the table or a bag
- * chip), or drag empty space to pan.
+ * chip), drag empty space to pan, or pinch it with two fingers to zoom.
  */
 export function attachPointer(
 	app: Application,
@@ -37,6 +48,9 @@ export function attachPointer(
 	let pressed = { x: 0, y: 0 };
 	let targets = new Map<string, DropRect>();
 	let panGrab: { x: number; y: number } | null = null;
+	/** Fingers down on empty table; Pixi's canvas turns off the browser's own pinch. */
+	const fingers = new Map<number, Point>();
+	let pinch: { camera: Camera; mid: Point; dist: number } | null = null;
 
 	const offset = (e: FederatedPointerEvent) => {
 		const at = world.toLocal(e.global);
@@ -59,9 +73,21 @@ export function attachPointer(
 	app.stage.eventMode = "static";
 	app.stage.hitArea = app.screen;
 	app.stage.on("pointerdown", (e) => {
-		panGrab = { x: e.global.x - world.x, y: e.global.y - world.y };
+		fingers.set(e.pointerId, { x: e.global.x, y: e.global.y });
+		const start = span(fingers);
+		pinch = start && { camera: camera.get(), ...start };
+		panGrab = pinch
+			? null
+			: { x: e.global.x - world.x, y: e.global.y - world.y };
 	});
 	app.stage.on("globalpointermove", (e) => {
+		if (fingers.has(e.pointerId))
+			fingers.set(e.pointerId, { x: e.global.x, y: e.global.y });
+		const now = pinch && span(fingers);
+		if (pinch && now) {
+			camera.pinch(pinch.camera, pinch.mid, now.mid, now.dist / pinch.dist);
+			return;
+		}
 		const drag = roomStore.getState().drag;
 		if (grab && drag) {
 			setHoveredTarget(targetAt(e));
@@ -86,11 +112,14 @@ export function attachPointer(
 			if (moved >= TAP_SLOP_PX || !turnPiece(conn, drag.piece))
 				finishDrag(conn, drag, targetAt(e), x, y);
 		}
+		fingers.delete(e.pointerId);
+		pinch = null;
 		grab = null;
 		panGrab = null;
 		setHoveredTarget(null);
 	};
 	app.stage.on("pointerup", release);
 	app.stage.on("pointerupoutside", release);
+	app.stage.on("pointercancel", release);
 	app.canvas.addEventListener("wheel", camera.wheel, { passive: false });
 }

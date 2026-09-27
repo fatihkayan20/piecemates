@@ -2,6 +2,7 @@ import {
 	type Camera,
 	clampCamera,
 	debounce,
+	pinchCamera,
 	RESIZE_DEBOUNCE_MS,
 	resizeCamera,
 	roomStore,
@@ -9,6 +10,8 @@ import {
 } from "@piecemates/client";
 import { tableRect } from "@piecemates/game";
 import type { Container, Rectangle } from "pixi.js";
+
+type Point = { x: number; y: number };
 
 /** How fast the wheel zooms, per pixel of scroll. */
 const WHEEL_ZOOM = 0.001;
@@ -40,6 +43,11 @@ export function createCamera(world: Container, screen: Rectangle) {
 			if (bounds) set(resizeCamera(get(), bounds, last, to));
 			last = to;
 		}, RESIZE_DEBOUNCE_MS),
+		/** Zooms and moves with two fingers, from where they were when the pinch began. */
+		pinch: (start: Camera, from: Point, to: Point, scale: number) => {
+			const bounds = table();
+			if (bounds) set(pinchCamera(start, from, to, scale, bounds, screen));
+		},
 		wheel: (e: WheelEvent) => {
 			e.preventDefault();
 			const bounds = table();
