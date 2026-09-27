@@ -1,11 +1,17 @@
 import { roomPlayers, rooms } from "@piecemates/db/schema/game";
-import { isImageAspect, needsName } from "@piecemates/game";
+import { isImageAspect, MAX_PLAYERS, needsName } from "@piecemates/game";
 import { TRPCError } from "@trpc/server";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { myRooms } from "./my-rooms";
-import { checkOpenRooms, fitsPieces, Grid, startRoom } from "./new-room";
+import {
+	checkOpenRooms,
+	fitsPieces,
+	Grid,
+	startRoom,
+	underRoomCap,
+} from "./new-room";
 import { protectedProcedure, router } from "./trpc";
 import { uploadedImage } from "./uploaded-image";
 
@@ -86,16 +92,22 @@ export const roomsRouter = router({
 		if (!room || (!mine && !room.shared))
 			throw new TRPCError({ code: "NOT_FOUND" });
 		// Joining it, or coming back to it, counts against the cap like a new room.
-		if ((!mine || mine.abandonedAt) && room.status === "playing")
-			await checkOpenRooms(ctx);
-		if (!mine) checkName(ctx);
-		await db
-			.insert(roomPlayers)
-			.values({ roomCode: code, userId: user.id })
-			.onConflictDoUpdate({
-				target: [roomPlayers.roomCode, roomPlayers.userId],
-				set: { abandonedAt: null },
-			});
+		if (!mine || mine.abandonedAt) {
+			const playing = room.status === "playing";
+			if (playing) await checkOpenRooms(ctx);
+			if (!mine) checkName(ctx);
+			// Checked again inside the write, so parallel joins can't all get in.
+			const fits = sql`(select count(*) from ${roomPlayers} where room_code = ${code}
+				and abandoned_at is null) < ${MAX_PLAYERS} and ${playing ? underRoomCap(user.id) : sql`1`}`;
+			const joined = await db.run(
+				sql`insert into ${roomPlayers} (room_code, user_id) select ${code}, ${user.id} where ${fits}
+				on conflict (room_code, user_id) do update set abandoned_at = null where ${fits}`,
+			);
+			if (joined.meta.changes === 0) {
+				if (playing) await checkOpenRooms(ctx);
+				throw new TRPCError({ code: "FORBIDDEN", message: "roomFull" });
+			}
+		}
 		const { seed, rows, cols, status, shared } = room;
 		const imageUrl = await ctx.images.link(room.imageUrl);
 		return { code, imageUrl, seed, rows, cols, status, shared };

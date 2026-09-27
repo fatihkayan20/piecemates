@@ -86,6 +86,7 @@ export const en = {
 	room: {
 		title: "Room {{code}}",
 		notFound: "Room not found",
+		full: "This room already has {{max}} players",
 		openFailed: "Could not open the room",
 		tidy: "Tidy pile",
 		image: "Image",

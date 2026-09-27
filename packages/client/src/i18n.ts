@@ -1,4 +1,4 @@
-import { MAX_OPEN_ROOMS, MIN_IMAGE_SIDE } from "@piecemates/game";
+import { MAX_OPEN_ROOMS, MAX_PLAYERS, MIN_IMAGE_SIDE } from "@piecemates/game";
 import { TRPCClientError } from "@trpc/client";
 import i18next, { type Module } from "i18next";
 
@@ -47,6 +47,8 @@ export const isRoomsFull = (error: unknown) => errorCode(error) === "CONFLICT";
 /** What to show when a room can't be opened: a wrong code, too many open, or anything else. */
 export function roomErrorText(error: unknown) {
 	if (errorCode(error) === "NOT_FOUND") return i18next.t("room.notFound");
+	if (error instanceof Error && error.message === "roomFull")
+		return i18next.t("room.full", { max: MAX_PLAYERS });
 	if (errorCode(error) === "CONFLICT")
 		return i18next.t("home.openRoomsFull", { max: MAX_OPEN_ROOMS });
 	if (errorCode(error) === "TOO_MANY_REQUESTS")

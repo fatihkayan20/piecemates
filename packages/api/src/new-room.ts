@@ -27,7 +27,16 @@ type Me = Context & { user: { id: string } };
 export const tooMany = () =>
 	new TRPCError({ code: "CONFLICT", message: "Too many open rooms" });
 
-/** Throws when I already have the most open rooms. */
+/**
+ * SQL for "I have fewer than MAX_OPEN_ROOMS open rooms", for the WHERE of the
+ * insert that adds one: a separate check first would let parallel requests
+ * all pass it.
+ */
+export const underRoomCap = (userId: string) =>
+	sql`(select count(*) from ${roomPlayers} rp join ${rooms} r on r.code = rp.room_code
+		where rp.user_id = ${userId} and rp.abandoned_at is null and r.status = 'playing') < ${MAX_OPEN_ROOMS}`;
+
+/** Throws when I already have the most open rooms (an early answer; the insert checks again). */
 export async function checkOpenRooms(ctx: Me) {
 	if ((await openRoomCount(ctx.db, ctx.user.id)) >= MAX_OPEN_ROOMS)
 		throw tooMany();
@@ -55,7 +64,8 @@ export async function startRoom(
 	const [room] = await db.batch([
 		db.run(
 			sql`insert into ${rooms} (code, owner_id, image_url, seed, rows, cols)
-				select ${code}, ${user.id}, ${image.url}, ${seed}, ${rows}, ${cols} where ${unused}`,
+				select ${code}, ${user.id}, ${image.url}, ${seed}, ${rows}, ${cols}
+				where ${unused} and ${underRoomCap(user.id)}`,
 		),
 		db.run(
 			sql`insert into ${roomPlayers} (room_code, user_id) select ${code}, ${user.id} where ${made}`,
@@ -64,7 +74,10 @@ export async function startRoom(
 			sql`update ${uploads} set room_code = ${code} where id = ${upload ?? null} and room_code is null and ${made}`,
 		),
 	]);
-	if (room.meta.changes === 0) throw new TRPCError({ code: "NOT_FOUND" });
+	if (room.meta.changes === 0) {
+		await checkOpenRooms(ctx);
+		throw new TRPCError({ code: "NOT_FOUND" });
+	}
 	// Table units: height follows the image's cell aspect.
 	const w = CELL_WIDTH;
 	const h = (CELL_WIDTH * (image.height / rows)) / (image.width / cols);
