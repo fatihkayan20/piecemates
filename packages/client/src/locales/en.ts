@@ -9,6 +9,7 @@ export const en = {
 	},
 	nav: {
 		home: "Home",
+		history: "History",
 		dashboard: "Dashboard",
 		notFound: "Not found",
 		pageNotFound: "Page not found",
@@ -80,6 +81,16 @@ export const en = {
 		share: "Share room link",
 		copyLink: "Copy link to room {{code}}",
 		copied: "Room link copied",
+	},
+	history: {
+		title: "History",
+		empty: "Rooms you play in show up here.",
+		loadFailed: "Could not load your rooms",
+		room: "{{pieces}} pieces · {{date, datetime}}",
+		solved: "Solved in {{time}}",
+		playing: "In progress · {{time}} played",
+		with: "With {{names}}",
+		solo: "Solo",
 	},
 	settings: {
 		title: "Settings",

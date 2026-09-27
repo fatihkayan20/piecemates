@@ -9,6 +9,18 @@ export type RoomInfo = {
 	status: "playing" | "done";
 };
 
+/** A room I've been in, for History. Times are ms since the epoch. */
+export type RoomSummary = {
+	code: string;
+	pieces: number;
+	status: "playing" | "done";
+	playedMs: number;
+	createdAt: number;
+	finishedAt: number | null;
+	/** Names of the other players. */
+	players: string[];
+};
+
 export type NewRoom = {
 	imageUrl: string;
 	imageW: number;
@@ -61,6 +73,8 @@ export function createApi(opts: {
 			return created;
 		},
 		getRoom: (code: string) => request<RoomInfo>(`/rooms/${code}`),
+		/** Rooms I've been in, newest first. */
+		history: () => request<RoomSummary[]>("/rooms"),
 		roomSocketUrl: (code: string) =>
 			`${opts.serverUrl.replace(/^http/, "ws")}/rooms/${code}/ws`,
 	};
