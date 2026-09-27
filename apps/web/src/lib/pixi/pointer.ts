@@ -6,6 +6,7 @@ import {
 	roomStore,
 	setHoveredTarget,
 	startDrag,
+	turnPiece,
 } from "@piecemates/client";
 import type {
 	Application,
@@ -15,6 +16,10 @@ import type {
 } from "pixi.js";
 
 import type { BoardCamera } from "./camera";
+import { place } from "./scene";
+
+/** A press that moves less than this many screen pixels is a tap (it turns the piece). */
+const TAP_SLOP_PX = 4;
 
 /**
  * Pointer input on the table: grab a piece and drop it (on the table or a bag
@@ -28,6 +33,8 @@ export function attachPointer(
 ) {
 	/** Where the pointer grabbed, in table units, while I'm dragging. */
 	let grab: { x: number; y: number } | null = null;
+	/** Where the press began on screen, to tell a tap from a drag. */
+	let pressed = { x: 0, y: 0 };
 	let targets = new Map<string, DropRect>();
 	let panGrab: { x: number; y: number } | null = null;
 
@@ -44,6 +51,7 @@ export function attachPointer(
 			e.stopPropagation();
 			if (!startDrag(i)) return;
 			grab = world.toLocal(e.global);
+			pressed = { x: e.global.x, y: e.global.y };
 			targets = measureDropTargets();
 		});
 	});
@@ -59,7 +67,7 @@ export function attachPointer(
 			setHoveredTarget(targetAt(e));
 			const { x, y } = offset(e);
 			for (const [m, start] of drag.starts)
-				pieces[m]?.position.set(start.x + x, start.y + y);
+				if (pieces[m]) place(pieces[m], start.x + x, start.y + y);
 		} else if (panGrab) {
 			const c = camera.get();
 			camera.set({
@@ -74,7 +82,9 @@ export function attachPointer(
 		// The group stays where it was dropped until the server echoes it.
 		if (grab && conn && drag) {
 			const { x, y } = offset(e);
-			finishDrag(conn, drag, targetAt(e), x, y);
+			const moved = Math.hypot(e.global.x - pressed.x, e.global.y - pressed.y);
+			if (moved >= TAP_SLOP_PX || !turnPiece(conn, drag.piece))
+				finishDrag(conn, drag, targetAt(e), x, y);
 		}
 		grab = null;
 		panGrab = null;

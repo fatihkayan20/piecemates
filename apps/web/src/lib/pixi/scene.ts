@@ -26,12 +26,10 @@ export function drawPieces(
 	const { rows, cols, w, h } = grid;
 	const texturePxPerUnit = texture.width / (cols * w);
 	world.addChild(
-		new Graphics()
-			.rect(0, 0, cols * w, rows * h)
-			.stroke({
-				width: BOARD_STYLE.frame.width,
-				color: BOARD_STYLE.frame.color,
-			}),
+		new Graphics().rect(0, 0, cols * w, rows * h).stroke({
+			width: BOARD_STYLE.frame.width,
+			color: BOARD_STYLE.frame.color,
+		}),
 	);
 	return generateEdges(seed, rows, cols).map((edges, i) => {
 		const { row, col } = cellOf(grid, i);
@@ -49,6 +47,8 @@ export function drawPieces(
 				color: BOARD_STYLE.outline.color,
 			});
 		g.cursor = "grab";
+		// Turns go around the piece's centre; `place` puts its top-left.
+		g.pivot.set(w / 2, h / 2);
 		world.addChild(g);
 		return g;
 	});
@@ -65,6 +65,11 @@ export function syncPieces(pieces: Graphics[], room: RoomSnapshot) {
 		g.alpha = view.held ? BOARD_STYLE.heldOpacity : 1;
 		// Placed pieces let the pointer through, to the pieces under them or the camera.
 		g.eventMode = view.held || view.placed ? "none" : "static";
-		if (!room.drag?.starts.has(i)) g.position.set(view.x, view.y);
+		g.rotation = (view.rot * Math.PI) / 2;
+		if (!room.drag?.starts.has(i)) place(g, view.x, view.y);
 	});
 }
+
+/** Moves a piece so its cell's top-left is at (x, y) in table units. */
+export const place = (g: Graphics, x: number, y: number) =>
+	g.position.set(x + g.pivot.x, y + g.pivot.y);
