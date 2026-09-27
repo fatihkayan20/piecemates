@@ -8,15 +8,12 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Game features Prio 3
 
-- [ ] **Ambient music**: a few music tracks to pick from, chosen per person and not shared with the room.
-- [ ] **Piece rotation option**: room creation gets a rotation choice. The default keeps pieces in the correct rotation; random rotation makes it more challenging (pieces need turning before they snap).
-- [ ] **History**: completed and expired rooms with friends' names, duration and date. No image, since images get cleaned up to keep costs down. Built on `room_players` in D1 (this also covers resuming unfinished rooms).
 - [ ] **Upload limits**: room creation with uploads is free for now but will be paid later; limit it and make sure anonymous logins can't be used to get around the limit.
   - **Photo upload**: `POST /uploads` returns a direct upload URL for R2. The client resizes to about 2048px first (canvas on web, `expo-image-manipulator` on native). Add the R2 host to `ALLOWED_IMAGE_HOSTS` in `apps/server/src/index.ts`.
-- [ ] **Better home screen and room creation**: image lists by category (e.g. today's selection), and room creation in a sheet instead of inline.
+- [ ] **Better home screen and room creation**: image lists by category (e.g. today's selection).
   - **Unsplash search**: a server route `GET /images/search` keeps the API key server-side and handles attribution plus the required download-tracking call.
-- [ ] **Stale data cleanup**: a background job removes expired rooms and their images.
-- [ ] **Project diagram**: one detailed Mermaid diagram of the whole project (packages, apps, data flow, room lifecycle), for planning and for picking the project back up later.
+- [ ] **Stale data cleanup**: a background job removes expired rooms and their images. Keep the D1 `rooms` and `room_players` rows (History reads them); delete the Durable Object's storage and the image, and mark the room expired.
+- [ ] **Store review prompt**: ask for an App Store / Play Store review at a good moment.
 
 ## Later
 
@@ -42,6 +39,9 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Cloudflare overview**: usage, limits and monitoring for Workers, Durable Objects, D1 and R2 on the free plan.
 - [ ] **AI playtest once more**: play one large puzzle the way a person would, to find issues and improvements. An orchestrator starts two sub-agents, one driving iOS and one driving web, each with its own focus (e.g. bagging edge pieces vs. building the middle). They only get the app and what it does, and report back as users.
 
+- [ ] **Real music tracks**: the three ambient loops are generated placeholders (a small synth script, ~390 KB AAC each); swap in licensed tracks under the same ids (`calm`, `drift`, `night`) in `apps/*/assets/music`.
+- [ ] **Room saves on every move**: the room writes its whole state (about 60 KB at 1000 pieces) to Durable Object storage on every accepted message, locks included. Fine for now; if writes or CPU show up in the Cloudflare dashboard, save per piece or batch saves (locks must survive hibernation, so they can't simply be skipped).
+
 - [ ] **Before deploying Sentry and PostHog**:
   - Server: set `SENTRY_DSN` where `alchemy deploy` runs (it's read into the Worker's bindings).
   - Web: `VITE_SENTRY_DSN`, `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST=https://eu.i.posthog.com` and `SENTRY_AUTH_TOKEN` (uploads source maps on build) in the web build env.
@@ -52,6 +52,12 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **First deploy**: `pnpm run deploy`, set `CORS_ORIGIN` to the deployed web origin, then deploy again. Host the web app and server on sibling subdomains (`app.` / `api.`) so the auth cookie works for WebSockets.
 
 ## Done
+
+- [x] **Ambient music**: Off / Calm / Drift / Night in the room settings, per device, looping at 40% volume under the cues; web starts on the next press when autoplay is blocked. `5379e08` `fb401c0` `2b2064a`
+- [x] **Piece rotation option**: room creation moved into a sheet (piece count + "Turned pieces"); in a rotation room pieces start turned and a tap/click turns a group a quarter turn around the tapped piece; only same-way-up neighbours join, and a piece is placed (and the puzzle done) only upright. Older rooms load unturned. `aa78532` `09ee05e` `75c458b` `47eb278` `468d354`
+- [x] **History**: `GET /rooms` lists the rooms I've played in (newest 50) with the other players' names, play time and date; a History page on web and a History drawer screen on iOS, where a row resumes or reopens its room. `eaf1f29` `f13d3ea` `480882b` `f761adb`
+- [x] **Project diagram**: `ARCHITECTURE.md` with a Mermaid map of apps, packages and Cloudflare, and a room's life as a sequence diagram. `148f3f1`
+- [x] **Better Auth built once per isolate** instead of on every request. `3993615`
 
 - [x] **i18n**: i18next on web and native, English only. Text lives in a typed `locales/en.ts` in `@piecemates/client`, so a wrong key or a missing `{{value}}` fails the type check; the device language is picked at startup (browser languages, `expo-localization`). Add a language as `locales/<code>.ts` next to it. `ad05011` `9dd07b4` `fbf23d0`
 - [x] **Camera follows the room**: a big room starts zoomed in on the top of the pile so a piece can be picked up (40px); opening a bag frames its pieces and going back returns to where I was; the win zooms out to the whole picture (also when opening a solved room). `1f85f21` `b464284` `d1f26eb`
