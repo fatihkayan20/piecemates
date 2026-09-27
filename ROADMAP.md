@@ -8,6 +8,9 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Polish and user engagement features Prio 2
 
+- [ ] **Delete account**: players can delete their account in the app (App Store requirement), with their sessions and room memberships.
+- [ ] **Privacy policy and terms links**: Settings links to the privacy policy and terms of service.
+
 ## Game features Prio 3
 
 - [ ] **Upload limits**: room creation with uploads is free for now but will be paid later; limit it and make sure anonymous logins can't be used to get around the limit.
