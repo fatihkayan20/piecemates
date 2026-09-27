@@ -3,7 +3,7 @@ import i18next from "i18next";
 import type { RoomSummary } from "./api.ts";
 import { formatDuration } from "./duration.ts";
 
-/** The three lines a History row shows, the same on every platform. */
+/** The three lines a Continue or History row shows, the same on every platform. */
 export function historyLines(room: RoomSummary) {
 	const time = formatDuration(room.playedMs);
 	return {

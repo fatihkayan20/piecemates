@@ -1,3 +1,4 @@
+import { MAX_OPEN_ROOMS } from "@piecemates/game";
 import i18next, { type Module } from "i18next";
 
 import { ApiError } from "./api.ts";
@@ -11,6 +12,8 @@ declare module "i18next" {
 }
 
 const NOT_FOUND = 404;
+/** What the server answers a new room with when I have too many open. */
+const CONFLICT = 409;
 /** Add a language here with its `locales/<code>.ts`, shaped like `en`. */
 const resources = { en: { translation: en } };
 
@@ -37,3 +40,9 @@ export const roomErrorText = (error: unknown) =>
 	error instanceof ApiError && error.status === NOT_FOUND
 		? i18next.t("room.notFound")
 		: i18next.t("room.openFailed");
+
+/** What to show when a room can't be created: too many open, or anything else. */
+export const createErrorText = (error: unknown) =>
+	error instanceof ApiError && error.status === CONFLICT
+		? i18next.t("home.openRoomsFull", { max: MAX_OPEN_ROOMS })
+		: i18next.t("home.createFailed");

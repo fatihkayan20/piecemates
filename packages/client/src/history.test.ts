@@ -7,6 +7,7 @@ test("history rows read the same everywhere", () => {
 	startI18n(["en-GB"], { type: "3rdParty" });
 	const room: RoomSummary = {
 		code: "ABCDEFGH",
+		imageUrl: "https://images.unsplash.com/x",
 		pieces: 96,
 		status: "done",
 		playedMs: 80_000,
@@ -19,6 +20,6 @@ test("history rows read the same everywhere", () => {
 	assert.equal(done.status, "Solved in 1:20");
 	assert.equal(done.players, "With Ada, Bo");
 	const open = historyLines({ ...room, status: "playing", players: [] });
-	assert.equal(open.status, "In progress · 1:20 played");
+	assert.equal(open.status, "1:20 played");
 	assert.equal(open.players, "Solo");
 });

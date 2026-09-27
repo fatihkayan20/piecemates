@@ -10,6 +10,7 @@ export const en = {
 	nav: {
 		home: "Home",
 		history: "History",
+		settings: "Settings",
 		dashboard: "Dashboard",
 		notFound: "Not found",
 		pageNotFound: "Page not found",
@@ -55,8 +56,12 @@ export const en = {
 		createFailed: "Could not create the room",
 		newRoom: "New room",
 		pieceCount: "Pieces",
-		rotate: "Turned pieces",
-		rotateHint: "Pieces start turned; tap one to turn it.",
+		rotate: "Rotated pieces",
+		rotateHint:
+			"Harder: pieces start facing random ways. Tap a piece to turn it; it only fits once it's upright.",
+		continue: "Continue",
+		openRoomsFull:
+			"You have {{max}} puzzles in progress. Finish or abandon one to start a new one.",
 		create: "Create room",
 	},
 	room: {
@@ -71,6 +76,13 @@ export const en = {
 		close: "Close",
 		solvedIn: "Solved in {{time}}",
 		winCat: "Two kittens dancing",
+		abandon: "Abandon puzzle",
+		abandonTitle: "Abandon this puzzle?",
+		abandonHint:
+			"It leaves your puzzles in progress. Others in the room can keep playing.",
+		abandonConfirm: "Abandon",
+		keepPlaying: "Keep playing",
+		abandonFailed: "Could not abandon the puzzle",
 	},
 	players: {
 		title: "Players",
@@ -84,16 +96,19 @@ export const en = {
 	},
 	history: {
 		title: "History",
-		empty: "Rooms you play in show up here.",
+		empty: "Puzzles you solve show up here.",
 		loadFailed: "Could not load your rooms",
 		room: "{{pieces}} pieces · {{date, datetime}}",
 		solved: "Solved in {{time}}",
-		playing: "In progress · {{time}} played",
+		playing: "{{time}} played",
 		with: "With {{names}}",
 		solo: "Solo",
 	},
 	settings: {
 		title: "Settings",
+		board: "Puzzle",
+		appearance: "Appearance",
+		darkMode: "Dark mode",
 		background: "Background",
 		sounds: "Sounds",
 		haptics: "Haptics",
