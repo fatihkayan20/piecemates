@@ -1,9 +1,9 @@
-// ponytail: fixed samples until Unsplash search lands.
+// ponytail: fixed samples until Unsplash search lands. `imageSrc` adds the width.
 export const SAMPLE_IMAGES = [
 	"photo-1506744038136-46273834b3fb",
 	"photo-1501785888041-af3ef285b470",
 	"photo-1470071459604-3b5ec3a7fe05",
-].map((id) => `https://images.unsplash.com/${id}?w=1600&q=80`);
+].map((id) => `https://images.unsplash.com/${id}?q=80`);
 
 /** Bag colours to pick from; the first is the default. */
 export const BAG_COLORS = [

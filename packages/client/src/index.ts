@@ -12,6 +12,7 @@ export * from "./duration.ts";
 export * from "./feedback.ts";
 export * from "./history.ts";
 export * from "./i18n.ts";
+export * from "./images.ts";
 export * from "./links.ts";
 export * from "./room-connection.ts";
 export * from "./room-store.ts";

@@ -11,10 +11,13 @@ import {
 	fitCamera,
 	formatDuration,
 	frameCamera,
+	imageSrc,
+	imageSrcSet,
 	loadCues,
 	loadSettings,
 	makeConfetti,
 	pinchCamera,
+	ROW_IMAGE_SIZE,
 	RoomConnection,
 	type RoomEvent,
 	resizeCamera,
@@ -243,4 +246,16 @@ test("debounce runs once after the calls stop, and cancel drops it", () => {
 	mock.timers.tick(200);
 	assert.equal(runs, 1, "cancelled");
 	mock.timers.reset();
+});
+
+test("images are asked for at the width they show at", () => {
+	const ours = "https://api.example.com/images/abc";
+	assert.equal(imageSrc(ours, ROW_IMAGE_SIZE, 3), `${ours}?w=512`);
+	assert.equal(
+		imageSrc("https://images.unsplash.com/p?w=1600&q=80", 400, 2),
+		"https://images.unsplash.com/p?w=1024&q=80",
+	);
+	assert.equal(imageSrc("blob:http://x/1", 400, 2), "blob:http://x/1");
+	assert.match(imageSrcSet(ours) ?? "", /w=256 256w, .*w=3072 3072w$/);
+	assert.equal(imageSrcSet("blob:http://x/1"), undefined);
 });

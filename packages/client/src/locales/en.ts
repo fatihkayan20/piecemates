@@ -64,6 +64,20 @@ export const en = {
 			"You have {{max}} puzzles in progress. Finish or abandon one first.",
 		create: "Create room",
 	},
+	upload: {
+		photo: "Upload photo",
+		resume: "Uploaded photo",
+		creditsLeft_one: "{{count}} upload left",
+		creditsLeft_other: "{{count}} uploads left",
+		uploading: "Uploading…",
+		notAnImage: "Pick a JPEG, PNG or WebP photo",
+		imageTooSmall:
+			"The photo is too small; its shorter side needs {{min}} pixels",
+		imageTooLarge: "The photo is too large",
+		uploadFailed: "Could not upload the photo",
+		noCredits: "You have no uploads left",
+		tooMany: "Too many uploads from your network today. Try again tomorrow.",
+	},
 	room: {
 		title: "Room {{code}}",
 		notFound: "Room not found",
