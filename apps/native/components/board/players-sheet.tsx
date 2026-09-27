@@ -6,16 +6,19 @@ import {
 	frame,
 	padding,
 } from "@expo/ui/swift-ui/modifiers";
-import { roomUrl } from "@piecemates/client";
+import { isNameNeeded, roomUrl } from "@piecemates/client";
 import { MAX_PLAYERS } from "@piecemates/game";
 import { track } from "@piecemates/telemetry";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Share } from "react-native";
+import { Alert, Share } from "react-native";
 
 import { AppHost } from "@/components/app-host";
 import { useRoom } from "@/hooks/use-room";
 import { useSheetStyle } from "@/hooks/use-sheet-style";
+import { api } from "@/lib/api";
+import { askName } from "@/lib/ask-name";
 import { ENV } from "@/src/env";
 
 const SHEET = { spacing: 12, padding: 24, titleSize: 20 };
@@ -31,9 +34,25 @@ export function PlayersSheet({
 	const { t } = useTranslation();
 	const style = useSheetStyle();
 	const players = useRoom((r) => r.players);
-	const me = useRoom((r) => r.conn?.me);
+	const conn = useRoom((r) => r.conn);
+	const me = conn?.me;
 	const status = useRoom((r) => r.status);
 	const [open, setOpen] = useState(true);
+	const { mutateAsync } = useMutation(api.share());
+	/** Makes the room joinable (after asking my name if I have none), then shares its link. */
+	const share = async () => {
+		const shared = await mutateAsync(code).catch((error: unknown) => {
+			if (isNameNeeded(error))
+				askName(() => {
+					conn?.renamed();
+					void share();
+				});
+			else Alert.alert(t("players.shareFailed"));
+		});
+		if (!shared) return;
+		track("room_shared", {});
+		void Share.share({ url: roomUrl(ENV.EXPO_PUBLIC_WEB_URL, code) });
+	};
 
 	return (
 		<AppHost matchContents>
@@ -72,10 +91,7 @@ export function PlayersSheet({
 					))}
 					{/* A Button, not ShareLink, so the share can be counted. */}
 					<Button
-						onPress={() => {
-							track("room_shared", {});
-							void Share.share({ url: roomUrl(ENV.EXPO_PUBLIC_WEB_URL, code) });
-						}}
+						onPress={() => void share()}
 						modifiers={[...style.button, controlSize("large")]}
 					>
 						<Label
