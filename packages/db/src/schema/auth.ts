@@ -1,6 +1,9 @@
 import { defineRelationsPart, sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
+/** Photo uploads a new player gets; buying more comes later. */
+export const FREE_UPLOADS = 2;
+
 export const user = sqliteTable("user", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull(),
@@ -10,6 +13,7 @@ export const user = sqliteTable("user", {
 		.notNull(),
 	image: text("image"),
 	isAnonymous: integer("is_anonymous", { mode: "boolean" }).default(false),
+	uploadCredits: integer("upload_credits").default(FREE_UPLOADS).notNull(),
 	createdAt: integer("created_at", { mode: "timestamp_ms" })
 		.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 		.notNull(),

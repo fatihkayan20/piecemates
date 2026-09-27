@@ -2,7 +2,7 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { expo } from "@better-auth/expo";
 import type { Database } from "@piecemates/db";
 import * as schema from "@piecemates/db/schema/auth";
-import { rooms } from "@piecemates/db/schema/game";
+import { rooms, uploads } from "@piecemates/db/schema/game";
 import { betterAuth } from "better-auth";
 import { anonymous } from "better-auth/plugins";
 import { eq, sql } from "drizzle-orm";
@@ -51,6 +51,14 @@ export function createAuth(
 						.update(rooms)
 						.set({ ownerId: to })
 						.where(eq(rooms.ownerId, from));
+					// Linking mustn't hand out fresh free uploads.
+					await database.run(
+						sql`UPDATE user SET upload_credits = min(upload_credits, (SELECT upload_credits FROM user WHERE id = ${from})) WHERE id = ${to}`,
+					);
+					await database
+						.update(uploads)
+						.set({ userId: to })
+						.where(eq(uploads.userId, from));
 					await database.run(
 						sql`UPDATE OR IGNORE room_players SET user_id = ${to} WHERE user_id = ${from}`,
 					);

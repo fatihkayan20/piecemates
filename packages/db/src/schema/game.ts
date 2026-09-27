@@ -54,3 +54,26 @@ export const roomPlayers = sqliteTable(
 		index("room_players_userId_idx").on(table.userId),
 	],
 );
+
+// One row per paid upload: who owns the photo, which room uses it, and the IP cap.
+export const uploads = sqliteTable(
+	"uploads",
+	{
+		id: text("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		ip: text("ip").notNull(),
+		// Set once a room uses the photo; until then the upload can be resumed without a new credit.
+		roomCode: text("room_code").references(() => rooms.code, {
+			onDelete: "set null",
+		}),
+		createdAt: integer("created_at", { mode: "timestamp_ms" })
+			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+			.notNull(),
+	},
+	(table) => [
+		index("uploads_userId_createdAt_idx").on(table.userId, table.createdAt),
+		index("uploads_ip_createdAt_idx").on(table.ip, table.createdAt),
+	],
+);

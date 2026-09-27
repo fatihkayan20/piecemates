@@ -1,0 +1,1 @@
+ALTER TABLE `uploads` ADD `room_code` text REFERENCES rooms(code) ON DELETE SET NULL;

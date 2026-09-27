@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `upload_credits` integer DEFAULT 2 NOT NULL;
