@@ -81,6 +81,13 @@ export const en = {
 		background: "Background",
 		sounds: "Sounds",
 		haptics: "Haptics",
+		music: "Music",
+	},
+	music: {
+		off: "Off",
+		calm: "Calm",
+		drift: "Drift",
+		night: "Night",
 	},
 	bags: {
 		add: "+ Bag",

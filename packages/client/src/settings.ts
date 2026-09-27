@@ -27,11 +27,19 @@ export const BOARD_SCHEMES: Record<Background, "light" | "dark"> = {
 	"#d6d3d1": "light",
 };
 
+/** Ambient music tracks; each app maps an id to its audio file. */
+export const MUSIC_TRACKS = ["calm", "drift", "night"] as const;
+export type MusicTrack = (typeof MUSIC_TRACKS)[number];
+/** Music plays under the cues, so it stays in the background. */
+export const MUSIC_VOLUME = 0.4;
+
 /** My own view options, kept on this device and never sent to the room. */
 export type Settings = {
 	background: Background;
 	sounds: boolean;
 	haptics: boolean;
+	/** The track playing while I'm in a room, or null for none. */
+	music: MusicTrack | null;
 };
 
 /** Set by loadSettings; persist needs a storage from the start, so it goes through this. */
@@ -48,6 +56,7 @@ export const settingsStore = createStore<Settings>()(
 			background: BACKGROUNDS[0] ?? "",
 			sounds: true,
 			haptics: true,
+			music: null,
 		}),
 		{
 			name: "piecemates-settings",
@@ -73,3 +82,9 @@ export const setSounds = (sounds: boolean) =>
 	settingsStore.setState({ sounds });
 export const setHaptics = (haptics: boolean) =>
 	settingsStore.setState({ haptics });
+
+/** Picks a track, or null to stop; anything outside `MUSIC_TRACKS` is ignored. */
+export function setMusic(track: string | null) {
+	const music = MUSIC_TRACKS.find((t) => t === track) ?? null;
+	if (music === track) settingsStore.setState({ music });
+}
