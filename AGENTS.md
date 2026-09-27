@@ -24,3 +24,4 @@ Rules marked **(lint)** are enforced by `biome.json` and `biome-plugins/*.grit`;
 - Don't start dev servers; `pnpm dev` is already running.
 - Commit in small scoped pieces (`feat(game): ...`, `fix(web): ...`).
 - Run biome only on the files you change: `npx biome check --write <files>`.
+- After each task, update `ARCHITECTURE.md` if routes, screens, tables or the flow changed, so the diagrams stay in sync.

@@ -4,6 +4,9 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Urgent or easy fixes Prio 1
 
+- [ ] **iOS sheets match the app theme**: the SwiftUI sheets (new room, settings, players, bags) use the system grey material and blue accent, while the app is monochrome on its own background. `Host` takes `colorScheme` and `seedColor`; pick the look first.
+- [ ] **Data fetching library**: replace the inline `fetch`/`useFocusEffect` loads (Home's Continue, History, the room info) with TanStack Query (or tRPC on top of Hono) for caching, refetch on focus and loading/error states.
+
 ## Polish and user engagement features Prio 2
 
 ## Game features Prio 3
@@ -53,9 +56,14 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
+- [x] **Native tab bar**: the iOS drawer is replaced by native tabs (Home, History, Settings; the room opens over them, without the bar). Settings holds the view settings and dark mode. `Container` now pads the scroll content, so the tab screens' gaps and the large titles show. `799ac1d`
+- [x] **Continue, open-room limit and Abandon**: Home lists my unsolved rooms; History lists only solved ones (abandoned rooms show in neither). A player may have 3 open rooms (`MAX_OPEN_ROOMS`); Abandon in the room settings (confirmed: inline on web, the native dialog on iOS) frees one, and opening the room again brings it back. `4da2da8` `b195415` `9ce21f5` `41ef88d` `f9e72fd`
+- [x] **Clearer room creation**: every piece count is a visible button on iOS too, and "Rotated pieces" explains itself ("Harder: pieces start facing random ways…"). `b195415` `41ef88d`
+- [x] **`pnpm dev` after deleting `.alchemy`**: the dev script runs `alchemy dev --force`, so a fresh local database gets its migrations. `32af3f2`
+
 - [x] **Ambient music**: Off / Calm / Drift / Night in the room settings, per device, looping at 40% volume under the cues; web starts on the next press when autoplay is blocked. `5379e08` `fb401c0` `2b2064a`
 - [x] **Piece rotation option**: room creation moved into a sheet (piece count + "Turned pieces"); in a rotation room pieces start turned and a tap/click turns a group a quarter turn around the tapped piece; only same-way-up neighbours join, and a piece is placed (and the puzzle done) only upright. Older rooms load unturned. `aa78532` `09ee05e` `75c458b` `47eb278` `468d354`
-- [x] **History**: `GET /rooms` lists the rooms I've played in (newest 50) with the other players' names, play time and date; a History page on web and a History drawer screen on iOS, where a row resumes or reopens its room. `eaf1f29` `f13d3ea` `480882b` `f761adb`
+- [x] **History**: `GET /rooms` lists the rooms I've played in (newest 50) with the other players' names, play time and date; a History page on web and a History screen on iOS, where a row resumes or reopens its room. `eaf1f29` `f13d3ea` `480882b` `f761adb`
 - [x] **Project diagram**: `ARCHITECTURE.md` with a Mermaid map of apps, packages and Cloudflare, and a room's life as a sequence diagram. `148f3f1`
 - [x] **Better Auth built once per isolate** instead of on every request. `3993615`
 
