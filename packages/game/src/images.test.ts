@@ -4,6 +4,7 @@ import { test } from "node:test";
 import {
 	imageProblem,
 	imageWidth,
+	isImageAspect,
 	isImageWidth,
 	uploadType,
 } from "./images.ts";
@@ -30,6 +31,12 @@ test("a photo must be an allowed type, big enough and not huge", () => {
 		imageProblem({ ...ok, width: 10_000, height: 5001 }),
 		"imageTooLarge",
 	);
+	assert.equal(
+		imageProblem({ ...ok, width: 1601, height: 400 }),
+		"imageTooNarrow",
+	);
+	assert.equal(imageProblem({ ...ok, width: 1600, height: 400 }), undefined);
+	assert.ok(!isImageAspect(1, 1_000_000_000));
 	assert.equal(uploadType("image/png"), "image/png");
 	assert.equal(uploadType("image/gif"), undefined);
 });

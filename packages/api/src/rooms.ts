@@ -1,4 +1,5 @@
 import { roomPlayers } from "@piecemates/db/schema/game";
+import { isImageAspect } from "@piecemates/game";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -19,7 +20,10 @@ const SampleRoom = Grid.extend({
 		.refine((u) => ALLOWED_IMAGE_HOSTS.includes(new URL(u).hostname)),
 	imageW: z.int().positive(),
 	imageH: z.int().positive(),
-}).refine(fitsPieces);
+})
+	.refine(fitsPieces)
+	// The server can't measure a sample, so its shape is checked instead.
+	.refine((r) => isImageAspect(r.imageW, r.imageH));
 
 /** The server measures an uploaded photo itself. */
 const UploadRoom = Grid.extend({ upload: z.uuid() }).refine(fitsPieces);

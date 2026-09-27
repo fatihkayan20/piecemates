@@ -10,6 +10,8 @@ export const UPLOAD_QUALITY = 0.85;
 /** A smaller photo is too blurry to cut into pieces. */
 export const MIN_IMAGE_SIDE = 400;
 export const MAX_IMAGE_PIXELS = 50_000_000;
+/** Longest side at most this many times the shortest; a thinner photo cuts into slivers (and an absurd one blows up the pile layout). */
+export const MAX_IMAGE_ASPECT = 4;
 /** Uploads from one IP in a day, so fresh guest logins can't farm their free uploads. */
 export const MAX_UPLOADS_PER_IP = 10;
 /** Upload URLs one upload can get, the first included: enough for a few failed tries. */
@@ -36,6 +38,10 @@ export const isImageWidth = (w: number) =>
 export const uploadType = (type: string) =>
 	UPLOAD_TYPES.find((t) => t === type);
 
+/** Whether a photo's shape is close enough to square to cut. */
+export const isImageAspect = (width: number, height: number) =>
+	Math.max(width, height) <= MAX_IMAGE_ASPECT * Math.min(width, height);
+
 /** Why a photo can't be a puzzle, or undefined when it can. `format` is its MIME type. */
 export const imageProblem = (info: {
 	format: string;
@@ -46,5 +52,6 @@ export const imageProblem = (info: {
 	if (Math.min(info.width, info.height) < MIN_IMAGE_SIDE)
 		return "imageTooSmall";
 	if (info.width * info.height > MAX_IMAGE_PIXELS) return "imageTooLarge";
+	if (!isImageAspect(info.width, info.height)) return "imageTooNarrow";
 	return undefined;
 };

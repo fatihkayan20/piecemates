@@ -75,6 +75,7 @@ export const en = {
 		imageTooSmall:
 			"The photo is too small; its shorter side needs {{min}} pixels",
 		imageTooLarge: "The photo is too large",
+		imageTooNarrow: "The photo is too long and thin; pick one closer to square",
 		uploadFailed: "Could not upload the photo",
 		useUploaded: "Start a puzzle with your uploaded photo first",
 		noCredits: "You have no uploads left",

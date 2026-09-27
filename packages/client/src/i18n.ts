@@ -50,6 +50,7 @@ const UPLOAD_PROBLEMS = [
 	"notAnImage",
 	"imageTooSmall",
 	"imageTooLarge",
+	"imageTooNarrow",
 	"uploadFailed",
 	"useUploaded",
 	"tooManyUploads",
