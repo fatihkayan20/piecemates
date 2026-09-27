@@ -43,7 +43,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
   - Consider Skia `Atlas` instead of one clip group per piece.
   - Room state is saved as one Durable Object key (about 60 KB); split it if it grows.
 - [ ] **Piece shape variety**: all tabs currently share one shape; add per-edge random jitter from the seed.
-- [ ] **Touch pinch-zoom on web**: web currently zooms only with the mouse wheel.
 - [ ] **Android**: dev build and a device test pass.
 - [ ] **Expo SDK 58**: upgrade, then delete `apps/native/plugins/with-ios-scene.js`.
 - [ ] **Cloudflare overview**: usage, limits and monitoring for Workers, Durable Objects, D1 and R2 on the free plan.
@@ -62,11 +61,12 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
   - Make a new Sentry auth token; the current one was pasted in a chat.
   - In PostHog, filter dashboards on `app = piecemates`; the project is shared with another app.
   - Traces are kept at 100% (`TRACES_SAMPLE_RATE` in `@piecemates/telemetry`); lower it when traffic grows.
-- [ ] **First deploy**: `pnpm run deploy`, set `CORS_ORIGIN` to the deployed web origin, then deploy again. Host the web app and server on sibling subdomains (`app.` / `api.`) so the auth cookie works for WebSockets.
 - [ ] **Abuse test in production**: right after the first deploy, run the abuse sub-agent against the deployed apps. Locally every request comes from 127.0.0.1 and a client can set `cf-connecting-ip` itself; in production Cloudflare sets it, so check the guest sign-in limit, the upload IP cap (IPv6 /64 too), the per-user write limit, signed photo links and the daily cleanup Cron Trigger there.
 
 ## Done
 
+- [x] **First deploy**: `pnpm -F @piecemates/infra deploy` puts the `production` stage on workers.dev, with its settings in the git-ignored `packages/infra/.env.deploy.local`. The web Worker forwards `/api`, `/trpc` and `/rooms` to the server, so the session cookie is first-party without a custom domain (Safari drops cross-site ones). `2c906b7` `830091c`
+- [x] **Touch pinch-zoom on web**: two fingers on empty table zoom and pan with the same `pinchCamera` as iOS (checked in iPhone Safari). `516ef9b`
 - [x] **Stale data cleanup**: the daily Cron Trigger clears rooms that are solved, abandoned by every player, or not played for 30 days (even unsolved). Their Durable Object storage and uploaded original go; the D1 rows stay, marked expired, and the small resized copies stay for History thumbnails. A cleared room moves from Continue to History ("Cleared after …"), its row no longer opens, and opening it by code says it was cleared. At most 200 rooms a run. `dd8f59d` `e32a19b` `f8e2a0b`
 
 - [x] **Sample catalogue from Unsplash (better Home and room creation)**: a daily Cron sync fills a D1 catalogue to 200 photos, then adds 5 per category a day, marking a few featured. Home shows a featured row, category chips (Nature, Cities, Animals, Food, Art, Space) and the grid with the upload tile, on web and iOS. Rooms start from a sample id, so clients never send image URLs. Following Unsplash's rules: photos load from Unsplash's CDN (never copied), the API key stays on the server, each room started from a sample sends Unsplash a download event (with `ixid`), Unsplash+ photos are skipped, the new room sheet credits "Photo by … on Unsplash" with referral links, and a sync makes at most 30 calls. `8629cb2` `2aadd1b` `2e9c0df`
