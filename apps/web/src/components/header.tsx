@@ -8,6 +8,7 @@ export function Header() {
 	const { t } = useTranslation();
 	const links = [
 		{ to: "/", label: t("nav.home") },
+		{ to: "/history", label: t("nav.history") },
 		{ to: "/dashboard", label: t("nav.dashboard") },
 	] as const;
 
