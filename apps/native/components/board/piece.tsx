@@ -34,7 +34,13 @@ export function Piece({
 	const { row, col } = cellOf(grid, index);
 	return (
 		<Group
-			transform={[{ translateX: x }, { translateY: y }]}
+			transform={[
+				{ translateX: x },
+				{ translateY: y },
+				{ rotate: (view.rot * Math.PI) / 2 },
+			]}
+			// Turns go around the piece's centre.
+			origin={{ x: grid.w / 2, y: grid.h / 2 }}
 			opacity={view.held ? BOARD_STYLE.heldOpacity : 1}
 		>
 			<Group clip={path}>

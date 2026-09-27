@@ -8,7 +8,9 @@ import {
 	roomStore,
 	setHoveredTarget,
 	startDrag,
+	turnPiece,
 } from "@piecemates/client";
+import { turn } from "@piecemates/game";
 import { useRef } from "react";
 import { Gesture } from "react-native-gesture-handler";
 
@@ -28,10 +30,17 @@ function pieceAt(seed: number, x: number, y: number) {
 	if (!conn || !grid) return null;
 	const paths = piecePaths(seed, grid);
 	const t = toTable(x, y);
+	const { w, h } = grid;
 	for (const i of order.toReversed()) {
 		if (!canPickUp(conn, i)) continue;
 		const at = conn.position(i);
-		if (paths[i]?.contains(t.x - at.x, t.y - at.y)) return i;
+		// Undo the piece's turn around its centre, then test its outline.
+		const p = turn(
+			t.x - at.x - w / 2,
+			t.y - at.y - h / 2,
+			-(conn.state?.pieces[i]?.rot ?? 0),
+		);
+		if (paths[i]?.contains(p.x + w / 2, p.y + h / 2)) return i;
 	}
 	return null;
 }
@@ -104,5 +113,14 @@ export function useBoardGestures(seed: number) {
 			pinching.current = null;
 		});
 
-	return Gesture.Simultaneous(pan, pinch);
+	// In a rotation room, a tap turns the piece under the finger.
+	const tap = Gesture.Tap()
+		.runOnJS(true)
+		.onEnd((e) => {
+			const { conn } = roomStore.getState();
+			const piece = pieceAt(seed, e.x, e.y);
+			if (conn && piece !== null) turnPiece(conn, piece);
+		});
+
+	return Gesture.Simultaneous(pan, pinch, tap);
 }
