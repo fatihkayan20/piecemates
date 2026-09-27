@@ -2,6 +2,7 @@ import { Button, Image, Text, VStack } from "@expo/ui/swift-ui";
 import {
 	buttonStyle,
 	controlSize,
+	disabled,
 	fixedSize,
 	font,
 	foregroundStyle,
@@ -36,7 +37,7 @@ export function AbandonConfirm({
 	const style = useSheetStyle();
 	const danger = useThemeColor("danger");
 	const onDanger = useThemeColor("danger-foreground");
-	const { mutateAsync } = useMutation(api.abandon());
+	const { mutateAsync, isPending } = useMutation(api.abandon());
 
 	const abandon = async () => {
 		try {
@@ -78,13 +79,14 @@ export function AbandonConfirm({
 					tint(danger),
 					foregroundStyle(onDanger),
 					controlSize("large"),
+					disabled(isPending),
 				]}
 			>
 				<Text modifiers={[FULL]}>{t("room.abandonConfirm")}</Text>
 			</Button>
 			<Button
 				onPress={onCancel}
-				modifiers={[...style.button, controlSize("large")]}
+				modifiers={[...style.button, controlSize("large"), disabled(isPending)]}
 			>
 				<Text modifiers={[FULL]}>{t("room.keepPlaying")}</Text>
 			</Button>
