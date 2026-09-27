@@ -53,6 +53,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
   - In PostHog, filter dashboards on `app = piecemates`; the project is shared with another app.
   - Traces are kept at 100% (`TRACES_SAMPLE_RATE` in `@piecemates/telemetry`); lower it when traffic grows.
 - [ ] **First deploy**: `pnpm run deploy`, set `CORS_ORIGIN` to the deployed web origin, then deploy again. Host the web app and server on sibling subdomains (`app.` / `api.`) so the auth cookie works for WebSockets.
+- [ ] **Abuse test in production**: right after the first deploy, run the abuse sub-agent against the deployed apps. Locally every request comes from 127.0.0.1 and a client can set `cf-connecting-ip` itself; in production Cloudflare sets it, so check the guest sign-in limit, the upload IP cap (IPv6 /64 too), the per-user write limit, signed photo links and the daily cleanup Cron Trigger there.
 
 ## Done
 
