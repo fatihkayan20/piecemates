@@ -7,6 +7,7 @@ import { BagBar } from "@/components/bags/bag-bar";
 import { Confetti } from "@/components/win/confetti";
 import { SolvedBar } from "@/components/win/solved-bar";
 import { useBoardGestures } from "@/hooks/use-board-gestures";
+import { useMusic } from "@/hooks/use-music";
 import { useRoom } from "@/hooks/use-room";
 import { useRoomSocket } from "@/hooks/use-room-socket";
 import { useSettings } from "@/hooks/use-settings";
@@ -18,6 +19,7 @@ import { BoardControls } from "./board-controls";
 export function PuzzleBoard({ room }: { room: RoomInfo }) {
 	const headerHeight = useHeaderHeight();
 	useRoomSocket(room.code);
+	useMusic();
 	const gesture = useBoardGestures(room.seed);
 	const background = useSettings((s) => s.background);
 	const solved = useRoom((r) => r.status === "done");
