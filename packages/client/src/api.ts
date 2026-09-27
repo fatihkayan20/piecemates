@@ -18,6 +18,8 @@ export type RoomSummary = {
 	playedMs: number;
 	createdAt: number;
 	finishedAt: number | null;
+	/** When I gave up on it; History lists these too. */
+	abandonedAt: number | null;
 	/** Names of the other players. */
 	players: string[];
 };
@@ -76,7 +78,7 @@ export function createApi(opts: {
 		getRoom: (code: string) => request<RoomInfo>(`/rooms/${code}`),
 		/** My unsolved rooms that I haven't abandoned, newest first. */
 		openRooms: () => request<RoomSummary[]>("/rooms"),
-		/** My solved rooms, newest first. */
+		/** My solved or abandoned rooms, newest first. */
 		history: () => request<RoomSummary[]>("/rooms?status=done"),
 		/** Drops the room from my open rooms; opening it again brings it back. */
 		abandon: (code: string) =>

@@ -73,10 +73,10 @@ const CreateRoom = z.object({
 	rotate: z.boolean().default(false),
 });
 
-// ?status=done lists History; anything else my open rooms (Continue).
+// ?status=done lists History (solved or abandoned); anything else Continue.
 app.get("/rooms", async (c) => {
-	const status = c.req.query("status") === "done" ? "done" : "playing";
-	return c.json(await myRooms(c.get("user").id, status));
+	const list = c.req.query("status") === "done" ? "history" : "open";
+	return c.json(await myRooms(c.get("user").id, list));
 });
 
 app.post("/rooms", async (c) => {
@@ -110,10 +110,22 @@ app.get("/rooms/:code", async (c) => {
 	const db = getDb();
 	const room = await db.query.rooms.findFirst({ where: { code } });
 	if (!room) return c.text("Room not found", STATUS.notFound);
-	// Opening a room I abandoned makes it one of my open rooms again.
+	const me = c.get("user").id;
+	// Opening a room I abandoned makes it one of my open rooms again, so it
+	// counts against the cap like a new room.
+	const mine = await db.query.roomPlayers.findFirst({
+		where: { roomCode: code, userId: me },
+	});
+	if (
+		mine?.abandonedAt &&
+		room.status === "playing" &&
+		(await openRoomCount(me)) >= MAX_OPEN_ROOMS
+	) {
+		return c.text("Too many open rooms", STATUS.conflict);
+	}
 	await db
 		.insert(roomPlayers)
-		.values({ roomCode: code, userId: c.get("user").id })
+		.values({ roomCode: code, userId: me })
 		.onConflictDoUpdate({
 			target: [roomPlayers.roomCode, roomPlayers.userId],
 			set: { abandonedAt: null },

@@ -13,6 +13,7 @@ test("history rows read the same everywhere", () => {
 		playedMs: 80_000,
 		createdAt: Date.UTC(2026, 8, 1),
 		finishedAt: Date.UTC(2026, 8, 2, 12),
+		abandonedAt: null,
 		players: ["Ada", "Bo"],
 	};
 	const done = historyLines(room);
@@ -22,4 +23,6 @@ test("history rows read the same everywhere", () => {
 	const open = historyLines({ ...room, status: "playing", players: [] });
 	assert.equal(open.status, "1:20 played");
 	assert.equal(open.players, "Solo");
+	const gaveUp = historyLines({ ...room, status: "playing", abandonedAt: 1 });
+	assert.equal(gaveUp.status, "Abandoned after 1:20");
 });

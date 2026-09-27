@@ -61,7 +61,7 @@ export const en = {
 			"Harder: pieces start facing random ways. Tap a piece to turn it; it only fits once it's upright.",
 		continue: "Continue",
 		openRoomsFull:
-			"You have {{max}} puzzles in progress. Finish or abandon one to start a new one.",
+			"You have {{max}} puzzles in progress. Finish or abandon one first.",
 		create: "Create room",
 	},
 	room: {
@@ -96,11 +96,12 @@ export const en = {
 	},
 	history: {
 		title: "History",
-		empty: "Puzzles you solve show up here.",
+		empty: "Puzzles you solve or abandon show up here.",
 		loadFailed: "Could not load your rooms",
 		room: "{{pieces}} pieces · {{date, datetime}}",
 		solved: "Solved in {{time}}",
 		playing: "{{time}} played",
+		abandoned: "Abandoned after {{time}}",
 		with: "With {{names}}",
 		solo: "Solo",
 	},

@@ -24,7 +24,7 @@ flowchart LR
 
   subgraph CF["Cloudflare (local: workerd via alchemy dev, packages/infra)"]
     direction TB
-    Worker["apps/server Worker (Hono)<br/>/api/auth/*, GET /rooms (?status=done),<br/>POST /rooms (max 3 open), GET /rooms/:code,<br/>POST /rooms/:code/abandon, /rooms/:code/ws"]
+    Worker["apps/server Worker (Hono)<br/>/api/auth/*, GET /rooms (?status=done),<br/>POST /rooms (max 3 open), GET /rooms/:code (reopen counts to the cap),<br/>POST /rooms/:code/abandon, /rooms/:code/ws"]
     DO[("Room Durable Object<br/>one per room code<br/>authoritative State, hibernating sockets")]
     D1[("D1 (SQLite)<br/>user, session, account,<br/>rooms, room_players (+ abandoned_at)")]
     Assets["Web static assets<br/>(Cloudflare Website)"]
@@ -107,7 +107,7 @@ sequenceDiagram
   end
   P->>C: History
   C->>W: GET /rooms?status=done
-  W->>D1: my solved rooms + other players' names
+  W->>D1: my solved or abandoned rooms + other players' names
 ```
 
 ## Where to look

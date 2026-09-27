@@ -9,10 +9,11 @@ export function historyLines(room: RoomSummary) {
 	return {
 		title: i18next.t("history.room", {
 			pieces: room.pieces,
-			date: new Date(room.finishedAt ?? room.createdAt),
+			date: new Date(room.abandonedAt ?? room.finishedAt ?? room.createdAt),
 		}),
-		status:
-			room.status === "done"
+		status: room.abandonedAt
+			? i18next.t("history.abandoned", { time })
+			: room.status === "done"
 				? i18next.t("history.solved", { time })
 				: i18next.t("history.playing", { time }),
 		players: room.players.length
