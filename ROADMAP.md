@@ -16,7 +16,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Game features Prio 3
 
-- [ ] **Stale data cleanup**: the daily Cron Trigger already removes unused uploads and stray R2 files; extend it to remove expired rooms and their images. Keep the D1 `rooms` and `room_players` rows (History reads them); delete the Durable Object's storage and the image, and mark the room expired.
 - [ ] **Store review prompt**: ask for an App Store / Play Store review at a good moment.
 
 ## Later
@@ -67,6 +66,8 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Abuse test in production**: right after the first deploy, run the abuse sub-agent against the deployed apps. Locally every request comes from 127.0.0.1 and a client can set `cf-connecting-ip` itself; in production Cloudflare sets it, so check the guest sign-in limit, the upload IP cap (IPv6 /64 too), the per-user write limit, signed photo links and the daily cleanup Cron Trigger there.
 
 ## Done
+
+- [x] **Stale data cleanup**: the daily Cron Trigger clears rooms that are solved, abandoned by every player, or not played for 30 days (even unsolved). Their Durable Object storage and uploaded original go; the D1 rows stay, marked expired, and the small resized copies stay for History thumbnails. A cleared room moves from Continue to History ("Cleared after …"), its row no longer opens, and opening it by code says it was cleared. At most 200 rooms a run. `dd8f59d` `e32a19b` `f8e2a0b`
 
 - [x] **Sample catalogue from Unsplash (better Home and room creation)**: a daily Cron sync fills a D1 catalogue to 200 photos, then adds 5 per category a day, marking a few featured. Home shows a featured row, category chips (Nature, Cities, Animals, Food, Art, Space) and the grid with the upload tile, on web and iOS. Rooms start from a sample id, so clients never send image URLs. Following Unsplash's rules: photos load from Unsplash's CDN (never copied), the API key stays on the server, each room started from a sample sends Unsplash a download event (with `ixid`), Unsplash+ photos are skipped, the new room sheet credits "Photo by … on Unsplash" with referral links, and a sync makes at most 30 calls. `8629cb2` `2aadd1b` `2e9c0df`
 
