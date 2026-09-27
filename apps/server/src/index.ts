@@ -1,9 +1,9 @@
 import { API_PATH, handleApi } from "@piecemates/api";
 import { clientIp, MAX_NAME_LENGTH } from "@piecemates/auth";
-import { rooms } from "@piecemates/db/schema/game";
+import { roomPlayers } from "@piecemates/db/schema/game";
 import { TRACE_HEADERS } from "@piecemates/telemetry";
 import * as Sentry from "@sentry/cloudflare";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -95,13 +95,29 @@ app.get("/rooms/:code/ws", async (c) => {
 	if (c.req.header("upgrade") !== "websocket") {
 		return c.text("Expected websocket", STATUS.upgradeRequired);
 	}
+	// Browsers send the page's origin: another site can't open a socket as a signed-in player.
+	// The native app sends none, or the server's own.
+	const origin = c.req.header("origin");
+	if (
+		origin &&
+		origin !== ENV.CORS_ORIGIN &&
+		origin !== new URL(c.req.url).origin
+	)
+		return c.text("Forbidden", STATUS.forbidden);
 	const code = c.req.param("code").toUpperCase();
-	const exists = await getDb()
-		.select({ code: rooms.code })
-		.from(rooms)
-		.where(eq(rooms.code, code));
-	if (exists.length === 0) return c.text("Room not found", STATUS.notFound);
 	const user = c.get("user");
+	// Only players who opened the room (rooms.open, which counts against their cap) get in.
+	const [member] = await getDb()
+		.select({ code: roomPlayers.roomCode })
+		.from(roomPlayers)
+		.where(
+			and(
+				eq(roomPlayers.roomCode, code),
+				eq(roomPlayers.userId, user.id),
+				isNull(roomPlayers.abandonedAt),
+			),
+		);
+	if (!member) return c.text("Room not found", STATUS.notFound);
 	// Fresh headers so clients can't spoof who they are.
 	const headers = new Headers(c.req.raw.headers);
 	headers.set("x-user-id", user.id);
