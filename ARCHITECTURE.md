@@ -24,9 +24,9 @@ flowchart LR
 
   subgraph CF["Cloudflare (local: workerd via alchemy dev, packages/infra)"]
     direction TB
-    Worker["apps/server Worker (Hono)<br/>/api/auth/* (guest + sign-up limit per IP),<br/>/trpc/* (packages/api, rate limited per player):<br/>rooms.list, create (from a sample id),<br/>createFromUpload (max 3 open),<br/>open (members, or shared rooms + a name), share, abandon,<br/>uploads.create (signed R2 PUT), credits, unused;<br/>samples.featured, samples.list;<br/>/images/:id?w= (signed, expiring links),<br/>/rooms/:code/ws (members only, our origins);<br/>daily Cron: cleanup of unused uploads,<br/>Unsplash sample sync"]
+    Worker["apps/server Worker (Hono)<br/>/api/auth/* (guest + sign-up limit per IP),<br/>/trpc/* (packages/api, rate limited per player):<br/>rooms.list, create (from a sample id),<br/>createFromUpload (max 3 open),<br/>open (members, or shared rooms + a name), share, abandon,<br/>uploads.create (signed R2 PUT), credits, unused;<br/>samples.featured, samples.list;<br/>/images/:id?w= (signed, expiring links),<br/>/rooms/:code/ws (members only, our origins);<br/>daily Cron: cleanup of unused uploads,<br/>clearing solved, abandoned and idle rooms,<br/>Unsplash sample sync"]
     DO[("Room Durable Object<br/>one per room code<br/>authoritative State, hibernating sockets")]
-    D1[("D1 (SQLite)<br/>user, session, account, rate_limit,<br/>rooms (+ shared), room_players (+ abandoned_at),<br/>uploads (credits per user and IP, attempts),<br/>samples + sample_sources (Unsplash catalogue)")]
+    D1[("D1 (SQLite)<br/>user, session, account, rate_limit,<br/>rooms (+ shared, played_at, expired_at), room_players (+ abandoned_at),<br/>uploads (credits per user and IP, attempts),<br/>samples + sample_sources (Unsplash catalogue)")]
     R2[("R2 bucket images<br/>uploads/&lt;id&gt; originals (private),<br/>variants/&lt;id&gt;/&lt;w&gt;.webp")]
     Images["Images binding<br/>(real format + size, resize to WebP)"]
     Limits["Rate limit bindings<br/>API_LIMIT (writes, socket connects),<br/>READ_LIMIT (reads)"]
@@ -74,6 +74,7 @@ flowchart LR
 - **What is stored where:** live piece state lives in the Durable Object's storage (one `state` key per room). D1 only indexes rooms: who owns them, who played (and who abandoned), the seed and grid, play time and whether it's solved (for Continue and History).
 - **The server only touches pixels for uploads:** piece shapes come from `(seed, rows, cols)`, so every client cuts the same puzzle from the image URL. An uploaded photo goes from the device straight to R2; the Worker checks its real format and size, then serves WebP at the width asked for (steps of 256, up to 3072), made once and kept in R2. Photo links are signed and expire after one to two weeks; list and open sign them again.
 - **Limits:** guests and email sign-ups per IP (Better Auth, `rate_limit` table), API writes and reads per player (rate limit bindings), upload credits per player and per IP over 24h (`uploads` table), 3 open rooms, 4 players, 20 room messages a second per player, 20 bags. Caps are checked inside the insert, so parallel requests can't pass them.
+- **Stale rooms:** the daily Cron clears a room once it's solved, every player abandoned it, or nobody played it for 30 days (`played_at`, set when the room empties or is solved). It deletes the Durable Object's storage and the uploaded original, and sets `expired_at`; the D1 rows stay for History, a cleared room leaves Continue, and `rooms.open` answers `roomExpired`.
 - **Samples:** the daily Cron fills a D1 catalogue from Unsplash topics and searches (200 photos, then 5 per category a day) and marks a few featured. Photos always load from Unsplash's CDN, as its API terms require; we store only the link, size, colour and credit. A room from a sample makes the Worker send Unsplash a download event, and the new room sheet credits the photographer.
 - **Per device, never sent:** the camera, which bag I'm looking at, my tidy positions, and my settings (table colour, sounds, haptics, music).
 
@@ -137,7 +138,8 @@ sequenceDiagram
   end
   P->>C: History
   C->>W: rooms.list {history}
-  W->>D1: my solved or abandoned rooms + other players' names
+  W->>D1: my solved, abandoned or cleared rooms + other players' names
+  Note over W,R: daily Cron: a solved, all-abandoned or 30-day idle room gets R.expire() (storage deleted),<br/>its uploaded original leaves R2 and rooms.expired_at is set
 ```
 
 ## Where to look
@@ -152,7 +154,7 @@ sequenceDiagram
 | Native board | `apps/native/components/board/*`, `hooks/use-board-gestures.ts`, `lib/camera.ts` |
 | Native tabs | `apps/native/app/(tabs)/*`, `components/tab-stack.tsx` |
 | HTTP API (tRPC router) | `packages/api/src/rooms.ts`, `new-room.ts`, `uploads.ts`, `my-rooms.ts`, rate limits in `trpc.ts`; mounted in `apps/server/src/index.ts` |
-| Photos: resize, signed links, cleanup | `apps/server/src/images.ts`, `image-links.ts`, `cleanup.ts`; shared checks in `packages/game/src/images.ts` |
+| Photos: resize, signed links, cleanup | `apps/server/src/images.ts`, `image-links.ts`, `cleanup.ts`; stale rooms in `expire-rooms.ts`; shared checks in `packages/game/src/images.ts` |
 | Sample catalogue: sync, API, Home | `apps/server/src/samples-sync.ts`, `packages/api/src/samples.ts`, `packages/db/src/schema/samples.ts`, categories in `packages/game/src/samples.ts`, `components/home/sample-*.tsx` (web and native) |
 | Sign-in limits and name rules | `packages/auth/src/index.ts`, `needsName` in `packages/game/src/types.ts` |
 | API client and query cache | `packages/client/src/api.ts` |
