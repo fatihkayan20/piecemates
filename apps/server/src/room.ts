@@ -69,7 +69,7 @@ export class Room extends DurableObject<Env> {
 
 	override async fetch(req: Request) {
 		const userId = req.headers.get("x-user-id");
-		const name = req.headers.get("x-user-name") ?? "Guest";
+		const name = decodeURIComponent(req.headers.get("x-user-name") ?? "");
 		if (!this.state || !userId)
 			return new Response("Room not found", { status: 404 });
 

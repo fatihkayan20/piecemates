@@ -4,7 +4,7 @@ import { expo } from "@better-auth/expo";
 import type { Database } from "@piecemates/db";
 import * as schema from "@piecemates/db/schema/auth";
 import { rooms, uploads } from "@piecemates/db/schema/game";
-import { MAX_NAME_LENGTH } from "@piecemates/game";
+import { GUEST_NAME, needsName } from "@piecemates/game";
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { anonymous } from "better-auth/plugins";
@@ -13,8 +13,8 @@ import { eq, sql } from "drizzle-orm";
 /** Where Cloudflare puts the caller's IP; callers can't set it themselves. */
 const IP_HEADER = "cf-connecting-ip";
 const HOUR_S = 3600;
-/** Guests one IP can start in an hour, so nobody mints endless free accounts. */
-const GUESTS_PER_HOUR = 10;
+/** Accounts (guest or email) one IP can make in an hour, so nobody mints endless free ones. */
+const ACCOUNTS_PER_HOUR = 10;
 
 /** The caller's IP as every limit counts it: an IPv6 /64 is one caller, since one home or phone gets a whole /64. */
 export const clientIp = (headers: Headers) => {
@@ -22,9 +22,19 @@ export const clientIp = (headers: Headers) => {
 	return ip ? normalizeIP(ip) : "unknown";
 };
 
-/** A name is 1 to MAX_NAME_LENGTH characters, not counting spaces around it. */
-const checkName = (name?: string) => {
-	if (name !== undefined && (!name.trim() || name.length > MAX_NAME_LENGTH))
+/**
+ * Checks a new or changed user: a name others can read (only a new guest
+ * may be GUEST_NAME), and no image, which the apps never show.
+ */
+const checkUser = (
+	user: { name?: unknown; image?: unknown },
+	isNew: boolean,
+) => {
+	const { name, image } = user;
+	if (image !== undefined && image !== null)
+		throw new APIError("BAD_REQUEST", { message: "noImage" });
+	if (name === undefined || (isNew && name === GUEST_NAME)) return;
+	if (typeof name !== "string" || needsName(name))
 		throw new APIError("BAD_REQUEST", { message: "badName" });
 };
 
@@ -59,7 +69,8 @@ export function createAuth(
 			enabled: true,
 			storage: "database",
 			customRules: {
-				"/sign-in/anonymous": { window: HOUR_S, max: GUESTS_PER_HOUR },
+				"/sign-in/anonymous": { window: HOUR_S, max: ACCOUNTS_PER_HOUR },
+				"/sign-up/email": { window: HOUR_S, max: ACCOUNTS_PER_HOUR },
 			},
 		},
 		advanced: {
@@ -72,8 +83,8 @@ export function createAuth(
 		},
 		databaseHooks: {
 			user: {
-				create: { before: async (user) => checkName(user.name) },
-				update: { before: async (user) => checkName(user.name) },
+				create: { before: async (user) => checkUser(user, true) },
+				update: { before: async (user) => checkUser(user, false) },
 			},
 		},
 		plugins: [

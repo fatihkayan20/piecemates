@@ -317,6 +317,11 @@ test("a guest picks a name before meeting others", () => {
 	assert.equal(needsName("Anonymous"), true);
 	assert.equal(needsName("  "), true);
 	assert.equal(needsName("Ada"), false);
+	assert.equal(needsName(" anonymous "), true, "the guest name in any case");
+	for (const hidden of ["\u200b", "\u3164", "A\u0000B", "a\nb", "\u202eevil"])
+		assert.equal(needsName(hidden), true, JSON.stringify(hidden));
+	assert.equal(needsName("Zoë 👩‍💻"), false, "accents and emoji are fine");
+	assert.equal(needsName("x".repeat(41)), true);
 });
 
 test("bags are own, capped, printable and hex coloured", () => {

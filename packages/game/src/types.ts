@@ -7,11 +7,19 @@ export const MAX_PLAYERS = 4;
 export const GUEST_NAME = "Anonymous";
 /** Longest player name; others see it in rooms. */
 export const MAX_NAME_LENGTH = 40;
-/** A player picks a name before they meet others: when they share a room or join someone's. */
-export const needsName = (name: string) => {
-	const trimmed = name.trim();
-	return !trimmed || trimmed === GUEST_NAME;
-};
+/** Characters that could fake an empty name or another player's: control, format, bidi, invisible (emoji joiners allowed). */
+const HIDDEN = /(?![\u200d\ufe0f])[\p{C}\p{Default_Ignorable_Code_Point}]/u;
+const VISIBLE = /[\p{L}\p{N}\p{S}\p{P}]/u;
+
+/**
+ * A player picks a name before they meet others (sharing a room or joining
+ * someone's): 1 to MAX_NAME_LENGTH characters of visible text, not the guest name.
+ */
+export const needsName = (name: string) =>
+	name.trim().toLowerCase() === GUEST_NAME.toLowerCase() ||
+	name.length > MAX_NAME_LENGTH ||
+	!VISIBLE.test(name) ||
+	HIDDEN.test(name);
 /** Room messages one socket may send a second; a player's action sends one or two. */
 export const MAX_MESSAGES_PER_SECOND = 20;
 export const BAG_NAME_MAX = 40;

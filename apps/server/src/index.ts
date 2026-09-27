@@ -126,7 +126,7 @@ app.get("/rooms/:code/ws", async (c) => {
 	// Fresh headers so clients can't spoof who they are.
 	const headers = new Headers(c.req.raw.headers);
 	headers.set("x-user-id", user.id);
-	headers.set("x-user-name", user.name);
+	headers.set("x-user-name", encodeURIComponent(user.name));
 	return ENV.ROOM.getByName(code).fetch(
 		new Request(c.req.raw.url, { headers }),
 	);
