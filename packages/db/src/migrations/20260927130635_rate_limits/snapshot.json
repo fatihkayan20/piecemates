@@ -1,0 +1,954 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "5d0b7d7e-b788-433d-8da9-4c300de96c10",
+  "prevIds": [
+    "3e40ebc4-450d-4801-b6ac-a29682df892f"
+  ],
+  "ddl": [
+    {
+      "name": "account",
+      "entityType": "tables"
+    },
+    {
+      "name": "rate_limit",
+      "entityType": "tables"
+    },
+    {
+      "name": "session",
+      "entityType": "tables"
+    },
+    {
+      "name": "user",
+      "entityType": "tables"
+    },
+    {
+      "name": "verification",
+      "entityType": "tables"
+    },
+    {
+      "name": "room_players",
+      "entityType": "tables"
+    },
+    {
+      "name": "rooms",
+      "entityType": "tables"
+    },
+    {
+      "name": "uploads",
+      "entityType": "tables"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "account_id",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "provider_id",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "access_token",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "refresh_token",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id_token",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "access_token_expires_at",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "refresh_token_expires_at",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "scope",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "password",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "table": "account"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "rate_limit"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "key",
+      "entityType": "columns",
+      "table": "rate_limit"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "count",
+      "entityType": "columns",
+      "table": "rate_limit"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "last_request",
+      "entityType": "columns",
+      "table": "rate_limit"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "session"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "expires_at",
+      "entityType": "columns",
+      "table": "session"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "token",
+      "entityType": "columns",
+      "table": "session"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "table": "session"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "table": "session"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "ip_address",
+      "entityType": "columns",
+      "table": "session"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "user_agent",
+      "entityType": "columns",
+      "table": "session"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "table": "session"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "user"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "user"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "email",
+      "entityType": "columns",
+      "table": "user"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "email_verified",
+      "entityType": "columns",
+      "table": "user"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "image",
+      "entityType": "columns",
+      "table": "user"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "is_anonymous",
+      "entityType": "columns",
+      "table": "user"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "2",
+      "generated": null,
+      "name": "upload_credits",
+      "entityType": "columns",
+      "table": "user"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "table": "user"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "table": "user"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "verification"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "identifier",
+      "entityType": "columns",
+      "table": "verification"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "value",
+      "entityType": "columns",
+      "table": "verification"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "expires_at",
+      "entityType": "columns",
+      "table": "verification"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "table": "verification"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "table": "verification"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "room_code",
+      "entityType": "columns",
+      "table": "room_players"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "table": "room_players"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "joined_at",
+      "entityType": "columns",
+      "table": "room_players"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "abandoned_at",
+      "entityType": "columns",
+      "table": "room_players"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "code",
+      "entityType": "columns",
+      "table": "rooms"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "owner_id",
+      "entityType": "columns",
+      "table": "rooms"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "image_url",
+      "entityType": "columns",
+      "table": "rooms"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "seed",
+      "entityType": "columns",
+      "table": "rooms"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rows",
+      "entityType": "columns",
+      "table": "rooms"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "cols",
+      "entityType": "columns",
+      "table": "rooms"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'playing'",
+      "generated": null,
+      "name": "status",
+      "entityType": "columns",
+      "table": "rooms"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "played_ms",
+      "entityType": "columns",
+      "table": "rooms"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "finished_at",
+      "entityType": "columns",
+      "table": "rooms"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "table": "rooms"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "uploads"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "table": "uploads"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "ip",
+      "entityType": "columns",
+      "table": "uploads"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "1",
+      "generated": null,
+      "name": "attempts",
+      "entityType": "columns",
+      "table": "uploads"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "room_code",
+      "entityType": "columns",
+      "table": "uploads"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "table": "uploads"
+    },
+    {
+      "columns": [
+        "user_id"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_account_user_id_user_id_fk",
+      "entityType": "fks",
+      "table": "account"
+    },
+    {
+      "columns": [
+        "user_id"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_session_user_id_user_id_fk",
+      "entityType": "fks",
+      "table": "session"
+    },
+    {
+      "columns": [
+        "room_code"
+      ],
+      "tableTo": "rooms",
+      "columnsTo": [
+        "code"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_room_players_room_code_rooms_code_fk",
+      "entityType": "fks",
+      "table": "room_players"
+    },
+    {
+      "columns": [
+        "user_id"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_room_players_user_id_user_id_fk",
+      "entityType": "fks",
+      "table": "room_players"
+    },
+    {
+      "columns": [
+        "owner_id"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_rooms_owner_id_user_id_fk",
+      "entityType": "fks",
+      "table": "rooms"
+    },
+    {
+      "columns": [
+        "user_id"
+      ],
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_uploads_user_id_user_id_fk",
+      "entityType": "fks",
+      "table": "uploads"
+    },
+    {
+      "columns": [
+        "room_code"
+      ],
+      "tableTo": "rooms",
+      "columnsTo": [
+        "code"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "nameExplicit": false,
+      "name": "fk_uploads_room_code_rooms_code_fk",
+      "entityType": "fks",
+      "table": "uploads"
+    },
+    {
+      "columns": [
+        "room_code",
+        "user_id"
+      ],
+      "nameExplicit": false,
+      "name": "room_players_pk",
+      "entityType": "pks",
+      "table": "room_players"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "account_pk",
+      "table": "account",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "rate_limit_pk",
+      "table": "rate_limit",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "session_pk",
+      "table": "session",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "user_pk",
+      "table": "user",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "verification_pk",
+      "table": "verification",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "code"
+      ],
+      "nameExplicit": false,
+      "name": "rooms_pk",
+      "table": "rooms",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "uploads_pk",
+      "table": "uploads",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "account_userId_idx",
+      "entityType": "indexes",
+      "table": "account"
+    },
+    {
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "session_userId_idx",
+      "entityType": "indexes",
+      "table": "session"
+    },
+    {
+      "columns": [
+        {
+          "value": "identifier",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "verification_identifier_idx",
+      "entityType": "indexes",
+      "table": "verification"
+    },
+    {
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "room_players_userId_idx",
+      "entityType": "indexes",
+      "table": "room_players"
+    },
+    {
+      "columns": [
+        {
+          "value": "owner_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "rooms_ownerId_idx",
+      "entityType": "indexes",
+      "table": "rooms"
+    },
+    {
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false
+        },
+        {
+          "value": "created_at",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "uploads_userId_createdAt_idx",
+      "entityType": "indexes",
+      "table": "uploads"
+    },
+    {
+      "columns": [
+        {
+          "value": "ip",
+          "isExpression": false
+        },
+        {
+          "value": "created_at",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "uploads_ip_createdAt_idx",
+      "entityType": "indexes",
+      "table": "uploads"
+    },
+    {
+      "columns": [
+        "key"
+      ],
+      "nameExplicit": false,
+      "name": "rate_limit_key_unique",
+      "entityType": "uniques",
+      "table": "rate_limit"
+    },
+    {
+      "columns": [
+        "token"
+      ],
+      "nameExplicit": false,
+      "name": "session_token_unique",
+      "entityType": "uniques",
+      "table": "session"
+    },
+    {
+      "columns": [
+        "email"
+      ],
+      "nameExplicit": false,
+      "name": "user_email_unique",
+      "entityType": "uniques",
+      "table": "user"
+    }
+  ],
+  "renames": []
+}

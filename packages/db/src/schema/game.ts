@@ -64,6 +64,8 @@ export const uploads = sqliteTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		ip: text("ip").notNull(),
+		// Upload URLs signed for it; retries are capped.
+		attempts: integer("attempts").default(1).notNull(),
 		// Set once a room uses the photo; until then the upload can be resumed without a new credit.
 		roomCode: text("room_code").references(() => rooms.code, {
 			onDelete: "set null",
