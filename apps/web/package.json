@@ -19,6 +19,7 @@
 		"@sentry/react": "^11.0.0",
 		"@tailwindcss/vite": "^4.3.3",
 		"@tanstack/react-form": "catalog:",
+		"@tanstack/react-query": "^5.104.0",
 		"@tanstack/react-router": "^1.170.32",
 		"better-auth": "catalog:",
 		"i18next": "^26.4.2",

@@ -10,6 +10,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@piecemates/ui/components/sheet";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -34,13 +35,12 @@ export function NewRoomSheet({
 	const [count, setCount] = useState<number>();
 	const grid = options.find((o) => o.count === count) ?? defaultGrid(options);
 	const [rotate, setRotate] = useState(false);
-	const [busy, setBusy] = useState(false);
+	const { mutateAsync, isPending } = useMutation(api.createRoom());
 
 	const create = async () => {
 		if (!image || !grid) return;
-		setBusy(true);
 		try {
-			const room = await api.createRoom({
+			const room = await mutateAsync({
 				imageUrl: image.url,
 				imageW: image.width,
 				imageH: image.height,
@@ -51,7 +51,6 @@ export function NewRoomSheet({
 			await navigate({ to: "/room/$code", params: { code: room.code } });
 		} catch (e) {
 			toast.error(createErrorText(e));
-			setBusy(false);
 		}
 	};
 
@@ -93,7 +92,7 @@ export function NewRoomSheet({
 						{t("home.rotateHint")}
 					</p>
 					<SheetFooter className="p-0">
-						<Button disabled={busy || !grid} onClick={create}>
+						<Button disabled={isPending || !grid} onClick={create}>
 							{t("home.create")}
 						</Button>
 					</SheetFooter>

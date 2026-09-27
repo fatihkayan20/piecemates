@@ -11,11 +11,15 @@
 	"dependencies": {
 		"@piecemates/game": "workspace:*",
 		"@piecemates/telemetry": "workspace:*",
+		"@tanstack/query-core": "5.104.0",
+		"@trpc/client": "^11.19.0",
 		"i18next": "^26.4.2",
 		"zustand": "catalog:"
 	},
 	"devDependencies": {
+		"@piecemates/api": "workspace:*",
 		"@piecemates/config": "workspace:*",
+		"@trpc/server": "^11.19.0",
 		"typescript": "^6.0.3"
 	}
 }

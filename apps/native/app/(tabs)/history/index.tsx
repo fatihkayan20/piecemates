@@ -1,6 +1,5 @@
-import type { RoomSummary } from "@piecemates/client";
-import { useFocusEffect } from "expo-router";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useIsFocused } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text } from "react-native";
 
@@ -11,17 +10,15 @@ import { api } from "@/lib/api";
 /** My solved rooms; a row shows the finished picture. */
 export default function History() {
 	const { t } = useTranslation();
-	const [rooms, setRooms] = useState<RoomSummary[]>();
-	const [failed, setFailed] = useState(false);
-
-	// Refreshed each time the tab shows, so a room I just solved is listed.
-	useFocusEffect(() => {
-		api.history().then(setRooms, () => setFailed(true));
+	// A hidden tab stops listening, so a room I solved meanwhile shows when I come back.
+	const { data: rooms, isError } = useQuery({
+		...api.history(),
+		subscribed: useIsFocused(),
 	});
 
 	return (
 		<Container className="gap-2 p-6">
-			{failed && (
+			{isError && (
 				<Text className="text-foreground">{t("history.loadFailed")}</Text>
 			)}
 			{rooms?.length === 0 && (

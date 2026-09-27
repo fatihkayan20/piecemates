@@ -1,3 +1,4 @@
+import type { Database } from "@piecemates/db";
 import { user } from "@piecemates/db/schema/auth";
 import { roomPlayers, rooms } from "@piecemates/db/schema/game";
 import {
@@ -11,8 +12,6 @@ import {
 	or,
 	sql,
 } from "drizzle-orm";
-
-import { getDb } from "./services";
 
 /** Most rooms one list answer holds, newest first. */
 const LIST_LIMIT = 50;
@@ -29,8 +28,8 @@ const where = (me: string, list: RoomList) =>
 	);
 
 /** How many unsolved rooms I still have open; creating a room is capped by it. */
-export async function openRoomCount(me: string) {
-	const [row] = await getDb()
+export async function openRoomCount(db: Database, me: string) {
+	const [row] = await db
 		.select({ n: count() })
 		.from(roomPlayers)
 		.innerJoin(rooms, eq(rooms.code, roomPlayers.roomCode))
@@ -39,8 +38,7 @@ export async function openRoomCount(me: string) {
 }
 
 /** My rooms in one list, newest first, with who else played. */
-export async function myRooms(me: string, list: RoomList) {
-	const db = getDb();
+export async function myRooms(db: Database, me: string, list: RoomList) {
 	const mine = await db
 		.select({
 			code: rooms.code,

@@ -8,7 +8,7 @@ import { loadWebCues } from "@/lib/cues";
 export const Route = createFileRoute("/room/$code")({
 	loader: ({ params }) => {
 		loadWebCues();
-		return api.getRoom(params.code);
+		return api.queryClient.fetchQuery(api.room(params.code));
 	},
 	component: RoomComponent,
 	errorComponent: ({ error }) => <p className="p-4">{roomErrorText(error)}</p>,

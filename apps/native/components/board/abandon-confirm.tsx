@@ -9,6 +9,7 @@ import {
 	multilineTextAlignment,
 	tint,
 } from "@expo/ui/swift-ui/modifiers";
+import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useThemeColor } from "heroui-native";
 import { useTranslation } from "react-i18next";
@@ -35,10 +36,11 @@ export function AbandonConfirm({
 	const style = useSheetStyle();
 	const danger = useThemeColor("danger");
 	const onDanger = useThemeColor("danger-foreground");
+	const { mutateAsync } = useMutation(api.abandon());
 
 	const abandon = async () => {
 		try {
-			await api.abandon(code);
+			await mutateAsync(code);
 			onDone();
 			router.dismissTo("/");
 		} catch {

@@ -1,6 +1,7 @@
-import { type RoomSummary, SAMPLE_IMAGES } from "@piecemates/client";
+import { SAMPLE_IMAGES } from "@piecemates/client";
 import { MAX_OPEN_ROOMS } from "@piecemates/game";
-import { router, useFocusEffect } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { router, useIsFocused } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
@@ -20,14 +21,14 @@ export default function Home() {
 	const { t } = useTranslation();
 	const [picked, setPicked] = useState<PickedImage>();
 	const [code, setCode] = useState("");
-	const [open, setOpen] = useState<RoomSummary[]>([]);
-	const full = open.length >= MAX_OPEN_ROOMS;
-
-	// Refreshed each time Home shows, so a room I just left or abandoned is right.
-	// Home still works without the list; creating a room is checked on the server.
-	useFocusEffect(() => {
-		api.openRooms().then(setOpen, () => setOpen([]));
+	// A hidden Home stops listening, so a list that went stale while I played
+	// refetches when I come back. It still works without the list; creating a
+	// room is checked on the server.
+	const { data: open = [] } = useQuery({
+		...api.openRooms(),
+		subscribed: useIsFocused(),
 	});
+	const full = open.length >= MAX_OPEN_ROOMS;
 
 	const pickImage = (url: string) =>
 		Image.getSize(url, (width, height) => setPicked({ url, width, height }));

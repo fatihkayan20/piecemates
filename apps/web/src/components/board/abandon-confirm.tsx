@@ -1,4 +1,5 @@
 import { Button } from "@piecemates/ui/components/button";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Flag } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -16,10 +17,11 @@ export function AbandonConfirm({
 }) {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
+	const { mutateAsync } = useMutation(api.abandon());
 
 	const abandon = async () => {
 		try {
-			await api.abandon(code);
+			await mutateAsync(code);
 			await navigate({ to: "/" });
 		} catch {
 			toast.error(t("room.abandonFailed"));

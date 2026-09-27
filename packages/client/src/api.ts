@@ -1,49 +1,25 @@
+import type { AppRouter } from "@piecemates/api";
 import { track } from "@piecemates/telemetry";
+import { MutationCache, QueryClient } from "@tanstack/query-core";
+import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 
-export type RoomInfo = {
-	code: string;
-	imageUrl: string;
-	seed: number;
-	rows: number;
-	cols: number;
-	status: "playing" | "done";
-};
-
+type Outputs = inferRouterOutputs<AppRouter>;
+/** A room as I open it. */
+export type RoomInfo = Outputs["rooms"]["open"];
 /** One of my rooms, for Continue and History. Times are ms since the epoch. */
-export type RoomSummary = {
-	code: string;
-	imageUrl: string;
-	pieces: number;
-	status: "playing" | "done";
-	playedMs: number;
-	createdAt: number;
-	finishedAt: number | null;
-	/** When I gave up on it; History lists these too. */
-	abandonedAt: number | null;
-	/** Names of the other players. */
-	players: string[];
-};
+export type RoomSummary = Outputs["rooms"]["list"][number];
+export type NewRoom = inferRouterInputs<AppRouter>["rooms"]["create"];
 
-export type NewRoom = {
-	imageUrl: string;
-	imageW: number;
-	imageH: number;
-	rows: number;
-	cols: number;
-	/** Pieces start turned and players turn them. */
-	rotate: boolean;
-};
+/** Someone else can change my rooms too, so lists also refetch after this; my own changes invalidate them at once. */
+const LIST_STALE_MS = 60_000;
+/** Every key under it is one of my room lists. */
+const LISTS = ["rooms"];
 
-/** A non-2xx answer; the status lets Sentry skip the ones the user caused. */
-export class ApiError extends Error {
-	readonly status: number;
-	constructor(status: number, message: string) {
-		super(message);
-		this.status = status;
-	}
-}
-
-/** The server's HTTP routes. Each app passes in how it authenticates. */
+/**
+ * The server's API behind TanStack Query: the options go straight into each
+ * app's `useQuery` / `useMutation`. Each app passes in how it authenticates.
+ */
 export function createApi(opts: {
 	serverUrl: string;
 	ensureSession: () => Promise<void>;
@@ -51,38 +27,61 @@ export function createApi(opts: {
 	credentials: "include" | "omit";
 	authHeaders?: () => Promise<Record<string, string>>;
 }) {
-	async function request<T>(path: string, init?: RequestInit): Promise<T> {
-		await opts.ensureSession();
-		const res = await fetch(`${opts.serverUrl}${path}`, {
-			...init,
-			credentials: opts.credentials,
-			headers: {
-				"content-type": "application/json",
-				...(await opts.authHeaders?.()),
-			},
-		});
-		if (!res.ok)
-			throw new ApiError(res.status, (await res.text()) || res.statusText);
-		return res.json() as Promise<T>;
-	}
+	const client = createTRPCClient<AppRouter>({
+		links: [
+			httpBatchLink({
+				// The Worker's API_PATH; a value import would bundle the server.
+				url: `${opts.serverUrl}/trpc`,
+				fetch: (url, init) =>
+					fetch(url, { ...init, credentials: opts.credentials }),
+				headers: async () => {
+					await opts.ensureSession();
+					return (await opts.authHeaders?.()) ?? {};
+				},
+			}),
+		],
+	});
+	const refreshLists = (): Promise<void> =>
+		queryClient.invalidateQueries({ queryKey: LISTS });
+	const queryClient = new QueryClient({
+		defaultOptions: { queries: { staleTime: LIST_STALE_MS } },
+		// Every mutation changes my rooms.
+		mutationCache: new MutationCache({ onSuccess: refreshLists }),
+	});
 
 	return {
-		createRoom: async (room: NewRoom) => {
-			const created = await request<{ code: string }>("/rooms", {
-				method: "POST",
-				body: JSON.stringify(room),
-			});
-			track("room_created", { pieces: room.rows * room.cols });
-			return created;
-		},
-		getRoom: (code: string) => request<RoomInfo>(`/rooms/${code}`),
+		queryClient,
 		/** My unsolved rooms that I haven't abandoned, newest first. */
-		openRooms: () => request<RoomSummary[]>("/rooms"),
+		openRooms: () => ({
+			queryKey: [...LISTS, "open"],
+			queryFn: () => client.rooms.list.query({ list: "open" }),
+		}),
 		/** My solved or abandoned rooms, newest first. */
-		history: () => request<RoomSummary[]>("/rooms?status=done"),
+		history: () => ({
+			queryKey: [...LISTS, "history"],
+			queryFn: () => client.rooms.list.query({ list: "history" }),
+		}),
+		/** Opens (joins) the room on every visit; playing it changes my lists. */
+		room: (code: string) => ({
+			queryKey: ["room", code],
+			queryFn: async () => {
+				const room = await client.rooms.open.mutate({ code });
+				void refreshLists();
+				return room;
+			},
+			staleTime: 0,
+			gcTime: 0,
+			retry: false,
+		}),
+		createRoom: () => ({
+			mutationFn: (room: NewRoom) => client.rooms.create.mutate(room),
+			onSuccess: (_: unknown, room: NewRoom) =>
+				track("room_created", { pieces: room.rows * room.cols }),
+		}),
 		/** Drops the room from my open rooms; opening it again brings it back. */
-		abandon: (code: string) =>
-			request<{ code: string }>(`/rooms/${code}/abandon`, { method: "POST" }),
+		abandon: () => ({
+			mutationFn: (code: string) => client.rooms.abandon.mutate({ code }),
+		}),
 		roomSocketUrl: (code: string) =>
 			`${opts.serverUrl.replace(/^http/, "ws")}/rooms/${code}/ws`,
 	};

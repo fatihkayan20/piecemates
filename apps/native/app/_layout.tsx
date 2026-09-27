@@ -2,6 +2,7 @@ import { initReactI18next, useTranslation } from "react-i18next";
 import "@/global.css";
 import { loadSettings, startI18n } from "@piecemates/client";
 import * as Sentry from "@sentry/react-native";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { getLocales } from "expo-localization";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -11,6 +12,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AppThemeProvider, useAppTheme } from "@/contexts/app-theme-context";
 import { useScreenTracking } from "@/hooks/use-screen-tracking";
+import { api } from "@/lib/api";
 import { ensureSession } from "@/lib/auth-client";
 import { startTelemetry } from "@/lib/telemetry";
 
@@ -60,13 +62,15 @@ function StackLayout() {
 function Layout() {
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
-			<KeyboardProvider>
-				<AppThemeProvider>
-					<HeroUINativeProvider>
-						<StackLayout />
-					</HeroUINativeProvider>
-				</AppThemeProvider>
-			</KeyboardProvider>
+			<QueryClientProvider client={api.queryClient}>
+				<KeyboardProvider>
+					<AppThemeProvider>
+						<HeroUINativeProvider>
+							<StackLayout />
+						</HeroUINativeProvider>
+					</AppThemeProvider>
+				</KeyboardProvider>
+			</QueryClientProvider>
 		</GestureHandlerRootView>
 	);
 }

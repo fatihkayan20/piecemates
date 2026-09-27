@@ -1,6 +1,7 @@
-import { type RoomInfo, roomErrorText } from "@piecemates/client";
+import { roomErrorText } from "@piecemates/client";
+import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Text, View } from "react-native";
 
@@ -12,13 +13,9 @@ import { loadNativeCues } from "@/lib/cues";
 export default function RoomScreen() {
 	const { t } = useTranslation();
 	const { code } = useLocalSearchParams<{ code: string }>();
-	const [room, setRoom] = useState<RoomInfo>();
-	const [error, setError] = useState<string>();
+	const { data: room, error } = useQuery(api.room(code));
 
 	useEffect(loadNativeCues, []);
-	useEffect(() => {
-		api.getRoom(code).then(setRoom, (e) => setError(roomErrorText(e)));
-	}, [code]);
 
 	return (
 		<>
@@ -35,7 +32,7 @@ export default function RoomScreen() {
 			) : (
 				<View className="flex-1 items-center justify-center bg-background">
 					{error ? (
-						<Text className="text-foreground">{error}</Text>
+						<Text className="text-foreground">{roomErrorText(error)}</Text>
 					) : (
 						<ActivityIndicator />
 					)}

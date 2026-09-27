@@ -14,6 +14,7 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 import { createErrorText, defaultGrid } from "@piecemates/client";
 import { gridOptions } from "@piecemates/game";
+import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -42,7 +43,7 @@ export function NewRoomSheet({
 	const options = gridOptions(image.width, image.height);
 	const [count, setCount] = useState(defaultGrid(options)?.count);
 	const [rotate, setRotate] = useState(false);
-	const [busy, setBusy] = useState(false);
+	const { mutateAsync, isPending } = useMutation(api.createRoom());
 	const [open, setOpen] = useState(true);
 	const grid = options.find((o) => o.count === count);
 	const rows = Array.from(
@@ -52,9 +53,8 @@ export function NewRoomSheet({
 
 	const create = async () => {
 		if (!grid) return;
-		setBusy(true);
 		try {
-			const room = await api.createRoom({
+			const room = await mutateAsync({
 				imageUrl: image.url,
 				imageW: image.width,
 				imageH: image.height,
@@ -66,8 +66,6 @@ export function NewRoomSheet({
 			router.push({ pathname: "/room/[code]", params: { code: room.code } });
 		} catch (e) {
 			Alert.alert(createErrorText(e));
-		} finally {
-			setBusy(false);
 		}
 	};
 
@@ -118,7 +116,7 @@ export function NewRoomSheet({
 					<Button
 						label={t("home.create")}
 						modifiers={style.prominent}
-						onPress={busy ? undefined : create}
+						onPress={isPending ? undefined : create}
 					/>
 				</VStack>
 			</BottomSheet>

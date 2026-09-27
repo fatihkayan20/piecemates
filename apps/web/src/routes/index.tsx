@@ -2,6 +2,7 @@ import { SAMPLE_IMAGES } from "@piecemates/client";
 import { MAX_OPEN_ROOMS } from "@piecemates/game";
 import { Button } from "@piecemates/ui/components/button";
 import { Input } from "@piecemates/ui/components/input";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,8 +15,6 @@ import { RoomRow } from "@/components/room-row";
 import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
-	// Home still works without the list; creating a room is checked again on the server.
-	loader: () => api.openRooms().catch(() => []),
 	component: HomeComponent,
 });
 
@@ -24,7 +23,8 @@ function HomeComponent() {
 	const navigate = useNavigate();
 	const [picked, setPicked] = useState<PickedImage>();
 	const [code, setCode] = useState("");
-	const open = Route.useLoaderData();
+	// Home still works without the list; creating a room is checked again on the server.
+	const { data: open = [] } = useQuery(api.openRooms());
 	const full = open.length >= MAX_OPEN_ROOMS;
 	return (
 		<div className="container mx-auto grid max-w-3xl content-start gap-8 px-4 py-6">

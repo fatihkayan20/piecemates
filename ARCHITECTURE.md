@@ -24,7 +24,7 @@ flowchart LR
 
   subgraph CF["Cloudflare (local: workerd via alchemy dev, packages/infra)"]
     direction TB
-    Worker["apps/server Worker (Hono)<br/>/api/auth/*, GET /rooms (?status=done),<br/>POST /rooms (max 3 open), GET /rooms/:code (reopen counts to the cap),<br/>POST /rooms/:code/abandon, /rooms/:code/ws"]
+    Worker["apps/server Worker (Hono)<br/>/api/auth/*, /rooms/:code/ws,<br/>/trpc/* (packages/api): rooms.list, rooms.create (max 3 open),<br/>rooms.open (reopen counts to the cap), rooms.abandon"]
     DO[("Room Durable Object<br/>one per room code<br/>authoritative State, hibernating sockets")]
     D1[("D1 (SQLite)<br/>user, session, account,<br/>rooms, room_players (+ abandoned_at)")]
     Assets["Web static assets<br/>(Cloudflare Website)"]
@@ -81,14 +81,14 @@ sequenceDiagram
   C->>A: getSession, else sign in anonymously
   A->>D1: user + session rows
   P->>C: Home
-  C->>W: GET /rooms (my open rooms: Continue)
+  C->>W: rooms.list {open} (Continue; cached, refetched after a mutation or opening a room)
   P->>C: pick image, piece count, rotated pieces (sheet)
-  C->>W: POST /rooms {imageUrl, size, rows, cols, rotate}
-  W->>D1: count my open rooms (409 at 3), else insert rooms + room_players
+  C->>W: rooms.create {imageUrl, size, rows, cols, rotate}
+  W->>D1: count my open rooms (CONFLICT at 3), else insert rooms + room_players
   W->>R: init(code, seed, rows, cols, w, h, rotate)
   R->>R: createState: shuffle into pile, random turns, save
   W-->>C: {code}
-  C->>W: GET /rooms/:code (joins room_players, clears my abandon)
+  C->>W: rooms.open {code} (joins room_players, clears my abandon)
   C->>W: GET /rooms/:code/ws (upgrade)
   W->>R: fetch with x-user-id / x-user-name
   R-->>C: state + presence (clock resumes)
@@ -102,11 +102,11 @@ sequenceDiagram
   R->>D1: last player leaves or solved: played_ms (+ done, finished_at)
   opt give up
     P->>C: Abandon (settings sheet, confirmed)
-    C->>W: POST /rooms/:code/abandon
+    C->>W: rooms.abandon {code}
     W->>D1: room_players.abandoned_at = now
   end
   P->>C: History
-  C->>W: GET /rooms?status=done
+  C->>W: rooms.list {history}
   W->>D1: my solved or abandoned rooms + other players' names
 ```
 
@@ -121,7 +121,8 @@ sequenceDiagram
 | Web board | `apps/web/src/hooks/use-pixi-board.ts`, `lib/pixi/*` |
 | Native board | `apps/native/components/board/*`, `hooks/use-board-gestures.ts`, `lib/camera.ts` |
 | Native tabs | `apps/native/app/(tabs)/*`, `components/tab-stack.tsx` |
-| HTTP API | `apps/server/src/index.ts`, `my-rooms.ts` |
+| HTTP API (tRPC router) | `packages/api/src/rooms.ts`, `my-rooms.ts`; mounted in `apps/server/src/index.ts` |
+| API client and query cache | `packages/client/src/api.ts` |
 | Room authority | `apps/server/src/room.ts` |
 | Tables | `packages/db/src/schema/*.ts`, migrations in `packages/db/src/migrations` |
 | Cloudflare resources | `packages/infra/alchemy.run.ts` |

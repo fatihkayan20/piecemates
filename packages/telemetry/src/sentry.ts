@@ -7,14 +7,22 @@ export const REPLAY_ON_ERROR_RATE = 0.1;
 const CLIENT_ERROR = 400;
 const SERVER_ERROR = 500;
 
-/** An API answer the user caused (wrong room code, signed out): not a bug. */
-const isClientError = (error: unknown) =>
-	typeof error === "object" &&
-	error !== null &&
-	"status" in error &&
-	typeof error.status === "number" &&
-	error.status >= CLIENT_ERROR &&
-	error.status < SERVER_ERROR;
+/** An API answer the user caused (wrong room code, signed out): not a bug. tRPC puts its status in `data`. */
+const isClientError = (error: unknown) => {
+	const data =
+		typeof error === "object" && error !== null && "data" in error
+			? error.data
+			: undefined;
+	const status =
+		typeof data === "object" && data !== null && "httpStatus" in data
+			? data.httpStatus
+			: undefined;
+	return (
+		typeof status === "number" &&
+		status >= CLIENT_ERROR &&
+		status < SERVER_ERROR
+	);
+};
 
 /** Sentry options every SDK shares; no DSN means Sentry stays off. */
 export const sentryOptions = (

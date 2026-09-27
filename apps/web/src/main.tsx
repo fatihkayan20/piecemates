@@ -1,10 +1,12 @@
 import { loadSettings, startI18n } from "@piecemates/client";
 import { reactErrorHandler } from "@sentry/react";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
 import { initReactI18next } from "react-i18next";
 
 import { Loader } from "./components/loader";
+import { api } from "./lib/api";
 import { ensureSession } from "./lib/auth-client";
 import { startTelemetry } from "./lib/telemetry";
 import { routeTree } from "./routeTree.gen";
@@ -42,5 +44,9 @@ if (!rootElement.innerHTML) {
 		onCaughtError: reactErrorHandler(),
 		onRecoverableError: reactErrorHandler(),
 	});
-	root.render(<RouterProvider router={router} />);
+	root.render(
+		<QueryClientProvider client={api.queryClient}>
+			<RouterProvider router={router} />
+		</QueryClientProvider>,
+	);
 }
