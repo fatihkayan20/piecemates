@@ -9,6 +9,7 @@ import { logger } from "hono/logger";
 
 import { ENV } from "./env.server";
 import { STATUS } from "./http";
+import { photoStorage, serveImage } from "./images";
 import { Room as RoomObject } from "./room";
 import { sentryFor } from "./sentry";
 import { getAuth, getDb } from "./services";
@@ -58,10 +59,16 @@ app.all(`${API_PATH}/*`, async (c) =>
 		{
 			db: getDb(),
 			user: await sessionUser(c.req.raw.headers),
+			ip: c.req.header("cf-connecting-ip") ?? "local",
 			initRoom: (room) => ENV.ROOM.getByName(room.code).init(room),
+			images: photoStorage,
 		},
 		(error) => Sentry.captureException(error),
 	),
+);
+
+app.get("/images/:id", (c) =>
+	serveImage(c.req.param("id"), Number(c.req.query("w"))),
 );
 
 // The room socket needs a session too (guests get an anonymous one).

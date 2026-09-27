@@ -12,12 +12,27 @@ export type RoomInit = {
 	rotate: boolean;
 };
 
-/** What the Worker hands every call: the database, who's asking, and its room objects. */
+/** An uploaded photo's real format and size, read from the file itself. */
+export type ImageInfo = { format: string; width: number; height: number };
+
+/** What the Worker hands every call: the database, who's asking, and its room objects and photo storage. */
 export type Context = {
 	db: Database;
 	/** Null without a session; guests get an anonymous one. */
 	user: { id: string; name: string } | null;
+	/** The caller's IP, for the upload cap guests can't reset by signing in again. */
+	ip: string;
 	initRoom: (room: RoomInit) => Promise<void>;
+	images: {
+		/** A short-lived URL that takes exactly this type and size. */
+		uploadUrl: (id: string, type: string, size: number) => Promise<string>;
+		/** Null when nothing was uploaded; throws when the file isn't an image. */
+		info: (id: string) => Promise<ImageInfo | null>;
+		/** Where players load the photo from. */
+		url: (id: string) => string;
+		/** Deletes the photo and its resized copies. */
+		remove: (id: string) => Promise<void>;
+	};
 };
 
 const t = initTRPC.context<Context>().create({

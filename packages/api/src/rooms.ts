@@ -1,37 +1,28 @@
-import { roomPlayers, rooms } from "@piecemates/db/schema/game";
-import { CELL_WIDTH, MAX_OPEN_ROOMS, MAX_PIECES } from "@piecemates/game";
+import { roomPlayers } from "@piecemates/db/schema/game";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { myRooms, openRoomCount } from "./my-rooms";
-import { newCode } from "./room-code";
+import { myRooms } from "./my-rooms";
+import { checkOpenRooms, fitsPieces, Grid, startRoom } from "./new-room";
 import { protectedProcedure, router } from "./trpc";
+import { uploadedImage } from "./uploaded-image";
 
-// ponytail: only Unsplash for now; add the R2 public host with uploads.
+// Sample photos; uploads come in by id instead.
 const ALLOWED_IMAGE_HOSTS = ["images.unsplash.com"];
-const MIN_SIDE = 2;
-const MAX_SIDE = 60;
 
-const side = z.int().min(MIN_SIDE).max(MAX_SIDE);
 const Code = z.object({ code: z.string().toUpperCase() });
 
-const NewRoom = z
-	.object({
-		imageUrl: z
-			.url({ protocol: /^https$/ })
-			.refine((u) => ALLOWED_IMAGE_HOSTS.includes(new URL(u).hostname)),
-		imageW: z.int().positive(),
-		imageH: z.int().positive(),
-		rows: side,
-		cols: side,
-		/** Pieces start turned and players turn them. */
-		rotate: z.boolean().default(false),
-	})
-	.refine((r) => r.rows * r.cols <= MAX_PIECES);
+const SampleRoom = Grid.extend({
+	imageUrl: z
+		.url({ protocol: /^https$/ })
+		.refine((u) => ALLOWED_IMAGE_HOSTS.includes(new URL(u).hostname)),
+	imageW: z.int().positive(),
+	imageH: z.int().positive(),
+}).refine(fitsPieces);
 
-const tooMany = () =>
-	new TRPCError({ code: "CONFLICT", message: "Too many open rooms" });
+/** The server measures an uploaded photo itself. */
+const UploadRoom = Grid.extend({ upload: z.uuid() }).refine(fitsPieces);
 
 export const roomsRouter = router({
 	/** Open: my unsolved rooms I haven't abandoned. History: solved or abandoned. Newest first. */
@@ -39,24 +30,27 @@ export const roomsRouter = router({
 		.input(z.object({ list: z.enum(["open", "history"]) }))
 		.query(({ ctx, input }) => myRooms(ctx.db, ctx.user.id, input.list)),
 
-	create: protectedProcedure.input(NewRoom).mutation(async ({ ctx, input }) => {
-		const { imageUrl, imageW, imageH, rows, cols, rotate } = input;
-		const { db, user } = ctx;
-		if ((await openRoomCount(db, user.id)) >= MAX_OPEN_ROOMS) throw tooMany();
-		const code = newCode();
-		const seed = crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
-		await db.batch([
-			db
-				.insert(rooms)
-				.values({ code, ownerId: user.id, imageUrl, seed, rows, cols }),
-			db.insert(roomPlayers).values({ roomCode: code, userId: user.id }),
-		]);
-		// Table units: height follows the image's cell aspect.
-		const w = CELL_WIDTH;
-		const h = (CELL_WIDTH * (imageH / rows)) / (imageW / cols);
-		await ctx.initRoom({ code, seed, rows, cols, w, h, rotate });
-		return { code };
-	}),
+	/** A room from a sample photo. */
+	create: protectedProcedure
+		.input(SampleRoom)
+		.mutation(async ({ ctx, input }) => {
+			await checkOpenRooms(ctx);
+			const image = {
+				url: input.imageUrl,
+				width: input.imageW,
+				height: input.imageH,
+			};
+			return startRoom(ctx, image, input);
+		}),
+
+	/** A room from a photo I uploaded. */
+	createFromUpload: protectedProcedure
+		.input(UploadRoom)
+		.mutation(async ({ ctx, input }) => {
+			await checkOpenRooms(ctx);
+			const image = await uploadedImage(ctx, input.upload);
+			return startRoom(ctx, image, input, input.upload);
+		}),
 
 	/** Opening a room joins it; a room I abandoned becomes one of my open rooms again. */
 	open: protectedProcedure.input(Code).mutation(async ({ ctx, input }) => {
@@ -68,12 +62,8 @@ export const roomsRouter = router({
 			where: { roomCode: code, userId: user.id },
 		});
 		// It counts against the cap like a new room.
-		if (
-			mine?.abandonedAt &&
-			room.status === "playing" &&
-			(await openRoomCount(db, user.id)) >= MAX_OPEN_ROOMS
-		)
-			throw tooMany();
+		if (mine?.abandonedAt && room.status === "playing")
+			await checkOpenRooms(ctx);
 		await db
 			.insert(roomPlayers)
 			.values({ roomCode: code, userId: user.id })
