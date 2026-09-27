@@ -2,6 +2,7 @@ import { Form, Section, Toggle } from "@expo/ui/swift-ui";
 import { useTranslation } from "react-i18next";
 
 import { AppHost } from "@/components/app-host";
+import { MusicPicker } from "@/components/settings/music-picker";
 import { SettingsControls } from "@/components/settings/settings-controls";
 import { useAppTheme } from "@/contexts/app-theme-context";
 
@@ -14,6 +15,7 @@ export default function Settings() {
 			<Form>
 				<Section title={t("settings.board")}>
 					<SettingsControls />
+					<MusicPicker />
 				</Section>
 				<Section title={t("settings.appearance")}>
 					<Toggle

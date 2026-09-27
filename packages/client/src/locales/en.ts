@@ -114,6 +114,7 @@ export const en = {
 		sounds: "Sounds",
 		haptics: "Haptics",
 		music: "Music",
+		musicHint: "Tap a track to listen.",
 	},
 	music: {
 		off: "Off",

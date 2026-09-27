@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { AppHost } from "@/components/app-host";
+import { MusicSegments } from "@/components/settings/music-segments";
 import { SettingsControls } from "@/components/settings/settings-controls";
 import { useSheetStyle } from "@/hooks/use-sheet-style";
 
@@ -41,6 +42,7 @@ export function SettingsSheet({
 						{t("settings.title")}
 					</Text>
 					<SettingsControls />
+					<MusicSegments />
 					<AbandonRoom code={code} onDone={() => setOpen(false)} />
 				</VStack>
 			</BottomSheet>
