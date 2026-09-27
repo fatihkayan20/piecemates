@@ -1,5 +1,5 @@
 import type { AppRouter } from "@piecemates/api";
-import { MAX_UPLOAD_BYTES, uploadType } from "@piecemates/game";
+import { MAX_API_BATCH, MAX_UPLOAD_BYTES, uploadType } from "@piecemates/game";
 import { track } from "@piecemates/telemetry";
 import { MutationCache, QueryClient } from "@tanstack/query-core";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
@@ -47,6 +47,7 @@ export function createApi(opts: {
 			httpBatchLink({
 				// The Worker's API_PATH; a value import would bundle the server.
 				url: `${opts.serverUrl}/trpc`,
+				maxItems: MAX_API_BATCH,
 				fetch: (url, init) =>
 					fetch(url, { ...init, credentials: opts.credentials }),
 				headers: async () => {

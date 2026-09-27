@@ -71,7 +71,12 @@ app.all(`${API_PATH}/*`, async (c) =>
 			ip: clientIp(c.req.raw.headers),
 			initRoom: (room) => ENV.ROOM.getByName(room.code).init(room),
 			leaveRoom: (code, userId) => ENV.ROOM.getByName(code).leave(userId),
-			allow: async (key) => (await ENV.API_LIMIT.limit({ key })).success,
+			allow: async (key, kind) =>
+				(
+					await (kind === "write" ? ENV.API_LIMIT : ENV.READ_LIMIT).limit({
+						key,
+					})
+				).success,
 			images: photoStorage,
 		},
 		(error) => Sentry.captureException(error),

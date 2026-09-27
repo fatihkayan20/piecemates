@@ -25,8 +25,8 @@ export type Context = {
 	initRoom: (room: RoomInit) => Promise<void>;
 	/** Closes a player's sockets in a room. */
 	leaveRoom: (code: string, userId: string) => Promise<void>;
-	/** False once this key (a user) is over its per-minute budget of writes. */
-	allow: (key: string) => Promise<boolean>;
+	/** False once this user is over their per-minute budget of writes, or of reads. */
+	allow: (userId: string, kind: "write" | "read") => Promise<boolean>;
 	images: {
 		/** A short-lived URL that takes exactly this type and size. */
 		uploadUrl: (id: string, type: string, size: number) => Promise<string>;
@@ -59,7 +59,8 @@ export const router = t.router;
 export const protectedProcedure = t.procedure.use(
 	async ({ ctx, type, next }) => {
 		if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
-		if (type === "mutation" && !(await ctx.allow(ctx.user.id)))
+		const kind = type === "mutation" ? "write" : "read";
+		if (!(await ctx.allow(ctx.user.id, kind)))
 			throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "slowDown" });
 		return next({ ctx: { ...ctx, user: ctx.user } });
 	},

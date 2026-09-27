@@ -1,3 +1,4 @@
+import { MAX_API_BATCH } from "@piecemates/game";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 import { roomsRouter } from "./rooms";
@@ -24,6 +25,7 @@ export const handleApi = (
 		req,
 		router: appRouter,
 		createContext: () => ctx,
+		maxBatchSize: MAX_API_BATCH,
 		onError: ({ error }) => {
 			if (error.code === "INTERNAL_SERVER_ERROR") onError(error.cause ?? error);
 		},
