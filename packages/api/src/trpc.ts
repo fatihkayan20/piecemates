@@ -23,6 +23,8 @@ export type Context = {
 	/** The caller's IP, for the upload cap guests can't reset by signing in again. */
 	ip: string;
 	initRoom: (room: RoomInit) => Promise<void>;
+	/** Closes a player's sockets in a room. */
+	leaveRoom: (code: string, userId: string) => Promise<void>;
 	/** False once this key (a user) is over its per-minute budget of writes. */
 	allow: (key: string) => Promise<boolean>;
 	images: {

@@ -127,9 +127,9 @@ export const roomsRouter = router({
 		return input;
 	}),
 
-	/** Drops the room from my open rooms; opening it again brings it back. */
+	/** Drops the room from my open rooms, and me from the room; opening it again brings it back. */
 	abandon: protectedProcedure.input(Code).mutation(async ({ ctx, input }) => {
-		await ctx.db
+		const { meta } = await ctx.db
 			.update(roomPlayers)
 			.set({ abandonedAt: new Date() })
 			.where(
@@ -138,6 +138,7 @@ export const roomsRouter = router({
 					eq(roomPlayers.userId, ctx.user.id),
 				),
 			);
+		if (meta.changes > 0) await ctx.leaveRoom(input.code, ctx.user.id);
 		return input;
 	}),
 });

@@ -70,6 +70,7 @@ app.all(`${API_PATH}/*`, async (c) =>
 			user: await sessionUser(c.req.raw.headers),
 			ip: clientIp(c.req.raw.headers),
 			initRoom: (room) => ENV.ROOM.getByName(room.code).init(room),
+			leaveRoom: (code, userId) => ENV.ROOM.getByName(code).leave(userId),
 			allow: async (key) => (await ENV.API_LIMIT.limit({ key })).success,
 			images: photoStorage,
 		},
@@ -107,6 +108,9 @@ app.get("/rooms/:code/ws", async (c) => {
 		return c.text("Forbidden", STATUS.forbidden);
 	const code = c.req.param("code").toUpperCase();
 	const user = c.get("user");
+	// Connecting spends from the same per-user budget as API writes.
+	if (!(await ENV.API_LIMIT.limit({ key: user.id })).success)
+		return c.text("Too many requests", STATUS.tooManyRequests);
 	// Only players who opened the room (rooms.open, which counts against their cap) get in.
 	const [member] = await getDb()
 		.select({ code: roomPlayers.roomCode })

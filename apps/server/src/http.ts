@@ -5,5 +5,6 @@ export const STATUS = {
 	forbidden: 403,
 	notFound: 404,
 	upgradeRequired: 426,
+	tooManyRequests: 429,
 	internalError: 500,
 } as const;

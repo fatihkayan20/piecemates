@@ -4,20 +4,28 @@ import { createDb } from "@piecemates/db";
 import { rooms } from "@piecemates/db/schema/game";
 import {
 	apply,
-	ClientMsg,
 	createState,
 	isComplete,
 	MAX_PLAYERS,
-	type Player,
 	pause,
-	RenameMsg,
 	resume,
 	type ServerMsg,
 	type State,
 } from "@piecemates/game";
 import { eq } from "drizzle-orm";
 
-import { messageRate, playerOf, playersOf, readName } from "./room-sockets";
+import {
+	attach,
+	broadcast,
+	CLOSE_POLICY,
+	makeRoomFor,
+	messageRate,
+	parseMsg,
+	playerOf,
+	playersOf,
+	readName,
+	socketsOf,
+} from "./room-sockets";
 
 /**
  * One instance per room code. Holds the sockets (hibernatable, so an idle room
@@ -73,6 +81,8 @@ export class Room extends DurableObject<Env> {
 			return new Response("Room is full", { status: 403 });
 		}
 
+		makeRoomFor(this.ctx.getWebSockets(), userId);
+
 		if (players.length === 0) {
 			resume(this.state, Date.now());
 			await this.ctx.storage.put("state", this.state);
@@ -80,27 +90,19 @@ export class Room extends DurableObject<Env> {
 
 		const { 0: client, 1: server } = new WebSocketPair();
 		this.ctx.acceptWebSocket(server);
-		server.serializeAttachment({ id: userId, name } satisfies Player);
+		attach(server, userId, name);
 		this.send(server, { type: "state", state: this.state, you: userId });
 		this.broadcast({ type: "presence", players: this.players() });
 		return new Response(null, { status: 101, webSocket: client });
 	}
 
 	override async webSocketMessage(ws: WebSocket, data: string | ArrayBuffer) {
-		if (!this.state || typeof data !== "string") return;
-		let json: unknown;
-		try {
-			json = JSON.parse(data);
-		} catch {
-			return;
-		}
-		if (RenameMsg.safeParse(json).success) {
+		const msg = parseMsg(data);
+		if (!this.state || !msg) return;
+		if (msg === "rename") {
 			if (!this.tooFast(ws)) await this.rename(playerOf(ws).id);
 			return;
 		}
-		const parsed = ClientMsg.safeParse(json);
-		if (!parsed.success) return;
-		const msg = parsed.data;
 		const by = playerOf(ws).id;
 
 		// Too fast is rejected like a bad move, so the client puts the piece back.
@@ -115,8 +117,19 @@ export class Room extends DurableObject<Env> {
 	}
 
 	override async webSocketClose(ws: WebSocket) {
-		const by = playerOf(ws).id;
 		ws.close();
+		await this.dropped(playerOf(ws).id);
+	}
+
+	/** Closes a player's sockets, e.g. after they abandon the room. */
+	async leave(userId: string) {
+		for (const ws of socketsOf(this.ctx.getWebSockets(), userId))
+			ws.close(CLOSE_POLICY, "Left the room");
+		await this.dropped(userId);
+	}
+
+	/** After a socket closes: frees the player's pieces once they're gone, and pauses an empty room. */
+	private async dropped(by: string) {
 		// Same user may still be connected from another tab/device.
 		const players = this.players();
 		const stillHere = players.some((p) => p.id === by);
@@ -153,8 +166,8 @@ export class Room extends DurableObject<Env> {
 	private async rename(id: string) {
 		const name = await readName(this.env, id);
 		if (name === undefined) return;
-		for (const ws of this.ctx.getWebSockets())
-			if (playerOf(ws).id === id) ws.serializeAttachment({ id, name });
+		for (const ws of socketsOf(this.ctx.getWebSockets(), id))
+			attach(ws, id, name);
 		this.broadcast({ type: "presence", players: this.players() });
 	}
 
@@ -167,9 +180,6 @@ export class Room extends DurableObject<Env> {
 	}
 
 	private broadcast(msg: ServerMsg) {
-		const data = JSON.stringify(msg);
-		for (const ws of this.ctx.getWebSockets()) {
-			if (ws.readyState === WebSocket.OPEN) ws.send(data);
-		}
+		broadcast(this.ctx.getWebSockets(), msg);
 	}
 }
