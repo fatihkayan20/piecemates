@@ -1,18 +1,18 @@
 {
-  "name": "@piecemates/game",
-  "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "scripts": {
-    "check-types": "tsc --noEmit",
-    "test": "node --test src/*.test.ts"
-  },
-  "dependencies": {
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@piecemates/config": "workspace:*",
-    "typescript": "^6.0.3"
-  }
+	"name": "@piecemates/game",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"check-types": "tsc --noEmit",
+		"test": "node --test src/*.test.ts"
+	},
+	"dependencies": {
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@piecemates/config": "workspace:*",
+		"typescript": "^6.0.3"
+	}
 }

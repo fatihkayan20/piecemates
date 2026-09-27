@@ -1,23 +1,23 @@
 {
-  "name": "@piecemates/infra",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "check-types": "tsc --noEmit",
-    "dev": "alchemy dev --force",
-    "deploy": "alchemy deploy",
-    "destroy": "alchemy destroy"
-  },
-  "dependencies": {
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@effect/platform-bun": "4.0.0-rc.115",
-    "@effect/platform-node": "4.0.0-rc.115",
-    "@piecemates/config": "workspace:*",
-    "alchemy": "2.0.0-beta.79",
-    "effect": "4.0.0-rc.115",
-    "typescript": "^6.0.3",
-    "varlock": "catalog:"
-  }
+	"name": "@piecemates/infra",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"check-types": "tsc --noEmit",
+		"dev": "alchemy dev --force",
+		"deploy": "alchemy deploy",
+		"destroy": "alchemy destroy"
+	},
+	"dependencies": {
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@effect/platform-bun": "4.0.0-rc.115",
+		"@effect/platform-node": "4.0.0-rc.115",
+		"@piecemates/config": "workspace:*",
+		"alchemy": "2.0.0-beta.79",
+		"effect": "4.0.0-rc.115",
+		"typescript": "^6.0.3",
+		"varlock": "catalog:"
+	}
 }
