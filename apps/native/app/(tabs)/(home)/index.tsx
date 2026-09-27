@@ -8,7 +8,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 import { Container } from "@/components/container";
 import { NewRoomSheet } from "@/components/home/new-room-sheet";
-import { PhotoTiles } from "@/components/home/photo-tiles";
+import { SamplePicker } from "@/components/home/sample-picker";
 import { RoomRow } from "@/components/room-row";
 import { api } from "@/lib/api";
 
@@ -77,7 +77,7 @@ export default function Home() {
 						{t("home.openRoomsFull", { max: MAX_OPEN_ROOMS })}
 					</Text>
 				)}
-				<PhotoTiles disabled={full} onPick={setPicked} />
+				<SamplePicker disabled={full} onPick={setPicked} />
 			</View>
 			{picked && (
 				<NewRoomSheet

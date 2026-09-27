@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { NewRoomSheet } from "@/components/home/new-room-sheet";
-import { PhotoTiles } from "@/components/home/photo-tiles";
+import { SamplePicker } from "@/components/home/sample-picker";
 import { RoomRow } from "@/components/room-row";
 import { api } from "@/lib/api";
 
@@ -71,7 +71,7 @@ function HomeComponent() {
 						{t("home.openRoomsFull", { max: MAX_OPEN_ROOMS })}
 					</p>
 				)}
-				<PhotoTiles disabled={full} onPick={setPicked} />
+				<SamplePicker disabled={full} onPick={setPicked} />
 			</section>
 			<NewRoomSheet
 				image={picked}

@@ -17,7 +17,7 @@ import {
 	defaultGrid,
 	type PickedImage,
 } from "@piecemates/client";
-import { gridOptions } from "@piecemates/game";
+import { gridOptions, UNSPLASH_URL } from "@piecemates/game";
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -28,7 +28,22 @@ import { AppHost } from "@/components/app-host";
 import { useSheetStyle } from "@/hooks/use-sheet-style";
 import { api } from "@/lib/api";
 
-const SHEET = { spacing: 16, padding: 24, titleSize: 20, buttonGap: 8 };
+const SHEET = {
+	spacing: 16,
+	padding: 24,
+	titleSize: 20,
+	creditSize: 13,
+	buttonGap: 8,
+};
+
+/** The credit's <author> and <unsplash> tags as Markdown links, which SwiftUI's Text opens. */
+const credit = (text: string, authorUrl: string) =>
+	text
+		.replace(
+			/<author>(.*?)<\/author>/,
+			(_, name: string) => `[${name.replace(/[[\]]/g, "")}](${authorUrl})`,
+		)
+		.replace(/<unsplash>(.*?)<\/unsplash>/, `[$1](${UNSPLASH_URL})`);
 /** Piece count buttons per row, so every option shows at once. */
 const COUNTS_PER_ROW = 4;
 
@@ -83,6 +98,20 @@ export function NewRoomSheet({
 					>
 						{t("home.newRoom")}
 					</Text>
+					{image.sample && (
+						<Text
+							markdownEnabled
+							modifiers={[
+								font({ size: SHEET.creditSize }),
+								foregroundStyle("secondary"),
+							]}
+						>
+							{credit(
+								t("home.sampleCredit", { author: image.sample.author }),
+								image.sample.authorUrl,
+							)}
+						</Text>
+					)}
 					<Text modifiers={[foregroundStyle("secondary")]}>
 						{t("home.pieceCount")}
 					</Text>

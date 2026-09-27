@@ -1,5 +1,10 @@
 import type { AppRouter } from "@piecemates/api";
-import { MAX_API_BATCH, MAX_UPLOAD_BYTES, uploadType } from "@piecemates/game";
+import {
+	MAX_API_BATCH,
+	MAX_UPLOAD_BYTES,
+	type SampleCategory,
+	uploadType,
+} from "@piecemates/game";
 import { track } from "@piecemates/telemetry";
 import { MutationCache, QueryClient } from "@tanstack/query-core";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
@@ -15,11 +20,14 @@ type Grid = Omit<
 	inferRouterInputs<AppRouter>["rooms"]["createFromUpload"],
 	"upload"
 >;
-/** A photo to start a room from: a sample, a new photo to upload (`file`) or my unused upload (`upload`). */
+/** A photo from the sample catalogue, with its photographer. */
+export type Sample = Outputs["samples"]["list"][number];
+/** A photo to start a room from: a `sample`, a new photo to upload (`file`) or my unused upload (`upload`). */
 export type PickedImage = {
 	url: string;
 	width: number;
 	height: number;
+	sample?: Sample;
 	file?: Blob;
 	upload?: string;
 };
@@ -30,6 +38,8 @@ const LIST_STALE_MS = 60_000;
 const LISTS = ["rooms"];
 /** My upload credits and unused upload. */
 const UPLOADS = ["uploads"];
+/** The catalogue grows once a day. */
+const SAMPLES_STALE_MS = 3_600_000;
 
 /**
  * The server's API behind TanStack Query: the options go straight into each
@@ -113,20 +123,31 @@ export function createApi(opts: {
 		/** A room from the picked photo; a new photo is uploaded first. */
 		createRoom: () => ({
 			mutationFn: async ({ image, ...grid }: Grid & { image: PickedImage }) => {
+				if (image.sample)
+					return client.rooms.create.mutate({
+						sample: image.sample.id,
+						...grid,
+					});
 				const upload = image.file
 					? await uploadImage(image.file)
 					: image.upload;
-				return upload
-					? client.rooms.createFromUpload.mutate({ upload, ...grid })
-					: client.rooms.create.mutate({
-							imageUrl: image.url,
-							imageW: image.width,
-							imageH: image.height,
-							...grid,
-						});
+				if (!upload) throw new Error("uploadFailed");
+				return client.rooms.createFromUpload.mutate({ upload, ...grid });
 			},
 			onSuccess: (_: unknown, room: Grid) =>
 				track("room_created", { pieces: room.rows * room.cols }),
+		}),
+		/** Home's featured sample photos. */
+		featuredSamples: () => ({
+			queryKey: ["samples", "featured"],
+			queryFn: () => client.samples.featured.query(),
+			staleTime: SAMPLES_STALE_MS,
+		}),
+		/** A category's sample photos, newest first. */
+		samples: (category: SampleCategory) => ({
+			queryKey: ["samples", category],
+			queryFn: () => client.samples.list.query({ category }),
+			staleTime: SAMPLES_STALE_MS,
 		}),
 		/** How many photos I can still upload. */
 		uploadCredits: () => ({

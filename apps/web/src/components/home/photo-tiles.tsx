@@ -1,7 +1,8 @@
-import { type PickedImage, SAMPLE_IMAGES } from "@piecemates/client";
+import type { PickedImage, Sample } from "@piecemates/client";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
+import { SampleTile } from "@/components/home/sample-tile";
 import { UploadTile } from "@/components/home/upload-tile";
 import { Photo } from "@/components/photo";
 import { api } from "@/lib/api";
@@ -11,11 +12,13 @@ const TILE_SIZES = "(min-width: 48rem) 16rem, 33vw";
 const TILE =
 	"relative overflow-hidden rounded disabled:opacity-50 [&>img]:aspect-video [&>img]:w-full [&>img]:object-cover";
 
-/** Photos to start a room from: the samples, my uploaded photo not yet used, and a new upload. */
+/** Photos to start a room from: my uploaded photo not yet used or a new upload, then a category's samples. */
 export function PhotoTiles({
+	samples,
 	disabled,
 	onPick,
 }: {
+	samples: Sample[];
 	disabled: boolean;
 	onPick: (image: PickedImage) => void;
 }) {
@@ -23,27 +26,6 @@ export function PhotoTiles({
 	const { data: unused } = useQuery(api.unusedUpload());
 	return (
 		<div className="grid grid-cols-3 gap-2">
-			{SAMPLE_IMAGES.map((url, i) => (
-				<button
-					key={url}
-					type="button"
-					aria-label={t("home.sampleImage", { n: i + 1 })}
-					disabled={disabled}
-					className={TILE}
-					onClick={(e) => {
-						// Any resized copy has the photo's aspect, which is all the grid needs.
-						const img = e.currentTarget.querySelector("img");
-						if (img)
-							onPick({
-								url,
-								width: img.naturalWidth,
-								height: img.naturalHeight,
-							});
-					}}
-				>
-					<Photo url={url} sizes={TILE_SIZES} />
-				</button>
-			))}
 			{unused && (
 				<button
 					type="button"
@@ -60,6 +42,15 @@ export function PhotoTiles({
 			)}
 			{/* An uploaded photo is resumed, not replaced. */}
 			{!unused && <UploadTile disabled={disabled} onPick={onPick} />}
+			{samples.map((sample) => (
+				<SampleTile
+					key={sample.id}
+					sample={sample}
+					sizes={TILE_SIZES}
+					disabled={disabled}
+					onPick={onPick}
+				/>
+			))}
 		</div>
 	);
 }

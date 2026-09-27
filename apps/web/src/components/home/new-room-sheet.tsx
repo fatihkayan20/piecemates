@@ -20,6 +20,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { SampleCredit } from "@/components/home/sample-credit";
 import { Photo } from "@/components/photo";
 import { api } from "@/lib/api";
 
@@ -68,6 +69,7 @@ export function NewRoomSheet({
 							className="aspect-video w-full rounded object-cover"
 						/>
 					)}
+					{image?.sample && <SampleCredit sample={image.sample} />}
 					<p className="text-muted-foreground text-sm">
 						{t("home.pieceCount")}
 					</p>
