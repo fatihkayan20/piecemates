@@ -30,7 +30,7 @@ flowchart LR
     R2[("R2 bucket images<br/>uploads/&lt;id&gt; originals (private),<br/>variants/&lt;id&gt;/&lt;w&gt;.webp")]
     Images["Images binding<br/>(real format + size, resize to WebP)"]
     Limits["Rate limit bindings<br/>API_LIMIT (writes, socket connects),<br/>READ_LIMIT (reads)"]
-    Assets["Web static assets<br/>(Cloudflare Website)"]
+    Assets["Web static assets<br/>(Cloudflare Website; its Worker forwards<br/>/api, /trpc, /rooms to the server when deployed)"]
   end
 
   Unsplash["images.unsplash.com<br/>(sample pixels, hotlinked)"]

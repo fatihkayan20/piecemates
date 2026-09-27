@@ -100,15 +100,16 @@ Run standalone Node/Bun tools that use Varlock from the owning app directory so 
 
 `alchemy profile edit` stores the selected Axiom, Cloudflare, Neon, PlanetScale, and/or Prisma provider profiles under `~/.alchemy`; no provider-specific setup command is required by this scaffold.
 
-Deploys are staged and default to a personal `dev_<username>` stage. For production, run the deploy with an explicit stage from `packages/infra`:
+`pnpm -F @piecemates/infra deploy` deploys the `production` stage (the root `pnpm run deploy` goes through turbo, which needs an interactive terminal). It loads `packages/infra/.env.deploy.local` (git-ignored) into the shell first, so its values beat the dev ones in `apps/server/.env`:
 
 ```bash
-cd packages/infra && pnpm exec alchemy deploy --stage production
+BETTER_AUTH_SECRET=   # its own, not dev's
+CORS_ORIGIN=          # the deployed web URL
 ```
 
-### Production origins
+On a first deploy the web URL isn't known yet: deploy with a placeholder `CORS_ORIGIN`, set it to the printed `web` URL, and deploy again.
 
-- Required after the first deploy: set `CORS_ORIGIN` in `apps/server/.env` to the exact deployed web origin, such as `https://app.example.com`, then deploy the server again.
+Deployed, the web Worker (`apps/web/worker.ts`) forwards `/api/*`, `/trpc/*` and `/rooms/*` to the server Worker, so browsers see one site and Safari keeps the session cookie. Dev skips this; its two localhost ports are one site already.
 
 ## Git Hooks and Formatting
 
