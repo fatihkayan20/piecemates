@@ -1,4 +1,3 @@
-import { SAMPLE_IMAGES } from "@piecemates/client";
 import { MAX_OPEN_ROOMS } from "@piecemates/game";
 import { Button } from "@piecemates/ui/components/button";
 import { Input } from "@piecemates/ui/components/input";
@@ -11,6 +10,7 @@ import {
 	NewRoomSheet,
 	type PickedImage,
 } from "@/components/home/new-room-sheet";
+import { PhotoTiles } from "@/components/home/photo-tiles";
 import { RoomRow } from "@/components/room-row";
 import { api } from "@/lib/api";
 
@@ -72,35 +72,15 @@ function HomeComponent() {
 						{t("home.openRoomsFull", { max: MAX_OPEN_ROOMS })}
 					</p>
 				)}
-				<div className="grid grid-cols-3 gap-2">
-					{SAMPLE_IMAGES.map((url, i) => (
-						<button
-							key={url}
-							type="button"
-							aria-label={t("home.sampleImage", { n: i + 1 })}
-							disabled={full}
-							className="overflow-hidden rounded disabled:opacity-50"
-							onClick={(e) => {
-								const img = e.currentTarget.querySelector("img");
-								if (img)
-									setPicked({
-										url,
-										width: img.naturalWidth,
-										height: img.naturalHeight,
-									});
-							}}
-						>
-							<img
-								src={url}
-								alt=""
-								crossOrigin="anonymous"
-								className="aspect-video w-full object-cover"
-							/>
-						</button>
-					))}
-				</div>
+				<PhotoTiles disabled={full} onPick={setPicked} />
 			</section>
-			<NewRoomSheet image={picked} onClose={() => setPicked(undefined)} />
+			<NewRoomSheet
+				image={picked}
+				onClose={() => {
+					if (picked?.file) URL.revokeObjectURL(picked.url);
+					setPicked(undefined);
+				}}
+			/>
 		</div>
 	);
 }

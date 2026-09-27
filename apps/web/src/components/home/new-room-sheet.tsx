@@ -16,9 +16,20 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { Photo } from "@/components/photo";
 import { api } from "@/lib/api";
 
-export type PickedImage = { url: string; width: number; height: number };
+/** A sample, a new photo to upload (`file`) or my unused upload (`upload`). */
+export type PickedImage = {
+	url: string;
+	width: number;
+	height: number;
+	file?: Blob;
+	upload?: string;
+};
+
+/** The sheet is at most 28rem wide. */
+const PREVIEW_SIZES = "(min-width: 28rem) 28rem, 100vw";
 
 /** Room options for a picked image: piece count and turned pieces. Closed while `image` is undefined. */
 export function NewRoomSheet({
@@ -35,19 +46,28 @@ export function NewRoomSheet({
 	const [count, setCount] = useState<number>();
 	const grid = options.find((o) => o.count === count) ?? defaultGrid(options);
 	const [rotate, setRotate] = useState(false);
-	const { mutateAsync, isPending } = useMutation(api.createRoom());
+	const sample = useMutation(api.createRoom());
+	const uploaded = useMutation(api.createRoomFromUpload());
+	const upload = useMutation(api.uploadImage());
+	const isPending = sample.isPending || uploaded.isPending || upload.isPending;
 
 	const create = async () => {
 		if (!image || !grid) return;
+		const { rows, cols } = grid;
 		try {
-			const room = await mutateAsync({
-				imageUrl: image.url,
-				imageW: image.width,
-				imageH: image.height,
-				rows: grid.rows,
-				cols: grid.cols,
-				rotate,
-			});
+			const id = image.file
+				? await upload.mutateAsync(image.file)
+				: image.upload;
+			const room = id
+				? await uploaded.mutateAsync({ upload: id, rows, cols, rotate })
+				: await sample.mutateAsync({
+						imageUrl: image.url,
+						imageW: image.width,
+						imageH: image.height,
+						rows,
+						cols,
+						rotate,
+					});
 			await navigate({ to: "/room/$code", params: { code: room.code } });
 		} catch (e) {
 			toast.error(createErrorText(e));
@@ -62,9 +82,9 @@ export function NewRoomSheet({
 						<SheetTitle>{t("home.newRoom")}</SheetTitle>
 					</SheetHeader>
 					{image && (
-						<img
-							src={image.url}
-							alt=""
+						<Photo
+							url={image.url}
+							sizes={PREVIEW_SIZES}
 							className="aspect-video w-full rounded object-cover"
 						/>
 					)}
@@ -93,7 +113,7 @@ export function NewRoomSheet({
 					</p>
 					<SheetFooter className="p-0">
 						<Button disabled={isPending || !grid} onClick={create}>
-							{t("home.create")}
+							{upload.isPending ? t("upload.uploading") : t("home.create")}
 						</Button>
 					</SheetFooter>
 				</div>

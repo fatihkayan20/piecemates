@@ -1,5 +1,11 @@
-import { historyLines, type RoomSummary } from "@piecemates/client";
+import {
+	historyLines,
+	ROW_IMAGE_SIZE,
+	type RoomSummary,
+} from "@piecemates/client";
 import { Link } from "@tanstack/react-router";
+
+import { Photo } from "@/components/photo";
 
 /** One of my rooms, for Continue and History; opens the room. */
 export function RoomRow({ room }: { room: RoomSummary }) {
@@ -10,9 +16,9 @@ export function RoomRow({ room }: { room: RoomSummary }) {
 			params={{ code: room.code }}
 			className="flex items-center gap-3 rounded border p-2 hover:bg-muted"
 		>
-			<img
-				src={room.imageUrl}
-				alt=""
+			<Photo
+				url={room.imageUrl}
+				sizes={`${ROW_IMAGE_SIZE}px`}
 				className="aspect-video w-24 shrink-0 rounded object-cover"
 			/>
 			<span className="grid gap-0.5">

@@ -2,10 +2,12 @@ import {
 	connectRoom,
 	disconnectRoom,
 	followRoom,
+	imageSrc,
 	type RoomConnection,
 	type RoomInfo,
 	roomStore,
 } from "@piecemates/client";
+import { MAX_IMAGE_WIDTH } from "@piecemates/game";
 import { Application, Container, type Graphics } from "pixi.js";
 import { type RefObject, useEffect } from "react";
 
@@ -38,7 +40,10 @@ export function usePixiBoard(
 			});
 			if (disposed) return;
 			el.appendChild(app.canvas);
-			const texture = await loadTexture(room.imageUrl);
+			// The widest copy: zooming in needs the detail.
+			const texture = await loadTexture(
+				imageSrc(room.imageUrl, MAX_IMAGE_WIDTH, 1),
+			);
 			const socket = await openRoomSocket(room.code);
 			if (disposed) return socket.close();
 
