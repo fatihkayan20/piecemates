@@ -35,6 +35,15 @@ export function startI18n(languages: readonly string[], react: Module) {
 	});
 }
 
+/** The server wants a name of my own first (sharing or joining a room). */
+export const isNameNeeded = (error: unknown) =>
+	errorCode(error) === "FORBIDDEN" &&
+	error instanceof Error &&
+	error.message === "nameNeeded";
+
+/** Opening the room would put me over the open-room cap. */
+export const isRoomsFull = (error: unknown) => errorCode(error) === "CONFLICT";
+
 /** What to show when a room can't be opened: a wrong code, too many open, or anything else. */
 export function roomErrorText(error: unknown) {
 	if (errorCode(error) === "NOT_FOUND") return i18next.t("room.notFound");

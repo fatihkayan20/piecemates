@@ -1,6 +1,7 @@
 import { API_PATH, handleApi } from "@piecemates/api";
-import { clientIp, MAX_NAME_LENGTH } from "@piecemates/auth";
+import { clientIp } from "@piecemates/auth";
 import { roomPlayers } from "@piecemates/db/schema/game";
+import { MAX_NAME_LENGTH } from "@piecemates/game";
 import { TRACE_HEADERS } from "@piecemates/telemetry";
 import * as Sentry from "@sentry/cloudflare";
 import { and, eq, isNull } from "drizzle-orm";

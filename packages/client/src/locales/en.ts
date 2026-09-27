@@ -112,6 +112,14 @@ export const en = {
 		share: "Share room link",
 		copyLink: "Copy link to room {{code}}",
 		copied: "Room link copied",
+		shareFailed: "Could not share the room",
+	},
+	name: {
+		title: "Your name",
+		hint: "Other players see it in the room.",
+		save: "Continue",
+		invalid: "Use 1 to {{max}} characters",
+		failed: "Could not save your name",
 	},
 	history: {
 		title: "History",

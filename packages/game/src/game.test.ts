@@ -9,6 +9,7 @@ import {
 	generateEdges,
 	gridOptions,
 	isComplete,
+	needsName,
 	pause,
 	piecePath,
 	resume,
@@ -309,4 +310,10 @@ test("rotation rooms: pieces start turned, turn in groups and only join the same
 	assert.equal(isComplete(s), true, "one group, upright");
 	a.rot = 1;
 	assert.equal(isComplete(s), false, "not upright yet");
+});
+
+test("a guest picks a name before meeting others", () => {
+	assert.equal(needsName("Anonymous"), true);
+	assert.equal(needsName("  "), true);
+	assert.equal(needsName("Ada"), false);
 });

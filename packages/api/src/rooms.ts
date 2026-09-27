@@ -1,7 +1,7 @@
-import { roomPlayers } from "@piecemates/db/schema/game";
-import { isImageAspect } from "@piecemates/game";
+import { roomPlayers, rooms } from "@piecemates/db/schema/game";
+import { isImageAspect, needsName } from "@piecemates/game";
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { myRooms } from "./my-rooms";
@@ -13,6 +13,12 @@ import { uploadedImage } from "./uploaded-image";
 const ALLOWED_IMAGE_HOSTS = ["images.unsplash.com"];
 
 const Code = z.object({ code: z.string().toUpperCase() });
+
+/** Players meet others only under a name they picked. */
+const checkName = (ctx: { user: { name: string } }) => {
+	if (needsName(ctx.user.name))
+		throw new TRPCError({ code: "FORBIDDEN", message: "nameNeeded" });
+};
 
 const SampleRoom = Grid.extend({
 	imageUrl: z
@@ -64,18 +70,25 @@ export const roomsRouter = router({
 			return startRoom(ctx, image, input, input.upload);
 		}),
 
-	/** Opening a room joins it; a room I abandoned becomes one of my open rooms again. */
+	/**
+	 * Opening a room joins it; a room I abandoned becomes one of my open rooms
+	 * again. Someone else's room can only be joined once it's shared, and
+	 * only with a name of my own.
+	 */
 	open: protectedProcedure.input(Code).mutation(async ({ ctx, input }) => {
 		const { code } = input;
 		const { db, user } = ctx;
 		const room = await db.query.rooms.findFirst({ where: { code } });
-		if (!room) throw new TRPCError({ code: "NOT_FOUND" });
 		const mine = await db.query.roomPlayers.findFirst({
 			where: { roomCode: code, userId: user.id },
 		});
-		// It counts against the cap like a new room.
-		if (mine?.abandonedAt && room.status === "playing")
+		// A private room looks the same as a missing one.
+		if (!room || (!mine && !room.shared))
+			throw new TRPCError({ code: "NOT_FOUND" });
+		// Joining it, or coming back to it, counts against the cap like a new room.
+		if ((!mine || mine.abandonedAt) && room.status === "playing")
 			await checkOpenRooms(ctx);
+		if (!mine) checkName(ctx);
 		await db
 			.insert(roomPlayers)
 			.values({ roomCode: code, userId: user.id })
@@ -83,9 +96,23 @@ export const roomsRouter = router({
 				target: [roomPlayers.roomCode, roomPlayers.userId],
 				set: { abandonedAt: null },
 			});
-		const { seed, rows, cols, status } = room;
+		const { seed, rows, cols, status, shared } = room;
 		const imageUrl = await ctx.images.link(room.imageUrl);
-		return { code, imageUrl, seed, rows, cols, status };
+		return { code, imageUrl, seed, rows, cols, status, shared };
+	}),
+
+	/** Lets others join my room by its code; I need a name of my own first. */
+	share: protectedProcedure.input(Code).mutation(async ({ ctx, input }) => {
+		checkName(ctx);
+		const { changes } = (
+			await ctx.db.run(
+				sql`update ${rooms} set shared = 1 where code = ${input.code}
+				and exists (select 1 from ${roomPlayers} where room_code = ${input.code}
+				and user_id = ${ctx.user.id} and abandoned_at is null)`,
+			)
+		).meta;
+		if (changes === 0) throw new TRPCError({ code: "NOT_FOUND" });
+		return input;
 	}),
 
 	/** Drops the room from my open rooms; opening it again brings it back. */

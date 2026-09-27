@@ -3,6 +3,15 @@
 // identical everywhere without sending positions of anything but the dropped piece.
 
 export const MAX_PLAYERS = 4;
+/** The name Better Auth gives a new guest. */
+export const GUEST_NAME = "Anonymous";
+/** Longest player name; others see it in rooms. */
+export const MAX_NAME_LENGTH = 40;
+/** A player picks a name before they meet others: when they share a room or join someone's. */
+export const needsName = (name: string) => {
+	const trimmed = name.trim();
+	return !trimmed || trimmed === GUEST_NAME;
+};
 /** Room messages one socket may send a second; a player's action sends one or two. */
 export const MAX_MESSAGES_PER_SECOND = 20;
 export const BAG_NAME_MAX = 40;

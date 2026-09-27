@@ -141,6 +141,10 @@ export function createApi(opts: {
 		abandon: () => ({
 			mutationFn: (code: string) => client.rooms.abandon.mutate({ code }),
 		}),
+		/** Lets others join the room by its code. */
+		share: () => ({
+			mutationFn: (code: string) => client.rooms.share.mutate({ code }),
+		}),
 		roomSocketUrl: (code: string) =>
 			`${opts.serverUrl.replace(/^http/, "ws")}/rooms/${code}/ws`,
 	};

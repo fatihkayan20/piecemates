@@ -4,6 +4,7 @@ import { expo } from "@better-auth/expo";
 import type { Database } from "@piecemates/db";
 import * as schema from "@piecemates/db/schema/auth";
 import { rooms, uploads } from "@piecemates/db/schema/game";
+import { MAX_NAME_LENGTH } from "@piecemates/game";
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { anonymous } from "better-auth/plugins";
@@ -21,11 +22,10 @@ export const clientIp = (headers: Headers) => {
 	return ip ? normalizeIP(ip) : "unknown";
 };
 
-/** Longest player name; others see it in rooms. */
-export const MAX_NAME_LENGTH = 40;
+/** A name is 1 to MAX_NAME_LENGTH characters, not counting spaces around it. */
 const checkName = (name?: string) => {
-	if (name !== undefined && name.length > MAX_NAME_LENGTH)
-		throw new APIError("BAD_REQUEST", { message: "nameTooLong" });
+	if (name !== undefined && (!name.trim() || name.length > MAX_NAME_LENGTH))
+		throw new APIError("BAD_REQUEST", { message: "badName" });
 };
 
 export type AuthConfig = {
