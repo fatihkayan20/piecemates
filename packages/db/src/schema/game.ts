@@ -29,6 +29,10 @@ export const rooms = sqliteTable(
 		// Time spent with someone in the room; saved whenever the room empties or is solved.
 		playedMs: integer("played_ms").default(0).notNull(),
 		finishedAt: integer("finished_at", { mode: "timestamp_ms" }),
+		// When the room last emptied or was solved; the daily cleanup clears rooms idle too long.
+		playedAt: integer("played_at", { mode: "timestamp_ms" }),
+		// Set once the daily cleanup deleted the live room; the row stays for History.
+		expiredAt: integer("expired_at", { mode: "timestamp_ms" }),
 		createdAt: integer("created_at", { mode: "timestamp_ms" })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.notNull(),
