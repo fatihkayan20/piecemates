@@ -58,7 +58,8 @@ export function PhotoTiles({
 					</span>
 				</button>
 			)}
-			<UploadTile disabled={disabled} onPick={onPick} />
+			{/* An uploaded photo is resumed, not replaced. */}
+			{!unused && <UploadTile disabled={disabled} onPick={onPick} />}
 		</div>
 	);
 }

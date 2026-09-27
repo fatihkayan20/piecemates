@@ -49,6 +49,7 @@ const UPLOAD_PROBLEMS = [
 	"imageTooSmall",
 	"imageTooLarge",
 	"uploadFailed",
+	"useUploaded",
 ] as const;
 
 /** What to show when a room can't be created: too many open, a photo we can't use, no uploads left, or anything else. */

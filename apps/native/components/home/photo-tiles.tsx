@@ -62,7 +62,10 @@ export function PhotoTiles({
 					</Text>
 				</Pressable>
 			)}
-			<UploadTile disabled={disabled} className={TILE} onPick={onPick} />
+			{/* An uploaded photo is resumed, not replaced. */}
+			{!unused && (
+				<UploadTile disabled={disabled} className={TILE} onPick={onPick} />
+			)}
 			{/* Keeps the last row's tiles on the left. */}
 			<View className="w-[31%]" />
 		</View>

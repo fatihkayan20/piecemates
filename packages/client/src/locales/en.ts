@@ -71,10 +71,10 @@ export const en = {
 		creditsLeft_other: "{{count}} uploads left",
 		uploading: "Uploading…",
 		notAnImage: "Pick a JPEG, PNG or WebP photo",
-		imageTooSmall:
-			"The photo is too small; its shorter side needs {{min}} pixels",
+		imageTooSmall: "The photo needs {{min}} pixels on its shorter side",
 		imageTooLarge: "The photo is too large",
 		uploadFailed: "Could not upload the photo",
+		useUploaded: "Start a puzzle with your uploaded photo first",
 		noCredits: "You have no uploads left",
 		tooMany: "Too many uploads from your network today. Try again tomorrow.",
 	},
