@@ -1,8 +1,7 @@
-import { SAMPLE_IMAGES } from "@piecemates/client";
+import { type PickedImage, SAMPLE_IMAGES } from "@piecemates/client";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import type { PickedImage } from "@/components/home/new-room-sheet";
 import { UploadTile } from "@/components/home/upload-tile";
 import { Photo } from "@/components/photo";
 import { api } from "@/lib/api";

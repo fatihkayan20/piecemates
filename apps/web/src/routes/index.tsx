@@ -1,3 +1,4 @@
+import type { PickedImage } from "@piecemates/client";
 import { MAX_OPEN_ROOMS } from "@piecemates/game";
 import { Button } from "@piecemates/ui/components/button";
 import { Input } from "@piecemates/ui/components/input";
@@ -6,10 +7,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-	NewRoomSheet,
-	type PickedImage,
-} from "@/components/home/new-room-sheet";
+import { NewRoomSheet } from "@/components/home/new-room-sheet";
 import { PhotoTiles } from "@/components/home/photo-tiles";
 import { RoomRow } from "@/components/room-row";
 import { api } from "@/lib/api";

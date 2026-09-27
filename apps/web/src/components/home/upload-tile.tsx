@@ -1,10 +1,9 @@
-import { createErrorText } from "@piecemates/client";
+import { createErrorText, type PickedImage } from "@piecemates/client";
 import { UPLOAD_TYPES } from "@piecemates/game";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import type { PickedImage } from "@/components/home/new-room-sheet";
 import { api } from "@/lib/api";
 import { preparePhoto } from "@/lib/photo";
 

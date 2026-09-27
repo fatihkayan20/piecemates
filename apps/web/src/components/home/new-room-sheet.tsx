@@ -1,4 +1,8 @@
-import { createErrorText, defaultGrid } from "@piecemates/client";
+import {
+	createErrorText,
+	defaultGrid,
+	type PickedImage,
+} from "@piecemates/client";
 import { gridOptions } from "@piecemates/game";
 import { Button } from "@piecemates/ui/components/button";
 import { Checkbox } from "@piecemates/ui/components/checkbox";
@@ -19,15 +23,6 @@ import { toast } from "sonner";
 import { Photo } from "@/components/photo";
 import { api } from "@/lib/api";
 
-/** A sample, a new photo to upload (`file`) or my unused upload (`upload`). */
-export type PickedImage = {
-	url: string;
-	width: number;
-	height: number;
-	file?: Blob;
-	upload?: string;
-};
-
 /** The sheet is at most 28rem wide. */
 const PREVIEW_SIZES = "(min-width: 28rem) 28rem, 100vw";
 
@@ -46,28 +41,13 @@ export function NewRoomSheet({
 	const [count, setCount] = useState<number>();
 	const grid = options.find((o) => o.count === count) ?? defaultGrid(options);
 	const [rotate, setRotate] = useState(false);
-	const sample = useMutation(api.createRoom());
-	const uploaded = useMutation(api.createRoomFromUpload());
-	const upload = useMutation(api.uploadImage());
-	const isPending = sample.isPending || uploaded.isPending || upload.isPending;
+	const { mutateAsync, isPending } = useMutation(api.createRoom());
 
 	const create = async () => {
 		if (!image || !grid) return;
 		const { rows, cols } = grid;
 		try {
-			const id = image.file
-				? await upload.mutateAsync(image.file)
-				: image.upload;
-			const room = id
-				? await uploaded.mutateAsync({ upload: id, rows, cols, rotate })
-				: await sample.mutateAsync({
-						imageUrl: image.url,
-						imageW: image.width,
-						imageH: image.height,
-						rows,
-						cols,
-						rotate,
-					});
+			const room = await mutateAsync({ image, rows, cols, rotate });
 			await navigate({ to: "/room/$code", params: { code: room.code } });
 		} catch (e) {
 			toast.error(createErrorText(e));
@@ -113,7 +93,9 @@ export function NewRoomSheet({
 					</p>
 					<SheetFooter className="p-0">
 						<Button disabled={isPending || !grid} onClick={create}>
-							{upload.isPending ? t("upload.uploading") : t("home.create")}
+							{isPending && image?.file
+								? t("upload.uploading")
+								: t("home.create")}
 						</Button>
 					</SheetFooter>
 				</div>

@@ -10,9 +10,19 @@ type Outputs = inferRouterOutputs<AppRouter>;
 export type RoomInfo = Outputs["rooms"]["open"];
 /** One of my rooms, for Continue and History. Times are ms since the epoch. */
 export type RoomSummary = Outputs["rooms"]["list"][number];
-type Inputs = inferRouterInputs<AppRouter>;
-export type NewRoom = Inputs["rooms"]["create"];
-export type UploadRoom = Inputs["rooms"]["createFromUpload"];
+/** How a new room cuts its photo. */
+type Grid = Omit<
+	inferRouterInputs<AppRouter>["rooms"]["createFromUpload"],
+	"upload"
+>;
+/** A photo to start a room from: a sample, a new photo to upload (`file`) or my unused upload (`upload`). */
+export type PickedImage = {
+	url: string;
+	width: number;
+	height: number;
+	file?: Blob;
+	upload?: string;
+};
 
 /** Someone else can change my rooms too, so lists also refetch after this; my own changes invalidate them at once. */
 const LIST_STALE_MS = 60_000;
@@ -46,6 +56,22 @@ export function createApi(opts: {
 			}),
 		],
 	});
+	/** Puts the photo straight into storage and returns its upload id. */
+	const uploadImage = async (file: Blob) => {
+		const type = uploadType(file.type);
+		const { size } = file;
+		if (!type) throw new Error("notAnImage");
+		if (size > MAX_UPLOAD_BYTES) throw new Error("imageTooLarge");
+		const { id, url } = await client.uploads.create.mutate({ type, size });
+		// Both headers are signed into the URL; if-none-match means it never overwrites.
+		const res = await fetch(url, {
+			method: "PUT",
+			body: file,
+			headers: { "content-type": type, "if-none-match": "*" },
+		});
+		if (!res.ok) throw new Error("uploadFailed");
+		return id;
+	};
 	const refreshLists = (): Promise<void> =>
 		queryClient.invalidateQueries({ queryKey: LISTS });
 	const queryClient = new QueryClient({
@@ -83,16 +109,22 @@ export function createApi(opts: {
 			gcTime: 0,
 			retry: false,
 		}),
+		/** A room from the picked photo; a new photo is uploaded first. */
 		createRoom: () => ({
-			mutationFn: (room: NewRoom) => client.rooms.create.mutate(room),
-			onSuccess: (_: unknown, room: NewRoom) =>
-				track("room_created", { pieces: room.rows * room.cols }),
-		}),
-		/** A room from my uploaded photo, by upload id. */
-		createRoomFromUpload: () => ({
-			mutationFn: (room: UploadRoom) =>
-				client.rooms.createFromUpload.mutate(room),
-			onSuccess: (_: unknown, room: UploadRoom) =>
+			mutationFn: async ({ image, ...grid }: Grid & { image: PickedImage }) => {
+				const upload = image.file
+					? await uploadImage(image.file)
+					: image.upload;
+				return upload
+					? client.rooms.createFromUpload.mutate({ upload, ...grid })
+					: client.rooms.create.mutate({
+							imageUrl: image.url,
+							imageW: image.width,
+							imageH: image.height,
+							...grid,
+						});
+			},
+			onSuccess: (_: unknown, room: Grid) =>
 				track("room_created", { pieces: room.rows * room.cols }),
 		}),
 		/** How many photos I can still upload. */
@@ -104,26 +136,6 @@ export function createApi(opts: {
 		unusedUpload: () => ({
 			queryKey: [...UPLOADS, "unused"],
 			queryFn: () => client.uploads.unused.query(),
-		}),
-		/** Puts the photo straight into storage and returns its upload id. */
-		uploadImage: () => ({
-			mutationFn: async (file: Blob) => {
-				const type = uploadType(file.type);
-				if (!type) throw new Error("notAnImage");
-				if (file.size > MAX_UPLOAD_BYTES) throw new Error("imageTooLarge");
-				const { id, url } = await client.uploads.create.mutate({
-					type,
-					size: file.size,
-				});
-				// Both headers are signed into the URL; if-none-match means it never overwrites.
-				const res = await fetch(url, {
-					method: "PUT",
-					body: file,
-					headers: { "content-type": type, "if-none-match": "*" },
-				});
-				if (!res.ok) throw new Error("uploadFailed");
-				return id;
-			},
 		}),
 		/** Drops the room from my open rooms; opening it again brings it back. */
 		abandon: () => ({
