@@ -7,19 +7,17 @@ import {
 	ClientMsg,
 	createState,
 	isComplete,
-	MAX_MESSAGES_PER_SECOND,
 	MAX_PLAYERS,
 	type Player,
 	pause,
+	RenameMsg,
 	resume,
 	type ServerMsg,
 	type State,
 } from "@piecemates/game";
 import { eq } from "drizzle-orm";
 
-/** The player a socket belongs to, stored on it when it connected. */
-const playerOf = (ws: WebSocket): Player => ws.deserializeAttachment();
-const SECOND_MS = 1000;
+import { messageRate, playerOf, playersOf, readName } from "./room-sockets";
 
 /**
  * One instance per room code. Holds the sockets (hibernatable, so an idle room
@@ -28,8 +26,7 @@ const SECOND_MS = 1000;
 export class Room extends DurableObject<Env> {
 	private code = "";
 	private state: State | undefined;
-	/** Messages per socket in the current second; forgotten when the room hibernates, which is fine. */
-	private rates = new WeakMap<WebSocket, { since: number; count: number }>();
+	private tooFast = messageRate();
 
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
@@ -91,12 +88,17 @@ export class Room extends DurableObject<Env> {
 
 	override async webSocketMessage(ws: WebSocket, data: string | ArrayBuffer) {
 		if (!this.state || typeof data !== "string") return;
-		let parsed: ReturnType<typeof ClientMsg.safeParse>;
+		let json: unknown;
 		try {
-			parsed = ClientMsg.safeParse(JSON.parse(data));
+			json = JSON.parse(data);
 		} catch {
 			return;
 		}
+		if (RenameMsg.safeParse(json).success) {
+			if (!this.tooFast(ws)) await this.rename(playerOf(ws).id);
+			return;
+		}
+		const parsed = ClientMsg.safeParse(json);
 		if (!parsed.success) return;
 		const msg = parsed.data;
 		const by = playerOf(ws).id;
@@ -147,26 +149,17 @@ export class Room extends DurableObject<Env> {
 			.where(eq(rooms.code, this.code));
 	}
 
-	/** Counts the message; true once this socket is over its per-second budget. */
-	private tooFast(ws: WebSocket) {
-		const now = Date.now();
-		const rate = this.rates.get(ws);
-		if (!rate || now - rate.since >= SECOND_MS) {
-			this.rates.set(ws, { since: now, count: 1 });
-			return false;
-		}
-		rate.count++;
-		return rate.count > MAX_MESSAGES_PER_SECOND;
+	/** Reads the player's name from D1 again and tells everyone. */
+	private async rename(id: string) {
+		const name = await readName(this.env, id);
+		if (name === undefined) return;
+		for (const ws of this.ctx.getWebSockets())
+			if (playerOf(ws).id === id) ws.serializeAttachment({ id, name });
+		this.broadcast({ type: "presence", players: this.players() });
 	}
 
-	private players(): Player[] {
-		const byId = new Map<string, Player>();
-		for (const ws of this.ctx.getWebSockets()) {
-			if (ws.readyState !== WebSocket.OPEN) continue;
-			const p = playerOf(ws);
-			byId.set(p.id, p);
-		}
-		return [...byId.values()];
+	private players() {
+		return playersOf(this.ctx.getWebSockets());
 	}
 
 	private send(ws: WebSocket, msg: ServerMsg) {

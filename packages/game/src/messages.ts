@@ -34,6 +34,9 @@ export const ClientMsg = z.discriminatedUnion("type", [
 ]);
 export type ClientMsg = z.infer<typeof ClientMsg>;
 
+/** Not a move: asks the room to read my name again after I picked one. The server reads it; clients can't send one. */
+export const RenameMsg = z.object({ type: z.literal("rename") });
+
 /** `leave` is only produced by the server when a socket closes. */
 export type Msg = ClientMsg | { type: "leave" };
 

@@ -56,6 +56,12 @@ export class RoomConnection {
 			this.socket.send(JSON.stringify(msg));
 	}
 
+	/** Tells the room I picked a name, so the others see it. */
+	renamed() {
+		if (this.socket.readyState === WebSocket.OPEN)
+			this.socket.send(JSON.stringify({ type: "rename" }));
+	}
+
 	/** Where to draw a piece: my tidied spot while it's still in the pile, else the shared one. */
 	position(index: number): Point {
 		const piece = this.state?.pieces[index];
