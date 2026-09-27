@@ -1,5 +1,5 @@
 import { API_PATH, handleApi } from "@piecemates/api";
-import { clientIp } from "@piecemates/auth";
+import { clientIp, MAX_NAME_LENGTH } from "@piecemates/auth";
 import { rooms } from "@piecemates/db/schema/game";
 import { TRACE_HEADERS } from "@piecemates/telemetry";
 import * as Sentry from "@sentry/cloudflare";
@@ -52,7 +52,13 @@ app.get("/", (c) => {
 
 const sessionUser = async (headers: Headers) => {
 	const session = await getAuth().api.getSession({ headers });
-	return session && { id: session.user.id, name: session.user.name };
+	// Capped here too: a name set before the cap could still be long.
+	return (
+		session && {
+			id: session.user.id,
+			name: session.user.name.slice(0, MAX_NAME_LENGTH),
+		}
+	);
 };
 
 app.all(`${API_PATH}/*`, async (c) =>

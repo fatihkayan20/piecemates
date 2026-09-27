@@ -5,6 +5,7 @@ import type { Database } from "@piecemates/db";
 import * as schema from "@piecemates/db/schema/auth";
 import { rooms, uploads } from "@piecemates/db/schema/game";
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { anonymous } from "better-auth/plugins";
 import { eq, sql } from "drizzle-orm";
 
@@ -18,6 +19,13 @@ const GUESTS_PER_HOUR = 10;
 export const clientIp = (headers: Headers) => {
 	const ip = headers.get(IP_HEADER);
 	return ip ? normalizeIP(ip) : "unknown";
+};
+
+/** Longest player name; others see it in rooms. */
+export const MAX_NAME_LENGTH = 40;
+const checkName = (name?: string) => {
+	if (name !== undefined && name.length > MAX_NAME_LENGTH)
+		throw new APIError("BAD_REQUEST", { message: "nameTooLong" });
 };
 
 export type AuthConfig = {
@@ -60,6 +68,12 @@ export function createAuth(
 				sameSite: "none",
 				secure: true,
 				httpOnly: true,
+			},
+		},
+		databaseHooks: {
+			user: {
+				create: { before: async (user) => checkName(user.name) },
+				update: { before: async (user) => checkName(user.name) },
 			},
 		},
 		plugins: [
