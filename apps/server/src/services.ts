@@ -1,11 +1,13 @@
 import { createAuth as createConfiguredAuth } from "@piecemates/auth";
-import { type Database, createDb } from "@piecemates/db";
+import { createDb } from "@piecemates/db";
 
 import { ENV } from "./env.server";
 
-export function getDb(): Database {
-  return createDb(ENV);
-}
-export async function createAuth(database?: Database) {
-  return createConfiguredAuth(ENV, database ?? (await getDb()));
-}
+export const getDb = () => createDb(ENV);
+
+let auth: ReturnType<typeof createConfiguredAuth> | undefined;
+/** Better Auth, built once per isolate instead of on every request. */
+export const getAuth = () => {
+	auth ??= createConfiguredAuth(ENV, getDb());
+	return auth;
+};
