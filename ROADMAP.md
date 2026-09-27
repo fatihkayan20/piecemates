@@ -55,6 +55,10 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
+- [x] **Abandoned puzzles in History**: History lists rooms I abandoned ("Abandoned after 1:07") next to solved ones. Reopening one counts against the open-room cap. `0163109`
+- [x] **Music picker sheet**: the Settings tab's Music row opens a sheet where the chosen track plays while it's open. The room keeps the inline segments, where music already plays. `1455448`
+- [x] **Abandon confirmation**: Abandon turns the room's settings sheet into its confirmation in place (flag, title, Abandon / Keep playing), so the sheet keeps its height on web and iOS. `d0775eb`
+- [x] **Native bars in the app theme**: a navigation theme follows the app's light/dark mode, so collapsed headers, the tab bar and the status bar aren't light in dark mode. The tab bar uses the app colours, and Settings gets a large title. `c518d78` `bb56025`
 - [x] **iOS sheets in the app theme**: SwiftUI sheets use the app's (or the board's) light/dark scheme and background, with monochrome buttons like the rest of the app; toggles stay green. `34f1309`
 
 - [x] **Native tab bar**: the iOS drawer is replaced by native tabs (Home, History, Settings; the room opens over them, without the bar). Settings holds the view settings and dark mode. `Container` now pads the scroll content, so the tab screens' gaps and the large titles show. `799ac1d`
