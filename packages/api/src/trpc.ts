@@ -20,7 +20,17 @@ export type Context = {
 	initRoom: (room: RoomInit) => Promise<void>;
 };
 
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+	// Our bugs go to Sentry; clients never see their details (e.g. SQL).
+	errorFormatter: ({ shape, error }) =>
+		error.code === "INTERNAL_SERVER_ERROR"
+			? {
+					...shape,
+					message: "Internal server error",
+					data: { ...shape.data, stack: undefined },
+				}
+			: shape,
+});
 
 export const router = t.router;
 
