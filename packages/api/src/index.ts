@@ -5,7 +5,6 @@ import { type Context, router } from "./trpc";
 import { uploadsRouter } from "./uploads";
 
 export type { Context, ImageInfo, RoomInit } from "./trpc";
-export { imageProblem } from "./uploaded-image";
 
 /** Where the Worker serves the API. */
 export const API_PATH = "/trpc";

@@ -27,3 +27,20 @@ export const imageWidth = (pixels: number) =>
 /** A width the server resizes to. */
 export const isImageWidth = (w: number) =>
 	Number.isInteger(w) && w === imageWidth(w);
+
+/** The upload type for a file's MIME type, or undefined when it can't be uploaded. */
+export const uploadType = (type: string) =>
+	UPLOAD_TYPES.find((t) => t === type);
+
+/** Why a photo can't be a puzzle, or undefined when it can. `format` is its MIME type. */
+export const imageProblem = (info: {
+	format: string;
+	width: number;
+	height: number;
+}) => {
+	if (!uploadType(info.format)) return "notAnImage";
+	if (Math.min(info.width, info.height) < MIN_IMAGE_SIDE)
+		return "imageTooSmall";
+	if (info.width * info.height > MAX_IMAGE_PIXELS) return "imageTooLarge";
+	return undefined;
+};

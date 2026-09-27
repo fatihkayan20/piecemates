@@ -1,5 +1,5 @@
-import { type Context, type ImageInfo, imageProblem } from "@piecemates/api";
-import { isImageWidth } from "@piecemates/game";
+import type { Context, ImageInfo } from "@piecemates/api";
+import { imageProblem, isImageWidth } from "@piecemates/game";
 import { AwsClient } from "aws4fetch";
 
 import { ENV } from "./env.server";

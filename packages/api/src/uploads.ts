@@ -1,6 +1,7 @@
 import { user as userTable } from "@piecemates/db/schema/auth";
 import { uploads } from "@piecemates/db/schema/game";
 import {
+	imageProblem,
 	MAX_UPLOAD_BYTES,
 	MAX_UPLOADS_PER_IP,
 	UPLOAD_TYPES,
@@ -10,7 +11,7 @@ import { TRPCError } from "@trpc/server";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { protectedProcedure, router } from "./trpc";
-import { imageProblem, unusedUpload } from "./uploaded-image";
+import { unusedUpload } from "./uploaded-image";
 
 const NewUpload = z.object({
 	type: z.enum(UPLOAD_TYPES),
