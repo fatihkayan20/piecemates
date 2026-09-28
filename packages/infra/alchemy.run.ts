@@ -86,6 +86,8 @@ export default Alchemy.Stack(
 					name: "piecemates.fatihkayan.dev",
 					redirects: ["www.piecemates.fatihkayan.dev"],
 				},
+				// The domain is the only way in; logins don't accept the workers.dev origin anyway.
+				workersDev: false,
 			}),
 			assets: {
 				htmlHandling: "auto-trailing-slash",
