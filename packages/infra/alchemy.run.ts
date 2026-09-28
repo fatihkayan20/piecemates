@@ -79,7 +79,14 @@ export default Alchemy.Stack(
 		const deploying = process.argv.includes("deploy");
 		const webWorker = yield* Cloudflare.Website.Vite("web", {
 			rootDir: "../../apps/web",
-			...(deploying && { main: "worker.ts" }),
+			...(deploying && {
+				main: "worker.ts",
+				// Cloudflare makes the DNS records and certificates; www 301s to the bare name.
+				domain: {
+					name: "piecemates.fatihkayan.dev",
+					redirects: ["www.piecemates.fatihkayan.dev"],
+				},
+			}),
 			assets: {
 				htmlHandling: "auto-trailing-slash",
 				notFoundHandling: "single-page-application",
