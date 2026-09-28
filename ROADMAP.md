@@ -65,6 +65,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
+- [x] **Custom domain**: the web is on `piecemates.fatihkayan.dev` (DNS on Cloudflare), and `www.piecemates.fatihkayan.dev` 301s to it. The server stays on workers.dev for the iOS app and image links. `7f65696`
 - [x] **First deploy**: `pnpm -F @piecemates/infra deploy` puts the `production` stage on workers.dev, with its settings in the git-ignored `packages/infra/.env.deploy.local`. The web Worker forwards `/api`, `/trpc` and `/rooms` to the server, so the session cookie is first-party without a custom domain (Safari drops cross-site ones). `2c906b7` `830091c`
 - [x] **Touch pinch-zoom on web**: two fingers on empty table zoom and pan with the same `pinchCamera` as iOS (checked in iPhone Safari). `516ef9b`
 - [x] **Stale data cleanup**: the daily Cron Trigger clears rooms that are solved, abandoned by every player, or not played for 30 days (even unsolved). Their Durable Object storage and uploaded original go; the D1 rows stay, marked expired, and the small resized copies stay for History thumbnails. A cleared room moves from Continue to History ("Cleared after …"), its row no longer opens, and opening it by code says it was cleared. At most 200 rooms a run. `dd8f59d` `e32a19b` `f8e2a0b`
