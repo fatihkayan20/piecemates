@@ -10,11 +10,8 @@ import { track } from "@piecemates/telemetry";
 import { createStore } from "zustand/vanilla";
 
 import { beginDrag, type Drag, endsDrag } from "./drag.ts";
-import {
-	RoomConnection,
-	type RoomEvent,
-	type RoomStatus,
-} from "./room-connection.ts";
+import { reconnector } from "./reconnect.ts";
+import { RoomConnection, type RoomStatus } from "./room-connection.ts";
 
 export type BagChip = Bag & { id: string; count: number };
 /** Board size; the object only changes when the room gets a new puzzle. */
@@ -118,20 +115,26 @@ function snapshot(conn: RoomConnection, prev: RoomSnapshot) {
 	};
 }
 
-/** Opens the room on a socket; `onEvent` runs after the store has caught up. */
+/**
+ * Opens the room on a socket. With `reopen`, a dropped socket is replaced and
+ * the room picks up where it was; my drag ends, since the room freed my pieces.
+ */
 export function connectRoom(
 	socket: WebSocket,
-	onEvent?: (event: RoomEvent, conn: RoomConnection) => void,
+	reopen?: () => Promise<WebSocket>,
 ) {
+	const reconnect = reopen && reconnector(reopen);
 	const conn = new RoomConnection(socket, (event) => {
 		// A refused bag:put leaves the piece locked by me.
 		if (event.type === "rejected" && event.msg.type === "bag:put")
 			conn.send({ type: "unlock", piece: event.msg.piece });
 		roomStore.setState((s) => {
-			const settled = s.drag && endsDrag(event, conn.me, s.drag.piece);
+			const settled =
+				event.type === "closed" ||
+				(s.drag && endsDrag(event, conn.me, s.drag.piece));
 			return { ...snapshot(conn, s), drag: settled ? null : s.drag };
 		});
-		onEvent?.(event, conn);
+		reconnect?.(event, conn);
 	});
 	roomStore.setState({ ...empty, conn });
 	return conn;

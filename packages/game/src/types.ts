@@ -35,6 +35,11 @@ export const MAX_PIECES = 1100;
 export const MAX_OPEN_ROOMS = 3;
 /** A piece's width in table units; its height follows the image. */
 export const CELL_WIDTH = 100;
+/**
+ * WebSocket close code ("policy violation") the room uses when a socket must
+ * not come back: the player left, the room was cleared, or too many tabs.
+ */
+export const CLOSE_POLICY = 1008;
 /** Widest (and, inverted, tallest) screen shape a room's table follows. */
 export const MAX_TABLE_ASPECT = 4;
 

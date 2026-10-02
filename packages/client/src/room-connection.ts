@@ -19,7 +19,7 @@ import { type Cue, cue, progress } from "./feedback.ts";
 export type RoomStatus = "connecting" | "playing" | "done" | "disconnected";
 export type RoomEvent =
 	| ServerMsg
-	| { type: "closed" }
+	| { type: "closed"; code: number }
 	| { type: "tidied" }
 	| { type: "view" };
 
@@ -39,15 +39,23 @@ export class RoomConnection {
 	private visibleCache: Set<number> | null = null;
 	private socket: WebSocket;
 	private onEvent: (event: RoomEvent) => void;
+	private closed = false;
 
 	constructor(socket: WebSocket, onEvent: (event: RoomEvent) => void) {
 		this.socket = socket;
 		this.onEvent = onEvent;
+		this.attach(socket);
+	}
+
+	/** Takes over a new socket after the last one dropped; the room sends its state again. */
+	attach(socket: WebSocket) {
+		if (this.closed) return socket.close();
+		this.socket = socket;
 		socket.onmessage = (ev) =>
 			this.receive(JSON.parse(String(ev.data)) as ServerMsg);
-		socket.onclose = () => {
+		socket.onclose = (ev) => {
 			this.status = "disconnected";
-			this.onEvent({ type: "closed" });
+			this.onEvent({ type: "closed", code: ev.code });
 		};
 	}
 
@@ -98,6 +106,7 @@ export class RoomConnection {
 
 	/** Closes without firing any more events. */
 	close() {
+		this.closed = true;
 		this.socket.onmessage = null;
 		this.socket.onclose = null;
 		this.socket.close();

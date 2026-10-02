@@ -2,6 +2,7 @@
 import { DurableObject } from "cloudflare:workers";
 import {
 	apply,
+	CLOSE_POLICY,
 	createState,
 	isComplete,
 	MAX_PLAYERS,
@@ -14,7 +15,6 @@ import {
 import {
 	attach,
 	broadcast,
-	CLOSE_POLICY,
 	makeRoomFor,
 	messageRate,
 	parseMsg,

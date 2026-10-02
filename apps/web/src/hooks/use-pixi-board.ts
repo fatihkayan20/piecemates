@@ -70,7 +70,7 @@ export function usePixiBoard(
 				detachPointer();
 				camera.resize.cancel();
 			};
-			conn = connectRoom(socket);
+			conn = connectRoom(socket, () => openRoomSocket(room.code));
 
 			// Lets browser automation find pieces on screen during development.
 			if (import.meta.env.DEV)

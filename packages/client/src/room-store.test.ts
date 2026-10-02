@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { createState, type ServerMsg } from "@piecemates/game";
+import { CLOSE_POLICY, createState, type ServerMsg } from "@piecemates/game";
 
 import {
 	type Camera,
@@ -149,5 +149,41 @@ test("the camera starts, frames a bag, returns, and shows the win", () => {
 	assert.equal(roomStore.getState().status, "done");
 	assert.deepEqual(camera, fitCamera(board, viewport), "whole picture");
 	unfollow();
+	disconnectRoom(conn);
+});
+
+test("a dropped room socket reopens, unless the room closed it for good", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout"] });
+	const fake = () =>
+		({
+			readyState: WebSocket.OPEN,
+			send() {},
+			close() {},
+		}) as unknown as WebSocket;
+	const first = fake();
+	const second = fake();
+	let opened = 0;
+	const conn = connectRoom(first, async () => {
+		opened++;
+		return second;
+	});
+	const state = createState({ seed: 1, rows: 2, cols: 2, w: 100, h: 100 });
+	const hello = { data: JSON.stringify({ type: "state", state, you: "a" }) };
+	first.onmessage?.(hello as MessageEvent);
+	startDrag(0);
+	first.onclose?.({ code: 1006 } as CloseEvent);
+	assert.equal(roomStore.getState().status, "disconnected");
+	assert.equal(roomStore.getState().drag, null, "my drag ends");
+
+	t.mock.timers.tick(1000);
+	await new Promise(setImmediate);
+	assert.equal(opened, 1, "reopened after a wait");
+	second.onmessage?.(hello as MessageEvent);
+	assert.equal(roomStore.getState().status, "playing", "back in the room");
+
+	second.onclose?.({ code: CLOSE_POLICY } as CloseEvent);
+	t.mock.timers.tick(60_000);
+	await new Promise(setImmediate);
+	assert.equal(opened, 1, "the room closed it for good: no retry");
 	disconnectRoom(conn);
 });

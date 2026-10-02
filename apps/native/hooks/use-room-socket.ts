@@ -17,7 +17,7 @@ export function useRoomSocket(code: string) {
 		const unfollow = followRoom(cameraControl);
 		void openRoomSocket(code).then((socket) => {
 			if (closed) return socket.close();
-			conn = connectRoom(socket);
+			conn = connectRoom(socket, () => openRoomSocket(code));
 		});
 		// Lets device automation find pieces on screen during development.
 		if (__DEV__)

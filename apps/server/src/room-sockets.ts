@@ -3,6 +3,7 @@ import { createDb } from "@piecemates/db";
 import { user } from "@piecemates/db/schema/auth";
 import { rooms } from "@piecemates/db/schema/game";
 import {
+	CLOSE_POLICY,
 	ClientMsg,
 	MAX_MESSAGES_PER_SECOND,
 	MAX_NAME_LENGTH,
@@ -16,8 +17,6 @@ import { eq } from "drizzle-orm";
 const SECOND_MS = 1000;
 /** Sockets one player may hold in a room (tabs, devices); older ones close. */
 const MAX_SOCKETS_PER_PLAYER = 3;
-/** WebSocket close code for "policy violation". */
-export const CLOSE_POLICY = 1008;
 
 /** Stored on each socket: whose it is, and when it connected. */
 export type Attachment = Player & { at: number };
