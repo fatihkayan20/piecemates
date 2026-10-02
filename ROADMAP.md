@@ -65,6 +65,8 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 ## Done
 
 - [x] **Placement and start zoom (checked against Jigsaw Explorer on a phone and a desktop)**: a new room's pile grows towards the shape of the screen it was made on (`aspect`), so a portrait phone gets the pile above and below the board, and it packs tighter (1.25-cell slots, less free space); older rooms keep their layout. Rooms start on the whole table unless a piece's longer side would be under 24px. `a7967f8` `3c49190`
+- [x] **Each screen gets its own pile**: in a shared room, every device lays out the pieces nobody has moved for its own board (phone, iPad and Mac each get a pile that fits), and re-lays them out on resize; moved pieces stay shared. Dropping a piece next to its partner in the pile still snaps. `7ec6578`
+- [x] **Open-room cap and cleared rooms**: a room the daily cleanup cleared no longer counts, so joining no longer says "room full" by mistake. `2bdf799`
 - [x] **Edge padding**: the camera keeps 32px between the table and the screen edge, so edge pieces are easy to reach. `3c49190`
 - [x] **No page selection on the board**: a long press no longer turns the screen blue or opens the iOS callout, and iOS no longer zooms into small inputs. `ae492e7`
 - [x] **Pieces stop following the finger until a reload**: two causes. Pixi never passes on `pointercancel`, so a touch iOS took for itself left a stale drag; the board now handles cancel, blur and backgrounding itself. And the room socket never reconnected after a phone put the page in the background; it now reopens on its own (web and native). `ae492e7` `e6eda89`

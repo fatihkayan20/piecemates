@@ -76,7 +76,7 @@ flowchart LR
 - **Limits:** guests and email sign-ups per IP (Better Auth, `rate_limit` table), API writes and reads per player (rate limit bindings), upload credits per player and per IP over 24h (`uploads` table), 3 open rooms, 4 players, 20 room messages a second per player, 20 bags. Caps are checked inside the insert, so parallel requests can't pass them.
 - **Stale rooms:** the daily Cron clears a room once it's solved, every player abandoned it, or nobody played it for 30 days (`played_at`, set when the room empties or is solved). It deletes the Durable Object's storage and the uploaded original, and sets `expired_at`; the D1 rows stay for History, a cleared room leaves Continue, and `rooms.open` answers `roomExpired`.
 - **Samples:** the daily Cron fills a D1 catalogue from Unsplash topics and searches (200 photos, then 5 per category a day) and marks a few featured. Photos always load from Unsplash's CDN, as its API terms require; we store only the link, size, colour and credit. A room from a sample makes the Worker send Unsplash a download event, and the new room sheet credits the photographer.
-- **Per device, never sent:** the camera, which bag I'm looking at, my tidy positions, and my settings (table colour, sounds, haptics, music).
+- **Per device, never sent:** the camera, which bag I'm looking at, where untouched pieces lie (each device lays the pile out for its own board, keeping each piece's slot rank from the room's layout) and my tidy positions, and my settings (table colour, sounds, haptics, music). Because of that the room snaps only to moved pieces; a drop next to a pile partner first drops the partner where I see it. Drops stay inside a play area that holds every screen shape's table, and my camera can reach my table plus every piece I can see.
 
 ## A room's life
 
@@ -109,7 +109,7 @@ sequenceDiagram
   Note over C,W: a sample: rooms.create {sample, rows, cols, rotate, aspect}
   W->>D1: the sample (NOT_FOUND if unknown), count my open rooms (CONFLICT at 3), else insert rooms + room_players
   W->>R: init(code, seed, rows, cols, w, h, rotate, aspect)
-  R->>R: createState: pile shaped to my screen (aspect), shuffle, random turns, save
+  R->>R: createState: room's pile slots (my screen's aspect), shuffle, random turns, save
   W-->>C: {code}
   W--)U: GET download_location (in the background, samples only)
   C->>W: rooms.open {code} (joins room_players, clears my abandon)
@@ -122,6 +122,7 @@ sequenceDiagram
     R->>R: apply(): snap, stick to frame, keep on table
     R-->>C: applied (to everyone) or rejected (to me)
     C->>C: apply() on the echo, store snapshot, camera follows
+    Note over C: untouched pieces drawn in my own slots (setBoardSize on layout / resize)
   end
   opt the socket drops (page in the background, network)
     R->>R: frees my locks
