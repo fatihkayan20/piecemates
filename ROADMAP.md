@@ -17,13 +17,13 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 ## Game features Prio 3
 
 - [ ] **Store review prompt**: ask for an App Store / Play Store review at a good moment.
+- [ ] **Kick a player**: the room owner can remove someone from the room. An edge case; cover it much later.
 
 ## Later
 
 - [ ] **Universal links and app links**: `https://<web>/room/CODE` opens the app when it's installed. Needs the production web domain, an `apple-app-site-association` (with the Apple Team ID, a paid account) and `assetlinks.json` served from it, plus `associatedDomains` / `intentFilters` in `app.json`. Set `EXPO_PUBLIC_WEB_URL` for production builds.
 - [ ] **Room header buttons on Android**: share, players and settings use `unstable_headerRightItems`, which is iOS only; add `headerRight` buttons for Android (TODO in `room-header-items.tsx`).
 - [ ] **Replace `with-ios-scene.js`**: try `expo-build-properties` instead of the custom plugin.
-- [ ] **Reconnect**: the room socket reconnects on its own after a drop (web and native), instead of showing "disconnected".
 - [ ] **Player colours**: pieces locked by others are tinted in that player's colour instead of only dimmed.
 - [ ] **Name prompt on Android**: `askName` uses `Alert.prompt`, which is iOS only; Android needs its own input.
 - [ ] **More samples per category**: `samples.list` already pages by 30; Home shows only the first page. Add "Show more" once categories grow past it.
@@ -33,7 +33,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
   - `caches.default` in front of `/images` once we're on a custom domain (it does nothing on workers.dev).
   - Uploads are free with daily credits; charge for them later.
 - [ ] **Accounts**: add email and social login in Better Auth. Guest data already moves to the real account through `onLinkAccount`.
-- [ ] **Portrait phones**: the table has one shape for everyone, so a landscape puzzle leaves empty space above and below on a portrait phone. Consider laying the pile out to suit portrait screens.
 - [ ] **Who is in which bag**: show on each bag chip which players are looking at it (a presence field).
 - [ ] **Count every room leave**: `room_left` fires when someone leaves inside the app (Home, Back), not when they close the tab or kill the app; send it on `pagehide` (with PostHog's beacon transport) and when the app goes to the background if that gap matters.
 - [ ] **Trace game moves**: a Sentry trace reaches the Worker over HTTP, but room socket messages carry no trace headers; send the trace with each move and start a span per message in the room if moves need tracing. Native also has no screen-change spans yet (`reactNavigationIntegration` with Expo Router's navigation ref).
@@ -65,6 +64,10 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
+- [x] **Placement and start zoom (checked against Jigsaw Explorer on a phone and a desktop)**: a new room's pile grows towards the shape of the screen it was made on (`aspect`), so a portrait phone gets the pile above and below the board, and it packs tighter (1.25-cell slots, less free space); older rooms keep their layout. Rooms start on the whole table unless a piece's longer side would be under 24px. `a7967f8` `3c49190`
+- [x] **Edge padding**: the camera keeps 32px between the table and the screen edge, so edge pieces are easy to reach. `3c49190`
+- [x] **No page selection on the board**: a long press no longer turns the screen blue or opens the iOS callout, and iOS no longer zooms into small inputs. `ae492e7`
+- [x] **Pieces stop following the finger until a reload**: two causes. Pixi never passes on `pointercancel`, so a touch iOS took for itself left a stale drag; the board now handles cancel, blur and backgrounding itself. And the room socket never reconnected after a phone put the page in the background; it now reopens on its own (web and native). `ae492e7` `e6eda89`
 - [x] **Custom domain**: the web is on `piecemates.fatihkayan.dev` (DNS on Cloudflare), and `www.piecemates.fatihkayan.dev` 301s to it. The server stays on workers.dev for the iOS app and image links. `7f65696`
 - [x] **First deploy**: `pnpm -F @piecemates/infra deploy` puts the `production` stage on workers.dev, with its settings in the git-ignored `packages/infra/.env.deploy.local`. The web Worker forwards `/api`, `/trpc` and `/rooms` to the server, so the session cookie is first-party without a custom domain (Safari drops cross-site ones). `2c906b7` `830091c`
 - [x] **Touch pinch-zoom on web**: two fingers on empty table zoom and pan with the same `pinchCamera` as iOS (checked in iPhone Safari). `516ef9b`

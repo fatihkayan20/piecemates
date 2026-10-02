@@ -106,10 +106,10 @@ sequenceDiagram
     C->>R2: PUT the photo
     Note over C,W: rooms.createFromUpload {upload} instead of rooms.create
   end
-  Note over C,W: a sample: rooms.create {sample, rows, cols, rotate}
+  Note over C,W: a sample: rooms.create {sample, rows, cols, rotate, aspect}
   W->>D1: the sample (NOT_FOUND if unknown), count my open rooms (CONFLICT at 3), else insert rooms + room_players
-  W->>R: init(code, seed, rows, cols, w, h, rotate)
-  R->>R: createState: shuffle into pile, random turns, save
+  W->>R: init(code, seed, rows, cols, w, h, rotate, aspect)
+  R->>R: createState: pile shaped to my screen (aspect), shuffle, random turns, save
   W-->>C: {code}
   W--)U: GET download_location (in the background, samples only)
   C->>W: rooms.open {code} (joins room_players, clears my abandon)
@@ -122,6 +122,11 @@ sequenceDiagram
     R->>R: apply(): snap, stick to frame, keep on table
     R-->>C: applied (to everyone) or rejected (to me)
     C->>C: apply() on the echo, store snapshot, camera follows
+  end
+  opt the socket drops (page in the background, network)
+    R->>R: frees my locks
+    C->>W: GET /rooms/:code/ws again after 1, 2, 4… s (not after a 1008 close)
+    R-->>C: state + presence; my drag was dropped
   end
   R->>D1: last player leaves or solved: played_ms (+ done, finished_at)
   opt play with others
@@ -147,7 +152,7 @@ sequenceDiagram
 | Concern | Code |
 | --- | --- |
 | Game rules and their tests | `packages/game/src/*.ts`, `game.test.ts` |
-| Room socket, local copy, cues | `packages/client/src/room-connection.ts` |
+| Room socket, local copy, cues, reconnect | `packages/client/src/room-connection.ts`, `reconnect.ts` |
 | What React reads | `packages/client/src/room-store.ts` |
 | Camera maths and following the room | `packages/client/src/camera.ts`, `camera-follow.ts` |
 | Web board | `apps/web/src/hooks/use-pixi-board.ts`, `lib/pixi/*` |
