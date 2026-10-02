@@ -35,6 +35,8 @@ export const MAX_PIECES = 1100;
 export const MAX_OPEN_ROOMS = 3;
 /** A piece's width in table units; its height follows the image. */
 export const CELL_WIDTH = 100;
+/** Widest (and, inverted, tallest) screen shape a room's table follows. */
+export const MAX_TABLE_ASPECT = 4;
 
 export type Piece = {
 	x: number;
@@ -73,6 +75,8 @@ export type State = {
 	clock: Clock;
 	/** Pieces start turned and players turn them (a room option). */
 	rotate: boolean;
+	/** Width / height of the screen the room was made on; the pile is laid out to suit it. */
+	aspect?: number;
 };
 
 export type Player = { id: string; name: string };

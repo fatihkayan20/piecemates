@@ -1,5 +1,10 @@
 import { roomPlayers, rooms, uploads } from "@piecemates/db/schema/game";
-import { CELL_WIDTH, MAX_OPEN_ROOMS, MAX_PIECES } from "@piecemates/game";
+import {
+	CELL_WIDTH,
+	MAX_OPEN_ROOMS,
+	MAX_PIECES,
+	MAX_TABLE_ASPECT,
+} from "@piecemates/game";
 import { TRPCError } from "@trpc/server";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
@@ -18,6 +23,14 @@ export const Grid = z.object({
 	cols: side,
 	/** Pieces start turned and players turn them. */
 	rotate: z.boolean().default(false),
+	/** Width / height of my screen, so the pile suits it. */
+	aspect: z
+		.number()
+		.positive()
+		.transform((a) =>
+			Math.min(MAX_TABLE_ASPECT, Math.max(1 / MAX_TABLE_ASPECT, a)),
+		)
+		.optional(),
 });
 export const fitsPieces = (g: { rows: number; cols: number }) =>
 	g.rows * g.cols <= MAX_PIECES;
@@ -54,7 +67,7 @@ export async function startRoom(
 	upload?: string,
 ) {
 	const { db, user } = ctx;
-	const { rows, cols, rotate } = grid;
+	const { rows, cols, rotate, aspect } = grid;
 	const code = newCode();
 	const seed = crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
 	const unused = upload
@@ -81,6 +94,6 @@ export async function startRoom(
 	// Table units: height follows the image's cell aspect.
 	const w = CELL_WIDTH;
 	const h = (CELL_WIDTH * (image.height / rows)) / (image.width / cols);
-	await ctx.initRoom({ code, seed, rows, cols, w, h, rotate });
+	await ctx.initRoom({ code, seed, rows, cols, w, h, rotate, aspect });
 	return { code };
 }

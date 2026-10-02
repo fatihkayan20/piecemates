@@ -51,6 +51,7 @@ export class Room extends DurableObject<Env> {
 		w: number;
 		h: number;
 		rotate: boolean;
+		aspect?: number;
 	}) {
 		if (this.state) return;
 		const { code, ...rest } = opts;

@@ -10,6 +10,7 @@ export type RoomInit = {
 	w: number;
 	h: number;
 	rotate: boolean;
+	aspect?: number;
 };
 
 /** An uploaded photo's real format and size, read from the file itself. */

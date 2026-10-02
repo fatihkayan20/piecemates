@@ -11,6 +11,7 @@ import {
 	isComplete,
 	MAX_BAGS,
 	needsName,
+	onBoard,
 	pause,
 	piecePath,
 	resume,
@@ -366,4 +367,26 @@ test("bags are own, capped, printable and hex coloured", () => {
 		false,
 		"at most MAX_BAGS",
 	);
+});
+
+test("the pile follows the screen shape the room was made on", () => {
+	const opts = { seed: 3, rows: 20, cols: 30, w: 100, h: 90 };
+	const ratio = (r: { width: number; height: number }) => r.width / r.height;
+	const square = tableRect(createState(opts));
+	const portrait = createState({ ...opts, aspect: 0.5 });
+	const landscape = createState({ ...opts, aspect: 2 });
+	const tall = tableRect(portrait);
+	assert.ok(ratio(tall) < ratio(square), "taller table on a portrait phone");
+	assert.ok(Math.abs(ratio(tall) - 0.5) < Math.abs(ratio(square) - 0.5));
+	assert.ok(ratio(tableRect(landscape)) > ratio(square), "wider in landscape");
+	for (const s of [portrait, landscape]) {
+		const t = tableRect(s);
+		const spots = new Set(s.pieces.map((p) => `${p.x},${p.y}`));
+		assert.equal(spots.size, s.pieces.length, "one piece per slot");
+		for (const p of s.pieces) {
+			assert.ok(p.x >= t.x && p.y >= t.y, "inside the table");
+			assert.ok(p.x + 100 <= t.x + t.width && p.y + 90 <= t.y + t.height);
+			assert.ok(!onBoard(s, p), "pile starts off the board");
+		}
+	}
 });

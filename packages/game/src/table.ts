@@ -7,55 +7,78 @@ import type { State } from "./types.ts";
 export type Point = { x: number; y: number };
 export type Rect = { x: number; y: number; width: number; height: number };
 
-/** Pile slot size in piece cells; the extra room keeps tabs from overlapping. */
-const SLOT = 1.6;
-/** Free space between the board and the pile: this share of the board's longer side... */
-const FREE_SHARE = 0.15;
-/** ...but at least this many slots. */
-const MIN_FREE_SLOTS = 2;
+/**
+ * How tightly the pile packs. `slot`: slot size in piece cells (tabs reach
+ * 0.26 past each edge, so below 1.52 neighbouring tabs may interleave, as on a
+ * real table). `freeShare`: free space between the board and the pile, as a
+ * share of the board's longer side, but at least `minFree` slots.
+ */
+const PACKED = { slot: 1.25, freeShare: 0.05, minFree: 1 };
+/** Rooms made before `aspect` keep this roomier layout, so their pieces stay in their slots. */
+const FIRST = { slot: 1.6, freeShare: 0.15, minFree: 2 };
 
 type Layout = { slots: Point[]; table: Rect };
 const layouts = new Map<string, Layout>();
 
-/** Pile slots, outermost ring first, each ring clockwise from the top-left. */
+/**
+ * Pile slots, outermost ring first, each ring clockwise from the top-left.
+ * Each ring adds a slot row above and below the last, a slot column on each
+ * side, or both: towards the room's `aspect` so the table suits the screen it
+ * was made on, or both ways for rooms without one.
+ */
 function layout(state: State): Layout {
-	const { rows, cols, w, h } = state;
+	const { rows, cols, w, h, aspect } = state;
 	const count = rows * cols;
-	const key = `${rows}x${cols}x${w}x${h}`;
+	const key = `${rows}x${cols}x${w}x${h}x${aspect}`;
 	const cached = layouts.get(key);
 	if (cached) return cached;
 
-	const slotW = w * SLOT;
-	const slotH = h * SLOT;
+	const { slot, freeShare, minFree } = aspect === undefined ? FIRST : PACKED;
+	const slotW = w * slot;
+	const slotH = h * slot;
 	// Piece top-left inside its slot, so the piece sits in the middle.
 	const padX = (slotW - w) / 2;
 	const padY = (slotH - h) / 2;
 	const free = Math.max(
-		MIN_FREE_SLOTS * Math.max(slotW, slotH),
-		FREE_SHARE * Math.max(cols * w, rows * h),
+		minFree * Math.max(slotW, slotH),
+		freeShare * Math.max(cols * w, rows * h),
 	);
-	/** Outer edge of ring `ring` (1 = the ring next to the free space). */
-	const ringRect = (ring: number): Rect => {
-		const x = -free - ring * slotW;
-		const y = -free - ring * slotH;
-		return { x, y, width: cols * w - 2 * x, height: rows * h - 2 * y };
+	/** Outer edge of the last ring (the free space before the first). */
+	let r: Rect = {
+		x: -free,
+		y: -free,
+		width: cols * w + 2 * free,
+		height: rows * h + 2 * free,
 	};
 
 	const rings: Point[][] = [];
 	let capacity = 0;
 	while (capacity < count) {
-		const r = ringRect(rings.length + 1);
+		const wider = aspect === undefined || r.width / r.height < aspect;
+		const taller = aspect === undefined || r.width / r.height >= aspect;
+		const dx = wider ? slotW : 0;
+		const dy = taller ? slotH : 0;
+		r = {
+			x: r.x - dx,
+			y: r.y - dy,
+			width: r.width + 2 * dx,
+			height: r.height + 2 * dy,
+		};
 		const across = Math.floor(r.width / slotW);
 		const down = Math.floor(r.height / slotH);
 		const right = r.x + r.width - slotW;
 		const bottom = r.y + r.height - slotH;
+		// The rows take the corners when the ring has both.
+		const first = taller ? 1 : 0;
+		const last = taller ? down - 1 : down;
 		const ring: Point[] = [];
 		const at = (x: number, y: number) =>
 			ring.push({ x: x + padX, y: y + padY });
-		for (let i = 0; i < across; i++) at(r.x + i * slotW, r.y);
-		for (let i = 1; i < down - 1; i++) at(right, r.y + i * slotH);
-		for (let i = across - 1; i >= 0; i--) at(r.x + i * slotW, bottom);
-		for (let i = down - 2; i >= 1; i--) at(r.x, r.y + i * slotH);
+		if (taller) for (let i = 0; i < across; i++) at(r.x + i * slotW, r.y);
+		if (wider) for (let i = first; i < last; i++) at(right, r.y + i * slotH);
+		if (taller)
+			for (let i = across - 1; i >= 0; i--) at(r.x + i * slotW, bottom);
+		if (wider) for (let i = last - 1; i >= first; i--) at(r.x, r.y + i * slotH);
 		rings.push(ring);
 		capacity += ring.length;
 	}
@@ -69,7 +92,7 @@ function layout(state: State): Layout {
 			slots.push(ring[Math.floor((k * ring.length) / need)] as Point);
 		}
 	}
-	const result = { slots, table: ringRect(rings.length) };
+	const result = { slots, table: r };
 	layouts.set(key, result);
 	return result;
 }

@@ -17,8 +17,9 @@ export function createState(opts: {
 	w: number;
 	h: number;
 	rotate?: boolean;
+	aspect?: number;
 }): State {
-	const { seed, rows, cols, w, h, rotate = false } = opts;
+	const { seed, rows, cols, w, h, rotate = false, aspect } = opts;
 	const random = seededRandom(seed ^ SHUFFLE_SALT);
 	const turns = seededRandom(seed ^ TURN_SALT);
 	const pieces: Piece[] = Array.from({ length: rows * cols }, (_, i) => ({
@@ -39,6 +40,7 @@ export function createState(opts: {
 		bags: {},
 		clock: { played: 0, since: null },
 		rotate,
+		...(aspect === undefined ? {} : { aspect }),
 	};
 	// Shuffle the pieces into the pile slots around the board.
 	const order = pieces.map((_, i) => i);

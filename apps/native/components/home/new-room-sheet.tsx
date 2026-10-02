@@ -22,7 +22,7 @@ import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert } from "react-native";
+import { Alert, Dimensions } from "react-native";
 
 import { AppHost } from "@/components/app-host";
 import { useSheetStyle } from "@/hooks/use-sheet-style";
@@ -72,7 +72,10 @@ export function NewRoomSheet({
 		if (!grid) return;
 		try {
 			const { rows, cols } = grid;
-			const room = await mutateAsync({ image, rows, cols, rotate });
+			// The pile is laid out to suit this screen's shape.
+			const { width, height } = Dimensions.get("window");
+			const aspect = width / height;
+			const room = await mutateAsync({ image, rows, cols, rotate, aspect });
 			setOpen(false);
 			router.push({ pathname: "/room/[code]", params: { code: room.code } });
 		} catch (e) {

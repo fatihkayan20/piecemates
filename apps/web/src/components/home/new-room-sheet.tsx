@@ -48,7 +48,9 @@ export function NewRoomSheet({
 		if (!image || !grid) return;
 		const { rows, cols } = grid;
 		try {
-			const room = await mutateAsync({ image, rows, cols, rotate });
+			// The pile is laid out to suit this window's shape.
+			const aspect = innerWidth / innerHeight;
+			const room = await mutateAsync({ image, rows, cols, rotate, aspect });
 			await navigate({ to: "/room/$code", params: { code: room.code } });
 		} catch (e) {
 			toast.error(createErrorText(e));
