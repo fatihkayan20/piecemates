@@ -21,6 +21,7 @@ import {
 	RoomConnection,
 	type RoomEvent,
 	resizeCamera,
+	START_PIECE_PX,
 	setBackground,
 	setHaptics,
 	settingsStore,
@@ -49,10 +50,15 @@ test("camera fits the table and zooms around a fixed point", () => {
 	);
 	const panned = clampCamera({ ...zoomed, x: 1e6, y: -1e6 }, bounds, viewport);
 	const near = (a: number, b: number) => Math.abs(a - b) < 1e-6;
-	assert.ok(near(panned.x, -bounds.x * zoomed.scale), "left edge at screen");
+	// Panning stops a little past the edges, so edge pieces stay easy to reach.
+	const pad = 32;
+	assert.ok(near(panned.x, pad - bounds.x * zoomed.scale), "left edge padded");
 	assert.ok(
-		near(panned.y, viewport.height - (bounds.y + bounds.height) * zoomed.scale),
-		"bottom edge at screen",
+		near(
+			panned.y,
+			viewport.height - pad - (bounds.y + bounds.height) * zoomed.scale,
+		),
+		"bottom edge padded",
 	);
 });
 
@@ -70,10 +76,14 @@ test("big rooms start zoomed in; frames and pinches keep pieces usable", () => {
 	const big = createState({ seed: 1, rows: 26, cols: 38, ...piece });
 	const table = tableRect(big);
 	const start = startCamera(table, piece, viewport);
-	assert.equal(start.scale * piece.w, 40, "pieces start big enough to pick up");
+	assert.equal(
+		start.scale * piece.w,
+		START_PIECE_PX,
+		"pieces start big enough to pick up",
+	);
 	assert.ok(
-		Math.abs(start.y + table.y * start.scale) < 1e-6,
-		"top of the pile",
+		Math.abs(start.y + table.y * start.scale - 32) < 1e-6,
+		"top of the pile, padded",
 	);
 
 	const one = { x: 0, y: 0, width: 100, height: 100 };

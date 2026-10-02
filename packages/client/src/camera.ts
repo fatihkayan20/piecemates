@@ -5,22 +5,29 @@ export type Camera = { x: number; y: number; scale: number };
 export type Viewport = { width: number; height: number };
 
 const MAX_SCALE = 4;
-/** Smallest a piece may start on screen, in pixels, so a finger can pick it up. */
-const START_PIECE_PX = 40;
+/**
+ * Smallest a piece's longer side may start on screen, in pixels: above it the
+ * room starts on the whole table (as Jigsaw Explorer does), below it zoomed in
+ * so a finger can still pick pieces up.
+ */
+export const START_PIECE_PX = 24;
 /** Largest a piece gets when the camera frames a few pieces. */
 const FRAME_PIECE_PX = 120;
+/**
+ * Screen pixels the camera may leave between the table's edge and the
+ * screen's, so pieces on the edge aren't under the browser's edge swipes.
+ */
+const EDGE_PAD_PX = 32;
 /** How long the viewport must stay still before the camera follows a resize. */
 export const RESIZE_DEBOUNCE_MS = 150;
 
-/** Centres `bounds` in the viewport, filling `margin` of it. */
-export function fitCamera(
-	bounds: Rect,
-	viewport: Viewport,
-	margin = 0.95,
-): Camera {
-	const scale =
-		Math.min(viewport.width / bounds.width, viewport.height / bounds.height) *
-		margin;
+/** Centres `bounds` in the viewport, EDGE_PAD_PX in from its edges. */
+export function fitCamera(bounds: Rect, viewport: Viewport): Camera {
+	const pad = 2 * EDGE_PAD_PX;
+	const scale = Math.min(
+		(viewport.width - pad) / bounds.width,
+		(viewport.height - pad) / bounds.height,
+	);
 	return centreOn(bounds, scale, viewport);
 }
 
@@ -43,7 +50,7 @@ export function startCamera(
 	viewport: Viewport,
 ): Camera {
 	const fit = fitCamera(table, viewport);
-	const scale = START_PIECE_PX / Math.min(piece.w, piece.h);
+	const scale = START_PIECE_PX / Math.max(piece.w, piece.h);
 	if (fit.scale >= scale) return fit;
 	// Centred on the top edge; clamping then pulls the edge up to the screen's.
 	const top = centreOn({ ...table, height: 0 }, scale, viewport);
@@ -105,7 +112,7 @@ export function zoomAt(
 
 /**
  * Keeps the table on screen: centred on an axis where it fits, otherwise
- * panning stops at its edges.
+ * panning stops EDGE_PAD_PX past its edges.
  */
 export function clampCamera(
 	camera: Camera,
@@ -114,9 +121,10 @@ export function clampCamera(
 ): Camera {
 	const axis = (pos: number, start: number, size: number, view: number) => {
 		const px = size * camera.scale;
-		if (px <= view) return (view - px) / 2 - start * camera.scale;
-		const max = -start * camera.scale;
-		return Math.min(max, Math.max(view - px + max, pos));
+		const at = -start * camera.scale;
+		if (px + 2 * EDGE_PAD_PX <= view) return (view - px) / 2 + at;
+		const max = at + EDGE_PAD_PX;
+		return Math.min(max, Math.max(view - px - EDGE_PAD_PX + at, pos));
 	};
 	return {
 		scale: camera.scale,
