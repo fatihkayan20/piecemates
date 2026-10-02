@@ -35,6 +35,7 @@ const span = (fingers: Map<number, Point>) => {
 /**
  * Pointer input on the table: grab a piece and drop it (on the table or a bag
  * chip), drag empty space to pan, or pinch it with two fingers to zoom.
+ * Returns the cleanup.
  */
 export function attachPointer(
 	app: Application,
@@ -44,6 +45,8 @@ export function attachPointer(
 ) {
 	/** Where the pointer grabbed, in table units, while I'm dragging. */
 	let grab: { x: number; y: number } | null = null;
+	/** The pointer that grabbed; other fingers can't move or drop the piece. */
+	let grabber = -1;
 	/** Where the press began on screen, to tell a tap from a drag. */
 	let pressed = { x: 0, y: 0 };
 	let targets = new Map<string, DropRect>();
@@ -60,10 +63,27 @@ export function attachPointer(
 	const targetAt = (e: FederatedPointerEvent) =>
 		dropTargetAt(targets, e.clientX, e.clientY);
 
+	/** Ends every touch; a held group goes back where it was picked up. */
+	const reset = () => {
+		const { conn, drag } = roomStore.getState();
+		if (grab && conn && drag) finishDrag(conn, drag, null, 0, 0);
+		fingers.clear();
+		pinch = null;
+		grab = null;
+		panGrab = null;
+		setHoveredTarget(null);
+	};
+	/** A touch that starts alone means any earlier one ended, even if its lift never came. */
+	const firstFinger = (e: FederatedPointerEvent) => {
+		if (e.isPrimary) reset();
+	};
+
 	pieces.forEach((g, i) => {
 		g.on("pointerdown", (e) => {
 			e.stopPropagation();
-			if (!startDrag(i)) return;
+			firstFinger(e);
+			if (grab || !startDrag(i)) return;
+			grabber = e.pointerId;
 			grab = world.toLocal(e.global);
 			pressed = { x: e.global.x, y: e.global.y };
 			targets = measureDropTargets();
@@ -73,6 +93,7 @@ export function attachPointer(
 	app.stage.eventMode = "static";
 	app.stage.hitArea = app.screen;
 	app.stage.on("pointerdown", (e) => {
+		firstFinger(e);
 		fingers.set(e.pointerId, { x: e.global.x, y: e.global.y });
 		const start = span(fingers);
 		pinch = start && { camera: camera.get(), ...start };
@@ -90,6 +111,7 @@ export function attachPointer(
 		}
 		const drag = roomStore.getState().drag;
 		if (grab && drag) {
+			if (e.pointerId !== grabber) return;
 			setHoveredTarget(targetAt(e));
 			const { x, y } = offset(e);
 			for (const [m, start] of drag.starts)
@@ -105,6 +127,10 @@ export function attachPointer(
 	});
 	const release = (e: FederatedPointerEvent) => {
 		const { conn, drag } = roomStore.getState();
+		fingers.delete(e.pointerId);
+		pinch = null;
+		panGrab = null;
+		if (grab && e.pointerId !== grabber) return;
 		// The group stays where it was dropped until the server echoes it.
 		if (grab && conn && drag) {
 			const { x, y } = offset(e);
@@ -112,14 +138,19 @@ export function attachPointer(
 			if (moved >= TAP_SLOP_PX || !turnPiece(conn, drag.piece))
 				finishDrag(conn, drag, targetAt(e), x, y);
 		}
-		fingers.delete(e.pointerId);
-		pinch = null;
 		grab = null;
-		panGrab = null;
 		setHoveredTarget(null);
 	};
 	app.stage.on("pointerup", release);
 	app.stage.on("pointerupoutside", release);
-	app.stage.on("pointercancel", release);
 	app.canvas.addEventListener("wheel", camera.wheel, { passive: false });
+	// Pixi never passes on pointercancel: the browser takes a touch for itself
+	// (a system swipe, a callout) or the page goes to the background mid-drag,
+	// and the lift never comes. Without this the board keeps the old drag.
+	const listening = new AbortController();
+	const { signal } = listening;
+	addEventListener("pointercancel", reset, { signal });
+	addEventListener("blur", reset, { signal });
+	document.addEventListener("visibilitychange", reset, { signal });
+	return () => listening.abort();
 }

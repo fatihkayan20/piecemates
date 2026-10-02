@@ -23,8 +23,9 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 
 	return (
 		<div
-			// The controls take the theme that reads on this table colour.
-			className={`${BOARD_SCHEMES[background] ?? "dark"} relative flex h-full min-h-0 min-w-0 flex-col text-foreground`}
+			// The controls take the theme that reads on this table colour. A long
+			// press on the board must not select the page or open a callout.
+			className={`${BOARD_SCHEMES[background] ?? "dark"} relative flex h-full min-h-0 min-w-0 select-none flex-col text-foreground [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]`}
 			style={{ backgroundColor: background }}
 		>
 			{/* Kept outside the canvas so the table never sits under the bars. */}

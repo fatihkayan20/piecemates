@@ -53,11 +53,12 @@ export function usePixiBoard(
 			const camera = createCamera(world, app.screen);
 			app.renderer.on("resize", camera.resize);
 			let pieces: Graphics[] = [];
+			let detachPointer = () => {};
 
 			const unsubscribeStore = roomStore.subscribe((snap) => {
 				if (pieces.length === 0 && snap.grid) {
 					pieces = drawPieces(world, texture, room.seed, snap.grid);
-					attachPointer(app, world, pieces, camera);
+					detachPointer = attachPointer(app, world, pieces, camera);
 				}
 				syncPieces(pieces, snap);
 			});
@@ -66,6 +67,7 @@ export function usePixiBoard(
 			unsubscribe = () => {
 				unsubscribeStore();
 				unfollow();
+				detachPointer();
 				camera.resize.cancel();
 			};
 			conn = connectRoom(socket);
