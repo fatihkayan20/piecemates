@@ -41,13 +41,15 @@ export const tooMany = () =>
 	new TRPCError({ code: "CONFLICT", message: "Too many open rooms" });
 
 /**
- * SQL for "I have fewer than MAX_OPEN_ROOMS open rooms", for the WHERE of the
+ * SQL for "I have fewer than MAX_OPEN_ROOMS open rooms" (counted as Continue
+ * lists them, so a cleared room doesn't count), for the WHERE of the
  * insert that adds one: a separate check first would let parallel requests
  * all pass it.
  */
 export const underRoomCap = (userId: string) =>
 	sql`(select count(*) from ${roomPlayers} rp join ${rooms} r on r.code = rp.room_code
-		where rp.user_id = ${userId} and rp.abandoned_at is null and r.status = 'playing') < ${MAX_OPEN_ROOMS}`;
+		where rp.user_id = ${userId} and rp.abandoned_at is null and r.status = 'playing'
+		and r.expired_at is null) < ${MAX_OPEN_ROOMS}`;
 
 /** Throws when I already have the most open rooms (an early answer; the insert checks again). */
 export async function checkOpenRooms(ctx: Me) {
