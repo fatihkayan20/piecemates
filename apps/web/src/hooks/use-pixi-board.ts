@@ -6,6 +6,7 @@ import {
 	type RoomConnection,
 	type RoomInfo,
 	roomStore,
+	setBoardSize,
 } from "@piecemates/client";
 import { MAX_IMAGE_WIDTH } from "@piecemates/game";
 import { Application, Container, type Graphics } from "pixi.js";
@@ -51,6 +52,8 @@ export function usePixiBoard(
 			const world = new Container({ sortableChildren: true });
 			app.stage.addChild(world);
 			const camera = createCamera(world, app.screen);
+			// Before the room's state arrives, so my pile starts shaped to this board.
+			setBoardSize(app.screen);
 			app.renderer.on("resize", camera.resize);
 			let pieces: Graphics[] = [];
 			let detachPointer = () => {};

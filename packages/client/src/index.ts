@@ -15,6 +15,7 @@ export * from "./i18n.ts";
 export * from "./images.ts";
 export * from "./links.ts";
 export * from "./room-connection.ts";
+export * from "./room-snapshot.ts";
 export * from "./room-store.ts";
 export * from "./samples.ts";
 export * from "./session.ts";

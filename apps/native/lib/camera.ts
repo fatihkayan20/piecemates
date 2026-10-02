@@ -7,9 +7,9 @@ import {
 	RESIZE_DEBOUNCE_MS,
 	resizeCamera,
 	roomStore,
+	setBoardSize,
 	startCamera,
 } from "@piecemates/client";
-import { tableRect } from "@piecemates/game";
 import { makeMutable } from "react-native-reanimated";
 
 // One board is on screen at a time, so its camera is a module singleton.
@@ -22,10 +22,8 @@ export const camera = {
 export const dragOffset = { x: makeMutable(0), y: makeMutable(0) };
 const viewport = { width: 0, height: 0 };
 
-const table = () => {
-	const state = roomStore.getState().conn?.state;
-	return state ? tableRect(state) : null;
-};
+/** My table and every piece on it (see `viewBounds`). */
+const table = () => roomStore.getState().bounds;
 
 export const getCamera = (): Camera => ({
 	x: camera.x.value,
@@ -52,6 +50,7 @@ export const cameraControl: CameraControl = {
 /** The viewport the camera last followed, so a burst of layouts moves it once. */
 let followed = { ...viewport };
 const follow = debounce(() => {
+	setBoardSize(viewport);
 	const bounds = table();
 	if (bounds) setCamera(resizeCamera(getCamera(), bounds, followed, viewport));
 	followed = { ...viewport };
@@ -69,9 +68,11 @@ export function setViewport({
 	Object.assign(viewport, { width, height });
 	if (!first) return follow();
 	followed = { ...viewport };
+	setBoardSize(viewport);
 	// Usually the room loads after this layout, and `followRoom` starts the view.
-	const state = roomStore.getState().conn?.state;
-	if (state) setCamera(startCamera(tableRect(state), state, viewport));
+	const { conn, bounds } = roomStore.getState();
+	if (conn?.state && bounds)
+		setCamera(startCamera(bounds, conn.state, viewport));
 }
 
 export const panBy = (dx: number, dy: number) => {

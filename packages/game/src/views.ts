@@ -1,5 +1,6 @@
+import { freeSlot } from "./pile.ts";
 import { piecesInGroup } from "./state.ts";
-import { freeSlot, onBoard } from "./table.ts";
+import { onBoard } from "./table.ts";
 import type { State } from "./types.ts";
 
 /**

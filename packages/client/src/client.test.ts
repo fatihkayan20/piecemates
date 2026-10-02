@@ -8,6 +8,7 @@ import {
 	type Cue,
 	clampCamera,
 	debounce,
+	finishDrag,
 	fitCamera,
 	formatDuration,
 	frameCamera,
@@ -155,7 +156,12 @@ test("connection applies server messages and tracks status", () => {
 	assert.equal(events.at(-1)?.type, "tidied");
 	assert.ok(sent.length === 1, "tidy is local, nothing sent");
 	assert.deepEqual(other.pieces[1], shared, "shared state untouched");
-	assert.deepEqual(room.position(0), other.pieces[0], "held piece not moved");
+	const held = other.pieces[0];
+	assert.deepEqual(
+		room.position(0),
+		{ x: held?.x, y: held?.y },
+		"held piece not moved",
+	);
 
 	// Views are local: a bag view shows the bag, a tidy there moves only its pile.
 	const bag = { bag: "sky", name: "Sky", color: "#38bdf8" };
@@ -268,4 +274,53 @@ test("images are asked for at the width they show at", () => {
 	assert.equal(imageSrc("blob:http://x/1", 400, 2), "blob:http://x/1");
 	assert.match(imageSrcSet(ours) ?? "", /w=256 256w, .*w=3072 3072w$/);
 	assert.equal(imageSrcSet("blob:http://x/1"), undefined);
+});
+
+test("each screen draws its own pile; a drop places pile partners first", () => {
+	const sent: { type: string; piece?: number; x?: number; y?: number }[] = [];
+	const socket = () =>
+		({
+			readyState: WebSocket.OPEN,
+			send: (data: string) => sent.push(JSON.parse(data)),
+			close() {},
+		}) as unknown as WebSocket;
+	const state = createState({ seed: 4, rows: 4, cols: 6, w: 100, h: 100 });
+	const open = (aspect: number) => {
+		const s = socket();
+		const conn = new RoomConnection(s, () => {});
+		conn.setAspect(aspect);
+		const hello = { type: "state", state: structuredClone(state), you: "a" };
+		s.onmessage?.({ data: JSON.stringify(hello) } as MessageEvent);
+		return conn;
+	};
+	const phone = open(0.5);
+	const mac = open(2);
+	const inside = (conn: RoomConnection, i: number) => {
+		const p = conn.position(i);
+		const t = conn.pile.table(conn.state as typeof state);
+		return (
+			p.x >= t.x && p.y >= t.y && p.x <= t.x + t.width && p.y <= t.y + t.height
+		);
+	};
+	const tall = phone.pile.table(state);
+	const wide = mac.pile.table(state);
+	assert.ok(tall.width / tall.height < wide.width / wide.height, "own shapes");
+	assert.ok(state.pieces.every((_, i) => inside(phone, i) && inside(mac, i)));
+
+	// On the phone, drop piece 0 just left of where the phone shows piece 1.
+	const seen = phone.position(1);
+	const drag = { piece: 0, starts: new Map([[0, phone.position(0)]]) };
+	const start = drag.starts.get(0) as { x: number; y: number };
+	finishDrag(phone, drag, null, seen.x - 100 - start.x + 4, seen.y - start.y);
+	assert.deepEqual(
+		sent.map((m) => [m.type, m.piece]),
+		[
+			["lock", 1],
+			["drop", 1],
+			["lock", 0],
+			["drop", 0],
+		],
+		"piece 1 lands where the phone shows it, then 0 snaps to it",
+	);
+	assert.deepEqual({ x: sent[1]?.x, y: sent[1]?.y }, seen);
 });

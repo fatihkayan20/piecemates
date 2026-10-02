@@ -1,4 +1,4 @@
-import { type Rect, TAB_SIZE, tableRect } from "@piecemates/game";
+import { type Rect, TAB_SIZE } from "@piecemates/game";
 
 import {
 	type Camera,
@@ -54,8 +54,8 @@ export function followRoom(camera: CameraControl) {
 		};
 		if (snap.status === "done" && prev.status !== "done")
 			return camera.set(fitCamera(board, viewport));
-		if (!prev.grid)
-			return camera.set(startCamera(tableRect(state), state, viewport));
+		if (!prev.grid && snap.bounds)
+			return camera.set(startCamera(snap.bounds, state, viewport));
 		if (snap.view === prev.view) return;
 		if (prev.view === null) tableCamera = camera.get();
 		if (snap.view === null) {

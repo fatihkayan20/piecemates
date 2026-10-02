@@ -6,7 +6,11 @@ import { visibleIn } from "./views.ts";
 /** How close to its spot a piece must be dropped to snap, as a share of the smaller cell side. */
 const SNAP_TOLERANCE = 0.25;
 
-const NEIGHBOURS = [
+/** Snap distance in table units. */
+export const snapTolerance = (state: State) =>
+	SNAP_TOLERANCE * Math.min(state.w, state.h);
+
+export const NEIGHBOURS = [
 	[-1, 0],
 	[1, 0],
 	[0, -1],
@@ -46,7 +50,7 @@ function stick(state: State, group: number, tolerance: number) {
  * joins the puzzle or sticks to the frame leaves the bag.
  */
 export function snap(state: State, group: number) {
-	const tolerance = SNAP_TOLERANCE * Math.min(state.w, state.h);
+	const tolerance = snapTolerance(state);
 	const view = state.pieces.find((p) => p.group === group)?.bag ?? null;
 	const visible = visibleIn(state, view);
 	let stuck = false;
@@ -64,7 +68,10 @@ export function snap(state: State, group: number) {
 					continue;
 				const nIndex = nRow * state.cols + nCol;
 				const neighbour = state.pieces[nIndex] as Piece;
+				// An untouched neighbour sits where each device draws its own pile,
+				// so the room can't tell where it was seen; the client places it first.
 				if (
+					!neighbour.touched ||
 					neighbour.group === group ||
 					neighbour.rot !== member.rot ||
 					!visible.has(nIndex) ||

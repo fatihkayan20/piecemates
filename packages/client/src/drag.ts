@@ -1,4 +1,10 @@
-import { groupOf, isPlaced, lockedByOther, type Point } from "@piecemates/game";
+import {
+	groupOf,
+	isPlaced,
+	lockedByOther,
+	type Point,
+	pileNeighbours,
+} from "@piecemates/game";
 
 import { DROP_TABLE } from "./drop-targets.ts";
 import type { RoomConnection, RoomEvent } from "./room-connection.ts";
@@ -28,7 +34,9 @@ export function beginDrag(conn: RoomConnection, piece: number): Drag | null {
 
 /**
  * Lets go of a drag moved by (dx, dy) table units: into a bag or back to the
- * table when over a drop target, else onto the table at the new spot.
+ * table when over a drop target, else onto the table at the new spot. Untouched
+ * pieces it would snap to as I see them are dropped where I see them first,
+ * since the room only snaps to moved pieces.
  */
 export function finishDrag(
 	conn: RoomConnection,
@@ -45,8 +53,27 @@ export function finishDrag(
 			piece,
 			bag: target === DROP_TABLE ? null : target,
 		});
-	else if (start)
-		conn.send({ type: "drop", piece, x: start.x + dx, y: start.y + dy });
+	else if (start && conn.state) {
+		const dropAt = (m: number) => {
+			const from = drag.starts.get(m) ?? start;
+			return { x: from.x + dx, y: from.y + dy };
+		};
+		const near = pileNeighbours(
+			conn.state,
+			[...drag.starts.keys()],
+			dropAt,
+			(i) => conn.position(i),
+			(i) => conn.visible(i),
+		);
+		for (const n of near) {
+			const at = conn.position(n);
+			conn.send({ type: "lock", piece: n });
+			conn.send({ type: "drop", piece: n, ...at });
+		}
+		// A player holds one group at a time, so take mine back first.
+		if (near.length > 0) conn.send({ type: "lock", piece });
+		conn.send({ type: "drop", piece, ...dropAt(piece) });
+	}
 }
 
 /** In a rotation room, turns the tapped piece's group; returns whether it did. */

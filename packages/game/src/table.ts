@@ -1,8 +1,9 @@
-import type { State } from "./types.ts";
+import { MAX_TABLE_ASPECT, type State } from "./types.ts";
 
 // The table is the board, free space around it to work in, and the pile of
-// loose pieces in rings along the table's outer edge. It has a fixed size, so
-// drops can be kept on it and every device can zoom out to see all of it.
+// loose pieces in rings along the table's outer edge. The room lays the pile
+// out once, but each device draws untouched pieces in a layout shaped to its
+// own screen: the same slot rank, in that device's slots.
 
 export type Point = { x: number; y: number };
 export type Rect = { x: number; y: number; width: number; height: number };
@@ -26,8 +27,8 @@ const layouts = new Map<string, Layout>();
  * side, or both: towards the room's `aspect` so the table suits the screen it
  * was made on, or both ways for rooms without one.
  */
-function layout(state: State): Layout {
-	const { rows, cols, w, h, aspect } = state;
+function layout(state: State, aspect: number | undefined): Layout {
+	const { rows, cols, w, h } = state;
 	const count = rows * cols;
 	const key = `${rows}x${cols}x${w}x${h}x${aspect}`;
 	const cached = layouts.get(key);
@@ -97,39 +98,41 @@ function layout(state: State): Layout {
 	return result;
 }
 
-export const pileSlots = (state: State) => layout(state).slots;
+/** Pile slots for a screen shape; the room's own shape by default. */
+export const pileSlots = (state: State, aspect = state.aspect) =>
+	layout(state, aspect).slots;
 
-/** The whole playing area in table units. Drops are kept inside it. */
-export const tableRect = (state: State) => layout(state).table;
+/** The table for a screen shape in table units; the room's own shape by default. */
+export const tableRect = (state: State, aspect = state.aspect) =>
+	layout(state, aspect).table;
 
-/** Pieces a tidy may move in a view (null = the table): untouched, in that view, not held. */
-export const inPile = (state: State, index: number, view: string | null) => {
-	const piece = state.pieces[index];
-	return (
-		!!piece &&
-		!piece.touched &&
-		piece.bag === view &&
-		state.locks[piece.group] === undefined
-	);
-};
+const ranks = new WeakMap<Point[], Map<string, number>>();
+/** A point's rank among the room's pile slots, or undefined off them. */
+export function slotRank(state: State, p: Point) {
+	const slots = pileSlots(state);
+	let rank = ranks.get(slots);
+	if (!rank) {
+		rank = new Map(slots.map((s, i) => [`${s.x},${s.y}`, i]));
+		ranks.set(slots, rank);
+	}
+	return rank.get(`${p.x},${p.y}`);
+}
 
 /**
- * First pile slot in a view that no piece of that view covers, loose or moved
- * (a moved piece left on a slot still blocks it).
+ * Where drops may land: the room's table and every screen shape's table, so a
+ * piece dropped in any device's pile area stays there.
  */
-export function freeSlot(
-	state: State,
-	view: string | null,
-	except: Point,
-): Point {
-	const slots = pileSlots(state);
-	const others = state.pieces.filter((p) => p !== except && p.bag === view);
-	// ponytail: slots x pieces scan, fine for 1000 pieces on one put.
-	const covered = (s: Point) =>
-		others.some(
-			(p) => Math.abs(p.x - s.x) < state.w && Math.abs(p.y - s.y) < state.h,
-		);
-	return slots.find((s) => !covered(s)) ?? (slots[0] as Point);
+export function playArea(state: State): Rect {
+	const all = [
+		tableRect(state),
+		tableRect(state, MAX_TABLE_ASPECT),
+		tableRect(state, 1 / MAX_TABLE_ASPECT),
+	];
+	const x = Math.min(...all.map((t) => t.x));
+	const y = Math.min(...all.map((t) => t.y));
+	const right = Math.max(...all.map((t) => t.x + t.width));
+	const bottom = Math.max(...all.map((t) => t.y + t.height));
+	return { x, y, width: right - x, height: bottom - y };
 }
 
 /** Whether a piece's centre lies on the board, i.e. it has been placed in the puzzle. */
@@ -141,41 +144,14 @@ export const onBoard = (state: State, p: Point) => {
 	);
 };
 
-/**
- * New positions for a view's pile pieces: packed into the first free slots, keeping
- * their order around the rings (so tidying twice changes nothing). Pieces not
- * sitting in a slot, e.g. from an older layout, go after the others.
- */
-export function tidyPositions(
-	state: State,
-	view: string | null,
-	positionOf: (index: number) => Point,
-): Map<number, Point> {
-	const slots = pileSlots(state);
-	const slotRank = new Map(slots.map((s, rank) => [`${s.x},${s.y}`, rank]));
-	const rankOf = (i: number) => {
-		const p = positionOf(i);
-		return slotRank.get(`${p.x},${p.y}`) ?? slots.length;
-	};
-	const pile = state.pieces
-		.map((_, i) => i)
-		.filter((i) => inPile(state, i, view))
-		.sort((a, b) => {
-			const pa = positionOf(a);
-			const pb = positionOf(b);
-			return rankOf(a) - rankOf(b) || pa.y - pb.y || pa.x - pb.x;
-		});
-	return new Map(pile.map((i, k) => [i, slots[k] as Point]));
-}
-
-/** Shift (dx, dy) so the moved group stays on the table. */
+/** Shift (dx, dy) so the moved group stays in the play area. */
 export function clampToTable(
 	state: State,
 	members: number[],
 	dx: number,
 	dy: number,
 ): Point {
-	const t = tableRect(state);
+	const t = playArea(state);
 	let minX = Number.POSITIVE_INFINITY;
 	let minY = Number.POSITIVE_INFINITY;
 	let maxX = Number.NEGATIVE_INFINITY;

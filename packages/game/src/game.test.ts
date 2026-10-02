@@ -14,7 +14,11 @@ import {
 	onBoard,
 	pause,
 	piecePath,
+	pileNeighbours,
+	pileSlots,
+	playArea,
 	resume,
+	slotRank,
 	tableRect,
 	tidyPositions,
 	visibleIn,
@@ -104,8 +108,11 @@ test("bags keep their groups and hand them to the puzzle on snap", () => {
 	assert.ok(!visibleIn(s, null).has(0), "hidden on the table");
 	assert.deepEqual([...visibleIn(s, "sky")], [0, 1]);
 
-	// Join 0 and 1 inside the bag: they stay in it.
+	// Join 0 and 1 inside the bag: they stay in it. Piece 0 is untouched, so the
+	// client drops it where its player sees it first (see pileNeighbours).
 	const p0 = s.pieces[0] as { x: number; y: number };
+	apply(s, "a", { type: "lock", piece: 0 });
+	apply(s, "a", { type: "drop", piece: 0, x: p0.x, y: p0.y });
 	apply(s, "a", { type: "lock", piece: 1 });
 	apply(s, "a", { type: "drop", piece: 1, x: p0.x + 100, y: p0.y });
 	assert.equal(s.pieces[1]?.group, s.pieces[0]?.group);
@@ -196,8 +203,9 @@ test("pile rings the board, drops stay on the table, tidy is stable", () => {
 	assert.ok(apply(s, "a", { type: "lock", piece: 7 }));
 	assert.ok(apply(s, "a", { type: "drop", piece: 7, x: 1e6, y: -1e6 }));
 	const p7 = s.pieces[7];
-	assert.equal(p7?.x, t.x + t.width - 100, "clamped to the right edge");
-	assert.equal(p7?.y, t.y, "clamped to the top edge");
+	const area = playArea(s);
+	assert.equal(p7?.x, area.x + area.width - 100, "clamped to the right edge");
+	assert.equal(p7?.y, area.y, "clamped to the top edge");
 
 	const at = (i: number) => s.pieces[i] as { x: number; y: number };
 	const once = tidyPositions(s, null, at);
@@ -389,4 +397,62 @@ test("the pile follows the screen shape the room was made on", () => {
 			assert.ok(!onBoard(s, p), "pile starts off the board");
 		}
 	}
+});
+
+test("each screen has its own pile; drops stay in any screen's table", () => {
+	const s = createState({ seed: 3, rows: 6, cols: 9, w: 100, h: 90 });
+	const room = pileSlots(s);
+	const phone = pileSlots(s, 0.5);
+	assert.equal(phone.length, room.length, "a slot for every rank");
+	const p = s.pieces[4] as { x: number; y: number };
+	assert.equal(
+		typeof slotRank(s, p),
+		"number",
+		"pile pieces sit on a room slot",
+	);
+	assert.equal(slotRank(s, { x: 1e6, y: 0 }), undefined);
+
+	const area = playArea(s);
+	for (const t of [
+		tableRect(s),
+		tableRect(s, 4),
+		tableRect(s, 0.25),
+		tableRect(s, 1),
+	]) {
+		assert.ok(t.x >= area.x && t.y >= area.y, "every table fits the play area");
+		assert.ok(t.x + t.width <= area.x + area.width);
+		assert.ok(t.y + t.height <= area.y + area.height);
+	}
+});
+
+test("snaps only to moved pieces; the client places pile neighbours first", () => {
+	const s = createState({ seed: 1, rows: 1, cols: 2, w: 100, h: 100 });
+	// I see piece 1 (untouched) at (500, 500) and drop piece 0 just left of it.
+	const seen = { x: 500, y: 500 };
+	const positionOf = (i: number) =>
+		i === 1 ? seen : (s.pieces[i] as typeof seen);
+	const dropAt = () => ({ x: 405, y: 498 });
+	const all = () => true;
+	assert.deepEqual(pileNeighbours(s, [0], dropAt, positionOf, all), [1]);
+	assert.deepEqual(
+		pileNeighbours(s, [0], () => ({ x: 0, y: 0 }), positionOf, all),
+		[],
+		"too far",
+	);
+	assert.deepEqual(
+		pileNeighbours(s, [0], dropAt, positionOf, () => false),
+		[],
+		"not in my view",
+	);
+
+	apply(s, "a", { type: "lock", piece: 0 });
+	apply(s, "a", { type: "drop", piece: 0, x: 405, y: 498 });
+	assert.notEqual(
+		s.pieces[0]?.group,
+		s.pieces[1]?.group,
+		"no snap to an untouched piece",
+	);
+	apply(s, "a", { type: "lock", piece: 1 });
+	apply(s, "a", { type: "drop", piece: 1, x: seen.x, y: seen.y });
+	assert.equal(s.pieces[0]?.group, s.pieces[1]?.group, "snaps once it's moved");
 });

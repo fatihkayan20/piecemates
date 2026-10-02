@@ -2,19 +2,18 @@ import {
 	apply,
 	type ClientMsg,
 	elapsed,
-	inPile,
 	isComplete,
 	type Player,
 	type Point,
 	type ServerMsg,
 	type State,
-	tidyPositions,
 	visibleIn,
 } from "@piecemates/game";
 import { track } from "@piecemates/telemetry";
 
 import { SECOND } from "./duration.ts";
 import { type Cue, cue, progress } from "./feedback.ts";
+import { LocalPile } from "./local-pile.ts";
 
 export type RoomStatus = "connecting" | "playing" | "done" | "disconnected";
 export type RoomEvent =
@@ -34,8 +33,8 @@ export class RoomConnection {
 	status: RoomStatus = "connecting";
 	/** The bag I'm looking at, or null for the table. Only this device sees it. */
 	view: string | null = null;
-	/** Where my own tidy put pile pieces. Only this device sees these. */
-	private pilePositions = new Map<number, Point>();
+	/** Untouched pieces as this device draws them. Only this device sees these. */
+	readonly pile = new LocalPile();
 	private visibleCache: Set<number> | null = null;
 	private socket: WebSocket;
 	private onEvent: (event: RoomEvent) => void;
@@ -70,14 +69,17 @@ export class RoomConnection {
 			this.socket.send(JSON.stringify({ type: "rename" }));
 	}
 
-	/** Where to draw a piece: my tidied spot while it's still in the pile, else the shared one. */
+	/** Where to draw a piece: my own pile spot while untouched, else the shared one. */
 	position(index: number): Point {
 		const piece = this.state?.pieces[index];
-		const local = this.pilePositions.get(index);
-		if (!piece) return { x: 0, y: 0 };
-		return local && this.state && inPile(this.state, index, piece.bag)
-			? local
-			: piece;
+		if (!piece || !this.state) return { x: 0, y: 0 };
+		return this.pile.at(this.state, index) ?? piece;
+	}
+
+	/** Lays my untouched pieces out for my board's shape (width / height). */
+	setAspect(aspect: number) {
+		this.pile.shape(aspect);
+		this.onEvent({ type: "view" });
 	}
 
 	/** Whether a piece shows in my current view. */
@@ -97,10 +99,7 @@ export class RoomConnection {
 	/** Packs my current view's pile around the board, for this device only. */
 	tidy() {
 		if (!this.state) return;
-		const tidied = tidyPositions(this.state, this.view, (i) =>
-			this.position(i),
-		);
-		for (const [i, p] of tidied) this.pilePositions.set(i, p);
+		this.pile.tidy(this.state, this.view, (i) => this.position(i));
 		this.onEvent({ type: "tidied" });
 	}
 
@@ -136,7 +135,7 @@ export class RoomConnection {
 					heard = "snap";
 				// A piece that changed view lands in a new pile slot; forget my old tidy spot.
 				this.state.pieces.forEach((p, i) => {
-					if (p.bag !== bags[i]) this.pilePositions.delete(i);
+					if (p.bag !== bags[i]) this.pile.forget(i);
 				});
 				break;
 			}

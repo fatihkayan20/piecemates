@@ -6,9 +6,9 @@ import {
 	RESIZE_DEBOUNCE_MS,
 	resizeCamera,
 	roomStore,
+	setBoardSize,
 	zoomAt,
 } from "@piecemates/client";
-import { tableRect } from "@piecemates/game";
 import type { Container, Rectangle } from "pixi.js";
 
 type Point = { x: number; y: number };
@@ -18,10 +18,8 @@ const WHEEL_ZOOM = 0.001;
 
 /** The camera is the world container's position and scale: screen = camera + scale * table. */
 export function createCamera(world: Container, screen: Rectangle) {
-	const table = () => {
-		const state = roomStore.getState().conn?.state;
-		return state ? tableRect(state) : null;
-	};
+	/** My table and every piece on it (see `viewBounds`). */
+	const table = () => roomStore.getState().bounds;
 	const get = (): Camera => ({ x: world.x, y: world.y, scale: world.scale.x });
 	/** Every camera change goes through here, so the table stays on screen. */
 	const set = (next: Camera) => {
@@ -36,10 +34,11 @@ export function createCamera(world: Container, screen: Rectangle) {
 		get,
 		set,
 		viewport: () => screen,
-		/** Keeps the zoom and centre point when the canvas changes size. */
+		/** Keeps the zoom and centre point when the canvas changes size, and lays my pile out for it. */
 		resize: debounce(() => {
-			const bounds = table();
 			const to = { width: screen.width, height: screen.height };
+			setBoardSize(to);
+			const bounds = table();
 			if (bounds) set(resizeCamera(get(), bounds, last, to));
 			last = to;
 		}, RESIZE_DEBOUNCE_MS),
