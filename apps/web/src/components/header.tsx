@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { ModeToggle } from "./mode-toggle";
-import { UserMenu } from "./user-menu";
+import { AppSettingsSheet } from "./settings/app-settings-sheet";
 
 export function Header() {
 	const { t } = useTranslation();
@@ -20,10 +19,7 @@ export function Header() {
 					{t("nav.history")}
 				</Link>
 			</nav>
-			<div className="flex items-center gap-2">
-				<ModeToggle />
-				<UserMenu />
-			</div>
+			<AppSettingsSheet />
 		</header>
 	);
 }

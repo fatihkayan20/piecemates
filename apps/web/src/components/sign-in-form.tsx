@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import z from "zod";
 
+import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 
 import { Loader } from "./loader";
@@ -36,6 +37,8 @@ export function SignInForm({
 				},
 				{
 					onSuccess: () => {
+						// A guest's rooms moved to this account.
+						void api.queryClient.invalidateQueries();
 						navigate({
 							to: "/",
 						});

@@ -1,4 +1,4 @@
-import { PASSWORD_MIN } from "@piecemates/client";
+import { NAME_MIN, PASSWORD_MIN } from "@piecemates/client";
 import { Button } from "@piecemates/ui/components/button";
 import { Input } from "@piecemates/ui/components/input";
 import { Label } from "@piecemates/ui/components/label";
@@ -8,11 +8,10 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import z from "zod";
 
+import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 
 import { Loader } from "./loader";
-
-const NAME_MIN = 2;
 
 export function SignUpForm({
 	onSwitchToSignIn,
@@ -40,6 +39,8 @@ export function SignUpForm({
 				},
 				{
 					onSuccess: () => {
+						// A guest's rooms moved to this account.
+						void api.queryClient.invalidateQueries();
 						navigate({
 							to: "/",
 						});

@@ -11,6 +11,7 @@ import { useRoom } from "@/hooks/use-room";
 import { useSettings } from "@/hooks/use-settings";
 
 import { BoardControls } from "./board-controls";
+import { HomeLink } from "./home-link";
 import { RoomActions } from "./room-actions";
 
 /** A room: bags and room actions on top, the table, controls (or the win) at the bottom. */
@@ -30,6 +31,7 @@ export function PuzzleBoard({ room }: { room: RoomInfo }) {
 		>
 			{/* Kept outside the canvas so the table never sits under the bars. */}
 			<div className="flex items-center gap-2 p-3 text-sm">
+				<HomeLink />
 				<BagBar />
 				<RoomActions room={room} />
 			</div>

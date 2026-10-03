@@ -1,5 +1,7 @@
 /** Shortest password Better Auth accepts; the sign-up forms check it too. */
 export const PASSWORD_MIN = 8;
+/** Shortest account name the sign-up forms accept. */
+export const NAME_MIN = 2;
 
 /** The first readable message in an auth or form error (a string, an Error-like object, or a list of them). */
 export function getErrorMessage(error: unknown): string | null {

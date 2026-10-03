@@ -4,6 +4,7 @@ type Signed = { data: { user: { id: string } } | null };
 type AnonymousAuthClient = {
 	getSession: () => Promise<Signed>;
 	signIn: { anonymous: () => Promise<Signed> };
+	signOut: () => Promise<unknown>;
 };
 
 /**
@@ -24,4 +25,11 @@ export function createEnsureSession(authClient: AnonymousAuthClient) {
 		});
 		return ready;
 	};
+}
+
+/** Signing out leaves me a fresh guest, since every player needs a user id. */
+export async function signOutToGuest(authClient: AnonymousAuthClient) {
+	await authClient.signOut();
+	const { data } = await authClient.signIn.anonymous();
+	if (data) identify(data.user.id);
 }

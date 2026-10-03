@@ -14,6 +14,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 import "../index.css";
 
+const ROOM_PATH = "/room/";
+
 export type RouterAppContext = Record<string, never>;
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
@@ -38,8 +40,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootComponent() {
+	const path = useLocation({ select: (l) => l.pathname });
 	// The privacy policy is a plain page, also shown inside the app's browser.
-	const plain = useLocation({ select: (l) => l.pathname === PRIVACY_PATH });
+	const plain = path === PRIVACY_PATH;
+	// A room keeps the whole screen for the table; it has its own way home.
+	const inRoom = path.startsWith(ROOM_PATH);
 	return (
 		<>
 			<HeadContent />
@@ -51,6 +56,10 @@ function RootComponent() {
 			>
 				{plain ? (
 					<Outlet />
+				) : inRoom ? (
+					<div className="h-svh">
+						<Outlet />
+					</div>
 				) : (
 					<div className="grid h-svh grid-rows-[auto_1fr]">
 						<Header />

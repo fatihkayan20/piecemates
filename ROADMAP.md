@@ -23,7 +23,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Universal links and app links**: `https://<web>/room/CODE` opens the app when it's installed. Needs the production web domain, an `apple-app-site-association` (with the Apple Team ID, a paid account) and `assetlinks.json` served from it, plus `associatedDomains` / `intentFilters` in `app.json`. Set `EXPO_PUBLIC_WEB_URL` for production builds.
 - [ ] **Room header buttons on Android**: share, players and settings use `unstable_headerRightItems`, which is iOS only; add `headerRight` buttons for Android (TODO in `room-header-items.tsx`).
 - [ ] **Replace `with-ios-scene.js`**: try `expo-build-properties` instead of the custom plugin.
-- [ ] **Player colours**: pieces locked by others are tinted in that player's colour instead of only dimmed.
 - [ ] **Name prompt on Android**: `askName` uses `Alert.prompt`, which is iOS only; Android needs its own input.
 - [ ] **More samples per category**: `samples.list` already pages by 30; Home shows only the first page. Add "Show more" once categories grow past it.
 - [ ] **Photo uploads, later steps**:
@@ -63,7 +62,8 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
-- [x] **Privacy policy**: a plain `/privacy` page on the web (no header, so it reads well in the app's browser) says what we collect, store, delete and share (Cloudflare, PostHog, Sentry, Unsplash). The web account menu links to it, and native Settings > About opens it with `expo-web-browser` at `EXPO_PUBLIC_WEB_URL`. Requests go to the contact email on the page.
+- [x] **Account and settings on web and native**: web's header is just Piecemates, History and a settings gear. The gear opens a sheet like native's Settings tab: Account, Puzzle (the room sheet's controls, now shared), dark mode and the privacy policy. Rooms have no header (a back button sits in the top row). The template Dashboard, theme menu and user menu are gone. Guests see "Link account" (sign up or sign in; their rooms move over) instead of Sign out; linked players see their email and Sign out, which leaves them a fresh guest (`signOutToGuest`). Native Settings has the same Account section, and Link account is a SwiftUI form in the app's monochrome look, replacing the unused template sign-in/up components.
+- [x] **Privacy policy**: a plain `/privacy` page on the web (no header, so it reads well in the app's browser) says what we collect, store, delete and share (Cloudflare, PostHog, Sentry, Unsplash). The web settings sheet links to it, and native Settings > About opens it with `expo-web-browser` at `EXPO_PUBLIC_WEB_URL`. Requests go to the contact email on the page.
 - [x] **Unsplash credit wherever a sample shows (§9, §4)**: Home says "Photos from Unsplash" and names each tile's photographer (linked); Continue and History rows, the room (under the board) and its reference image say "Photo by … on Unsplash". Rooms keep their sample (`rooms.sample_id`, older rooms backfilled by image URL). Every link carries `utm_source=piecemates`. `cb2e9c1`
 - [x] **Every room starts fully zoomed out**: the first view is always the whole table, at any piece count, and players zoom in from there (big rooms used to start zoomed in on the top of the pile). `0f2617e`
 - [x] **Default piece count by screen (from the Jigsaw Explorer comparison)**: the new room sheet preselects 48 pieces on a phone (shorter side under 600px) and 96 on bigger screens, so a phone's whole table fits without zooming. `2225b55`
