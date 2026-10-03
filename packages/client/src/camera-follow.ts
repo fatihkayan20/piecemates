@@ -4,7 +4,6 @@ import {
 	type Camera,
 	fitCamera,
 	frameCamera,
-	startCamera,
 	type Viewport,
 } from "./camera.ts";
 import type { RoomConnection } from "./room-connection.ts";
@@ -54,8 +53,9 @@ export function followRoom(camera: CameraControl) {
 		};
 		if (snap.status === "done" && prev.status !== "done")
 			return camera.set(fitCamera(board, viewport));
+		// A room starts on the whole table; players zoom in from there.
 		if (!prev.grid && snap.bounds)
-			return camera.set(startCamera(snap.bounds, state, viewport));
+			return camera.set(fitCamera(snap.bounds, viewport));
 		if (snap.view === prev.view) return;
 		if (prev.view === null) tableCamera = camera.get();
 		if (snap.view === null) {

@@ -5,12 +5,6 @@ export type Camera = { x: number; y: number; scale: number };
 export type Viewport = { width: number; height: number };
 
 const MAX_SCALE = 4;
-/**
- * Smallest a piece's longer side may start on screen, in pixels: above it the
- * room starts on the whole table (as Jigsaw Explorer does), below it zoomed in
- * so a finger can still pick pieces up.
- */
-export const START_PIECE_PX = 24;
 /** Largest a piece gets when the camera frames a few pieces. */
 const FRAME_PIECE_PX = 120;
 /**
@@ -39,23 +33,6 @@ const centreOn = (bounds: Rect, scale: number, viewport: Viewport) => ({
 
 /** Piece size in table units, for the pixel limits below. */
 type PieceSize = { w: number; h: number };
-
-/**
- * The first view of a room: the whole table, unless its pieces would be too
- * small to pick up; then zoomed in on the top of the pile.
- */
-export function startCamera(
-	table: Rect,
-	piece: PieceSize,
-	viewport: Viewport,
-): Camera {
-	const fit = fitCamera(table, viewport);
-	const scale = START_PIECE_PX / Math.max(piece.w, piece.h);
-	if (fit.scale >= scale) return fit;
-	// Centred on the top edge; clamping then pulls the edge up to the screen's.
-	const top = centreOn({ ...table, height: 0 }, scale, viewport);
-	return clampCamera(top, table, viewport);
-}
 
 /** Centres `bounds` in the viewport without making a piece bigger than FRAME_PIECE_PX. */
 export function frameCamera(

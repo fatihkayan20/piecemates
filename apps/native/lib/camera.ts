@@ -3,12 +3,12 @@ import {
 	type CameraControl,
 	clampCamera,
 	debounce,
+	fitCamera,
 	pinchCamera,
 	RESIZE_DEBOUNCE_MS,
 	resizeCamera,
 	roomStore,
 	setBoardSize,
-	startCamera,
 } from "@piecemates/client";
 import { makeMutable } from "react-native-reanimated";
 
@@ -78,9 +78,8 @@ export function setViewport({
 	followed = { ...viewport };
 	setBoardSize(viewport);
 	// Usually the room loads after this layout, and `followRoom` starts the view.
-	const { conn, bounds } = roomStore.getState();
-	if (conn?.state && bounds)
-		setCamera(startCamera(bounds, conn.state, viewport));
+	const { bounds } = roomStore.getState();
+	if (bounds) setCamera(fitCamera(bounds, viewport));
 }
 
 export const panBy = (dx: number, dy: number) => {

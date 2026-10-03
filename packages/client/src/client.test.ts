@@ -28,11 +28,9 @@ import {
 	RoomConnection,
 	type RoomEvent,
 	resizeCamera,
-	START_PIECE_PX,
 	setBackground,
 	setHaptics,
 	settingsStore,
-	startCamera,
 	zoomAt,
 } from "./index.ts";
 
@@ -69,29 +67,12 @@ test("camera fits the table and zooms around a fixed point", () => {
 	);
 });
 
-test("big rooms start zoomed in; frames and pinches keep pieces usable", () => {
+test("frames and pinches keep pieces usable", () => {
 	const viewport = { width: 400, height: 800 };
 	const piece = { w: 100, h: 100 };
-	const small = createState({ seed: 1, rows: 2, cols: 2, ...piece });
-	const smallTable = tableRect(small);
-	const wide = { width: 800, height: 800 };
-	assert.deepEqual(
-		startCamera(smallTable, piece, wide),
-		fitCamera(smallTable, wide),
-		"a small room shows the whole table",
-	);
 	const big = createState({ seed: 1, rows: 26, cols: 38, ...piece });
 	const table = tableRect(big);
-	const start = startCamera(table, piece, viewport);
-	assert.equal(
-		start.scale * piece.w,
-		START_PIECE_PX,
-		"pieces start big enough to pick up",
-	);
-	assert.ok(
-		Math.abs(start.y + table.y * start.scale - 32) < 1e-6,
-		"top of the pile, padded",
-	);
+	const start = fitCamera(table, viewport);
 
 	const one = { x: 0, y: 0, width: 100, height: 100 };
 	assert.equal(frameCamera(one, piece, viewport).scale, 1.2, "capped zoom");
