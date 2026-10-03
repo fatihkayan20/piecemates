@@ -1,3 +1,4 @@
+import { PRIVACY_PATH } from "@piecemates/client";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
@@ -10,6 +11,7 @@ export function Header() {
 		{ to: "/", label: t("nav.home") },
 		{ to: "/history", label: t("nav.history") },
 		{ to: "/dashboard", label: t("nav.dashboard") },
+		{ to: PRIVACY_PATH, label: t("nav.privacy") },
 	] as const;
 
 	return (

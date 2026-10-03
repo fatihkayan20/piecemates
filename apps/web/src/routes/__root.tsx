@@ -1,8 +1,10 @@
+import { PRIVACY_PATH } from "@piecemates/client";
 import { Toaster } from "@piecemates/ui/components/sonner";
 import {
 	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
+	useLocation,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import i18next from "i18next";
@@ -36,6 +38,8 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootComponent() {
+	// The privacy policy is a plain page, also shown inside the app's browser.
+	const plain = useLocation({ select: (l) => l.pathname === PRIVACY_PATH });
 	return (
 		<>
 			<HeadContent />
@@ -45,10 +49,14 @@ function RootComponent() {
 				disableTransitionOnChange
 				storageKey="vite-ui-theme"
 			>
-				<div className="grid h-svh grid-rows-[auto_1fr]">
-					<Header />
+				{plain ? (
 					<Outlet />
-				</div>
+				) : (
+					<div className="grid h-svh grid-rows-[auto_1fr]">
+						<Header />
+						<Outlet />
+					</div>
+				)}
 				<Toaster richColors />
 			</ThemeProvider>
 			<TanStackRouterDevtools position="bottom-left" />

@@ -12,6 +12,7 @@ export const en = {
 		history: "History",
 		settings: "Settings",
 		dashboard: "Dashboard",
+		privacy: "Privacy",
 		notFound: "Not found",
 		pageNotFound: "Page not found",
 		pageMissing: "The page you're looking for doesn't exist.",
@@ -157,6 +158,8 @@ export const en = {
 		haptics: "Haptics",
 		music: "Music",
 		musicHint: "Tap a track to listen.",
+		about: "About",
+		privacyPolicy: "Privacy policy",
 	},
 	music: {
 		off: "Off",

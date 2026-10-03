@@ -5,7 +5,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 ## Urgent or easy fixes Prio 1
 
 - [ ] **Unsplash terms: close these gaps before launch** (checked against the [API Terms](https://unsplash.com/api-terms), [API Guidelines](https://help.unsplash.com/en/articles/2511245-unsplash-api-guidelines) and [License](https://unsplash.com/license) on 2026-09-27; not legal advice). Breaking §6 is a "material breach", and any breach ends our API rights without notice (§19).
-  - **A published privacy policy (§5)**: required for every app using the API (and by the App Store anyway). It must say what we collect, store and delete, and what we share with third parties (Unsplash gets image views through the hotlinked URLs and downloads through our calls).
+  - **A published privacy policy (§5)**: done, see Done. It goes live with the next web deploy at `piecemates.fatihkayan.dev/privacy`; update it whenever we collect or share something new.
   - **"Non-automated" use**: the guidelines say the API is for "non-automated, high-quality, and authentic experiences", and §12 lets Unsplash add rules for automated use. Our daily Cron sync is automated (at most 30 calls a run). Said so in the production application (2026-10-03); waiting for their OK in writing.
   - **Stopping means stopping (§19)**: if Unsplash ends our access, we must stop using the API at once, but §6 (hotlinking and download tracking) keeps applying forever. So "turn the sync off and keep the photos" only works while we keep hotlinking and sending download events; if access ends, hide the Unsplash samples. Never copy them to R2: §6 requires the hotlinked URLs, and the Unsplash License forbids compiling its photos into a similar or competing service.
   - **Keep it a puzzle app**: the guidelines forbid selling unaltered photos and replicating Unsplash's core experience (unofficial clients, wallpaper apps). Don't add photo search, downloading or saving the original, or a wallpaper feature.
@@ -47,7 +47,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **AI playtest once more**: play one large puzzle the way a person would, to find issues and improvements. An orchestrator starts two sub-agents, one driving iOS and one driving web, each with its own focus (e.g. bagging edge pieces vs. building the middle). They only get the app and what it does, and report back as users.
 
 - [ ] **Delete account**: players can delete their account in the app (App Store requirement), with their sessions and room memberships.
-- [ ] **Privacy policy and terms links**: Settings links to the privacy policy and terms of service.
+- [ ] **Terms of service**: a terms page next to the privacy policy, linked from Settings.
 
 - [ ] **Real music tracks**: the three ambient loops are generated placeholders (a small synth script, ~390 KB AAC each); swap in licensed tracks under the same ids (`calm`, `drift`, `night`) in `apps/*/assets/music`.
 - [ ] **Room saves on every move**: the room writes its whole state (about 60 KB at 1000 pieces) to Durable Object storage on every accepted message, locks included. Fine for now; if writes or CPU show up in the Cloudflare dashboard, save per piece or batch saves (locks must survive hibernation, so they can't simply be skipped).
@@ -63,6 +63,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
+- [x] **Privacy policy**: a plain `/privacy` page on the web (no header, so it reads well in the app's browser) says what we collect, store, delete and share (Cloudflare, PostHog, Sentry, Unsplash). The web header links to it, and native Settings > About opens it with `expo-web-browser` at `EXPO_PUBLIC_WEB_URL`. Requests go to the contact email on the page.
 - [x] **Unsplash credit wherever a sample shows (§9, §4)**: Home says "Photos from Unsplash" and names each tile's photographer (linked); Continue and History rows, the room (under the board) and its reference image say "Photo by … on Unsplash". Rooms keep their sample (`rooms.sample_id`, older rooms backfilled by image URL). Every link carries `utm_source=piecemates`. `cb2e9c1`
 - [x] **Every room starts fully zoomed out**: the first view is always the whole table, at any piece count, and players zoom in from there (big rooms used to start zoomed in on the top of the pile). `0f2617e`
 - [x] **Default piece count by screen (from the Jigsaw Explorer comparison)**: the new room sheet preselects 48 pieces on a phone (shorter side under 600px) and 96 on bigger screens, so a phone's whole table fits without zooming. `2225b55`

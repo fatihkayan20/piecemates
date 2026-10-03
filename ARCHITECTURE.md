@@ -8,7 +8,7 @@ How Piecemates fits together, for planning and for picking the project back up. 
 flowchart LR
   subgraph Clients["Clients (render + input only)"]
     direction TB
-    Web["apps/web<br/>TanStack Router + PixiJS<br/>routes: / , /history, /room/$code"]
+    Web["apps/web<br/>TanStack Router + PixiJS<br/>routes: / , /history, /room/$code, /privacy"]
     Native["apps/native<br/>Expo Router + Skia<br/>native tabs: Home, History, Settings;<br/>room/[code] over the tabs"]
   end
 
