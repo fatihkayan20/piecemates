@@ -1,4 +1,3 @@
-import { PRIVACY_PATH } from "@piecemates/client";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
@@ -7,31 +6,24 @@ import { UserMenu } from "./user-menu";
 
 export function Header() {
 	const { t } = useTranslation();
-	const links = [
-		{ to: "/", label: t("nav.home") },
-		{ to: "/history", label: t("nav.history") },
-		{ to: "/dashboard", label: t("nav.dashboard") },
-		{ to: PRIVACY_PATH, label: t("nav.privacy") },
-	] as const;
-
 	return (
-		<div>
-			<div className="flex flex-row items-center justify-between px-2 py-1">
-				<nav className="flex gap-4 text-lg">
-					{links.map(({ to, label }) => {
-						return (
-							<Link key={to} to={to}>
-								{label}
-							</Link>
-						);
-					})}
-				</nav>
-				<div className="flex items-center gap-2">
-					<ModeToggle />
-					<UserMenu />
-				</div>
+		<header className="flex items-center justify-between gap-4 border-b px-4 py-2">
+			<nav className="flex items-center gap-5">
+				<Link to="/" className="font-semibold text-lg">
+					{t("app.name")}
+				</Link>
+				<Link
+					to="/history"
+					className="text-muted-foreground text-sm hover:text-foreground"
+					activeProps={{ className: "text-foreground" }}
+				>
+					{t("nav.history")}
+				</Link>
+			</nav>
+			<div className="flex items-center gap-2">
+				<ModeToggle />
+				<UserMenu />
 			</div>
-			<hr />
-		</div>
+		</header>
 	);
 }

@@ -63,7 +63,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
-- [x] **Privacy policy**: a plain `/privacy` page on the web (no header, so it reads well in the app's browser) says what we collect, store, delete and share (Cloudflare, PostHog, Sentry, Unsplash). The web header links to it, and native Settings > About opens it with `expo-web-browser` at `EXPO_PUBLIC_WEB_URL`. Requests go to the contact email on the page.
+- [x] **Privacy policy**: a plain `/privacy` page on the web (no header, so it reads well in the app's browser) says what we collect, store, delete and share (Cloudflare, PostHog, Sentry, Unsplash). The web account menu links to it, and native Settings > About opens it with `expo-web-browser` at `EXPO_PUBLIC_WEB_URL`. Requests go to the contact email on the page.
 - [x] **Unsplash credit wherever a sample shows (§9, §4)**: Home says "Photos from Unsplash" and names each tile's photographer (linked); Continue and History rows, the room (under the board) and its reference image say "Photo by … on Unsplash". Rooms keep their sample (`rooms.sample_id`, older rooms backfilled by image URL). Every link carries `utm_source=piecemates`. `cb2e9c1`
 - [x] **Every room starts fully zoomed out**: the first view is always the whole table, at any piece count, and players zoom in from there (big rooms used to start zoomed in on the top of the pile). `0f2617e`
 - [x] **Default piece count by screen (from the Jigsaw Explorer comparison)**: the new room sheet preselects 48 pieces on a phone (shorter side under 600px) and 96 on bigger screens, so a phone's whole table fits without zooming. `2225b55`

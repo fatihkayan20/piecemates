@@ -1,3 +1,4 @@
+import { PRIVACY_PATH } from "@piecemates/client";
 import { Button } from "@piecemates/ui/components/button";
 import {
 	DropdownMenu,
@@ -40,7 +41,12 @@ export function UserMenu() {
 				<DropdownMenuGroup>
 					<DropdownMenuLabel>{t("account.myAccount")}</DropdownMenuLabel>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+					{!session.user.isAnonymous && (
+						<DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+					)}
+					<DropdownMenuItem render={<Link to={PRIVACY_PATH} />}>
+						{t("nav.privacy")}
+					</DropdownMenuItem>
 					<DropdownMenuItem
 						variant="destructive"
 						onClick={() => {
