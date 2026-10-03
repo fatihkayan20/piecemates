@@ -45,6 +45,7 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Cloudflare overview**: usage, limits and monitoring for Workers, Durable Objects, D1 and R2 on the free plan.
 - [ ] **AI playtest once more**: play one large puzzle the way a person would, to find issues and improvements. An orchestrator starts two sub-agents, one driving iOS and one driving web, each with its own focus (e.g. bagging edge pieces vs. building the middle). They only get the app and what it does, and report back as users.
 
+- [ ] **Room cap when a guest links**: signing in from a guest moves the guest's rooms into the account (`onLinkAccount` in `packages/auth`) without checking the open-room cap, so a player can end up over it (seen in testing: 3 + 3 = 6). Home still blocks new rooms until they finish or abandon some; decide whether that's fine or whether linking should abandon or refuse the extras.
 - [ ] **Delete account**: players can delete their account in the app (App Store requirement), with their sessions and room memberships.
 - [ ] **Terms of service**: a terms page next to the privacy policy, linked from Settings.
 

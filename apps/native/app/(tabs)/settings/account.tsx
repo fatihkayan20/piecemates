@@ -5,7 +5,7 @@ import {
 	frame,
 	multilineTextAlignment,
 } from "@expo/ui/swift-ui/modifiers";
-import { Redirect, Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useThemeColor } from "heroui-native";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,9 +24,11 @@ export default function Account() {
 	const { data: session } = authClient.useSession();
 	const linked = session?.user.isAnonymous === false;
 	useEffect(() => {
-		if (linked) void api.queryClient.invalidateQueries();
+		if (!linked) return;
+		void api.queryClient.invalidateQueries();
+		// Back to the Settings already under this screen, not a new one.
+		router.back();
 	}, [linked]);
-	if (linked) return <Redirect href="/settings" />;
 	return (
 		<AppHost style={{ flex: 1 }}>
 			<Stack.Screen options={{ title: t("account.linkAccount") }} />

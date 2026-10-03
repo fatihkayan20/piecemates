@@ -3,8 +3,10 @@ import {
 	Picker,
 	Section,
 	SecureField,
+	type SecureFieldRef,
 	Text,
 	TextField,
+	type TextFieldRef,
 } from "@expo/ui/swift-ui";
 import {
 	autocorrectionDisabled,
@@ -24,7 +26,7 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 import { NAME_MIN, PASSWORD_MIN } from "@piecemates/client";
 import { useThemeColor } from "heroui-native";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import z from "zod";
 
@@ -49,6 +51,8 @@ export function LinkAccountForm() {
 	const [error, setError] = useState<string>();
 	const [busy, setBusy] = useState(false);
 	const signingUp = mode === "signUp";
+	const emailRef = useRef<TextFieldRef>(null);
+	const passwordRef = useRef<SecureFieldRef>(null);
 
 	const submit = async () => {
 		const parsed = z
@@ -106,10 +110,15 @@ export function LinkAccountForm() {
 					<TextField
 						placeholder={t("account.name")}
 						onTextChange={setName}
-						modifiers={[textContentType("name"), submitLabel("next")]}
+						modifiers={[
+							textContentType("name"),
+							submitLabel("next"),
+							onSubmit(() => void emailRef.current?.focus()),
+						]}
 					/>
 				)}
 				<TextField
+					ref={emailRef}
 					placeholder={t("account.email")}
 					onTextChange={setEmail}
 					modifiers={[
@@ -118,9 +127,11 @@ export function LinkAccountForm() {
 						textInputAutocapitalization("never"),
 						autocorrectionDisabled(),
 						submitLabel("next"),
+						onSubmit(() => void passwordRef.current?.focus()),
 					]}
 				/>
 				<SecureField
+					ref={passwordRef}
 					placeholder={t("account.password")}
 					onTextChange={setPassword}
 					modifiers={[
