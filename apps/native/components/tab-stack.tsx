@@ -22,6 +22,7 @@ export function TabStack({
 				headerTintColor: foreground,
 				headerTitleStyle: { color: foreground },
 				headerLargeTitleStyle: { color: foreground },
+				headerBackButtonDisplayMode: "minimal",
 			}}
 		>
 			<Stack.Screen name="index" options={{ title }} />
