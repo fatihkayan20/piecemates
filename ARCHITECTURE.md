@@ -98,7 +98,7 @@ sequenceDiagram
   P->>C: Home
   C->>W: rooms.list {open} (Continue, cached, refetched after a mutation or opening a room)
   C->>W: samples.featured, samples.list {category}
-  P->>C: pick a sample or a photo, piece count, rotated pieces (sheet)
+  P->>C: pick a sample or a photo, piece count (48 on a phone, 96 bigger), rotated pieces (sheet)
   opt a photo
     C->>W: uploads.create {type, size}
     W->>D1: check credits (user and IP), insert uploads row

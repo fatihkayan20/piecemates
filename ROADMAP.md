@@ -64,6 +64,9 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
+- [x] **Default piece count by screen (from the Jigsaw Explorer comparison)**: the new room sheet preselects 48 pieces on a phone (shorter side under 600px) and 96 on bigger screens, so a phone's whole table fits without zooming. `2225b55`
+- [x] **Piece bevel and shadow**: a light rim inside every piece's edge, and a flat drop shadow under loose pieces (placed ones lie flat), so pieces read against the table and each other. No filters; checked at 988 pieces (web 120fps zooming the whole table, iOS no hangs while pinching). `095c96b`
+- [x] **Resize keeps the whole-table view**: after a window resize (which also re-lays out my pile), the camera no longer stays zoomed in past the whole table. The name dialog's Continue button fits on a phone again (fixed by the viewport change that stops iOS zooming into inputs). `d20cdc8`
 - [x] **Placement and start zoom (checked against Jigsaw Explorer on a phone and a desktop)**: a new room's pile grows towards the shape of the screen it was made on (`aspect`), so a portrait phone gets the pile above and below the board, and it packs tighter (1.25-cell slots, less free space); older rooms keep their layout. Rooms start on the whole table unless a piece's longer side would be under 24px. `a7967f8` `3c49190`
 - [x] **Each screen gets its own pile**: in a shared room, every device lays out the pieces nobody has moved for its own board (phone, iPad and Mac each get a pile that fits), and re-lays them out on resize; moved pieces stay shared. Dropping a piece next to its partner in the pile still snaps. `7ec6578`
 - [x] **Open-room cap and cleared rooms**: a room the daily cleanup cleared no longer counts, so joining no longer says "room full" by mistake. `2bdf799`
