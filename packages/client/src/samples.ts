@@ -10,14 +10,25 @@ export const BAG_COLORS = [
 
 /** The piece count a new room starts with, before the player picks one. */
 const DEFAULT_PIECES = 100;
+/** Phones start smaller, so the whole table fits without zooming. */
+const PHONE_PIECES = 48;
+/** A screen whose shorter side is under this (CSS px / points) is a phone. */
+const PHONE_SHORT_SIDE = 600;
 
-/** The grid option closest to DEFAULT_PIECES. */
-export const defaultGrid = <T extends { count: number }>(options: T[]) =>
-	options.reduce<T | undefined>(
+/** The grid option closest to the default piece count for this screen. */
+export const defaultGrid = <T extends { count: number }>(
+	options: T[],
+	screen: { width: number; height: number },
+) => {
+	const target =
+		Math.min(screen.width, screen.height) < PHONE_SHORT_SIDE
+			? PHONE_PIECES
+			: DEFAULT_PIECES;
+	return options.reduce<T | undefined>(
 		(best, o) =>
-			!best ||
-			Math.abs(o.count - DEFAULT_PIECES) < Math.abs(best.count - DEFAULT_PIECES)
+			!best || Math.abs(o.count - target) < Math.abs(best.count - target)
 				? o
 				: best,
 		undefined,
 	);
+};

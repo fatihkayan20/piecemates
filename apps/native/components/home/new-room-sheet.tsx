@@ -58,7 +58,9 @@ export function NewRoomSheet({
 	const { t } = useTranslation();
 	const style = useSheetStyle();
 	const options = gridOptions(image.width, image.height);
-	const [count, setCount] = useState(defaultGrid(options)?.count);
+	const [count, setCount] = useState(
+		defaultGrid(options, Dimensions.get("window"))?.count,
+	);
 	const [rotate, setRotate] = useState(false);
 	const { mutateAsync, isPending } = useMutation(api.createRoom());
 	const [open, setOpen] = useState(true);

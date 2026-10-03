@@ -40,7 +40,9 @@ export function NewRoomSheet({
 	const options = image ? gridOptions(image.width, image.height) : [];
 	// A count picked for another image falls back to the default.
 	const [count, setCount] = useState<number>();
-	const grid = options.find((o) => o.count === count) ?? defaultGrid(options);
+	const grid =
+		options.find((o) => o.count === count) ??
+		defaultGrid(options, { width: innerWidth, height: innerHeight });
 	const [rotate, setRotate] = useState(false);
 	const { mutateAsync, isPending } = useMutation(api.createRoom());
 
