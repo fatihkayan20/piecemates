@@ -48,7 +48,7 @@ export function PhotoTiles({
 					key={sample.id}
 					sample={sample}
 					disabled={disabled}
-					className={TILE}
+					className="w-[31%] self-start"
 					onPick={onPick}
 				/>
 			))}

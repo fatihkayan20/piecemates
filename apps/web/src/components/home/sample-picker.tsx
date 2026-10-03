@@ -1,12 +1,17 @@
 import type { PickedImage } from "@piecemates/client";
-import { SAMPLE_CATEGORIES, type SampleCategory } from "@piecemates/game";
+import {
+	SAMPLE_CATEGORIES,
+	type SampleCategory,
+	UNSPLASH_URL,
+} from "@piecemates/game";
 import { Button } from "@piecemates/ui/components/button";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 
 import { PhotoTiles } from "@/components/home/photo-tiles";
 import { SampleTile } from "@/components/home/sample-tile";
+import { CREDIT_LINK } from "@/components/sample-credit";
 import { api } from "@/lib/api";
 
 /** A featured tile is 10rem wide. */
@@ -26,6 +31,22 @@ export function SamplePicker({
 	const { data: samples = [] } = useQuery(api.samples(category));
 	return (
 		<div className="grid gap-3">
+			<p className="text-muted-foreground text-xs">
+				<Trans
+					i18nKey="home.samplesFrom"
+					components={{
+						unsplash: (
+							// biome-ignore lint/a11y/useAnchorContent: Trans fills in "Unsplash".
+							<a
+								href={UNSPLASH_URL}
+								target="_blank"
+								rel="noreferrer"
+								className={CREDIT_LINK}
+							/>
+						),
+					}}
+				/>
+			</p>
 			{featured.length > 0 && (
 				<>
 					<h3 className="text-muted-foreground text-sm">

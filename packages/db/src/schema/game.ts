@@ -8,6 +8,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 import { user } from "./auth";
+import { samples } from "./samples";
 
 // Live piece state lives in each room's Durable Object; D1 only indexes rooms.
 export const rooms = sqliteTable(
@@ -18,6 +19,10 @@ export const rooms = sqliteTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		imageUrl: text("image_url").notNull(),
+		// The catalogue photo it was cut from, for "Photo by … on Unsplash"; null for uploads.
+		sampleId: text("sample_id").references(() => samples.id, {
+			onDelete: "set null",
+		}),
 		seed: integer("seed").notNull(),
 		rows: integer("rows").notNull(),
 		cols: integer("cols").notNull(),

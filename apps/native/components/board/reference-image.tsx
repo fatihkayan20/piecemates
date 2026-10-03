@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Modal, Pressable, Text } from "react-native";
 
 import { Photo } from "@/components/photo";
+import { SampleCredit } from "@/components/sample-credit";
 
 import { useRoom } from "@/hooks/use-room";
 
@@ -43,6 +44,9 @@ export function ReferenceImage({ room }: { room: RoomInfo }) {
 						className="w-full"
 						style={{ aspectRatio }}
 					/>
+					{room.credit && (
+						<SampleCredit credit={room.credit} className="text-white" />
+					)}
 					<Text className="rounded bg-white px-4 py-2 font-medium text-black">
 						{t("room.close")}
 					</Text>

@@ -19,9 +19,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-
-import { SampleCredit } from "@/components/home/sample-credit";
 import { Photo } from "@/components/photo";
+import { SampleCredit } from "@/components/sample-credit";
 import { api } from "@/lib/api";
 
 /** The sheet is at most 28rem wide. */
@@ -73,7 +72,7 @@ export function NewRoomSheet({
 							className="aspect-video w-full rounded object-cover"
 						/>
 					)}
-					{image?.sample && <SampleCredit sample={image.sample} />}
+					{image?.sample && <SampleCredit credit={image.sample} />}
 					<p className="text-muted-foreground text-sm">
 						{t("home.pieceCount")}
 					</p>

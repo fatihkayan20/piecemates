@@ -22,8 +22,14 @@ const shown = {
 	author: samples.author,
 	authorUrl: samples.authorUrl,
 };
+/** The photographer's link carries the referral Unsplash asks for on every link back. */
+const referred = (authorUrl: string) => `${authorUrl}?${UNSPLASH_REFERRAL}`;
 const credited = <T extends { authorUrl: string }>(rows: T[]) =>
-	rows.map((r) => ({ ...r, authorUrl: `${r.authorUrl}?${UNSPLASH_REFERRAL}` }));
+	rows.map((r) => ({ ...r, authorUrl: referred(r.authorUrl) }));
+
+/** "Photo by … on Unsplash" for a room cut from a sample; null for an upload. */
+export const creditOf = (author: string | null, authorUrl: string | null) =>
+	author && authorUrl ? { author, authorUrl: referred(authorUrl) } : null;
 
 /** A sample to start a room from; an unknown one is NOT_FOUND. */
 export async function sampleImage(ctx: Context, id: string) {

@@ -12,7 +12,7 @@ import {
 	startRoom,
 	underRoomCap,
 } from "./new-room";
-import { sampleImage } from "./samples";
+import { creditOf, sampleImage } from "./samples";
 import { protectedProcedure, router } from "./trpc";
 import { uploadedImage } from "./uploaded-image";
 
@@ -55,7 +55,7 @@ export const roomsRouter = router({
 		.mutation(async ({ ctx, input }) => {
 			await checkOpenRooms(ctx);
 			const sample = await sampleImage(ctx, input.sample);
-			const room = await startRoom(ctx, sample, input);
+			const room = await startRoom(ctx, sample, input, { sample: sample.id });
 			// Unsplash counts a photo's downloads by the rooms started from it.
 			ctx.countDownload(sample.downloadUrl);
 			return room;
@@ -67,7 +67,7 @@ export const roomsRouter = router({
 		.mutation(async ({ ctx, input }) => {
 			await checkOpenRooms(ctx);
 			const image = await uploadedImage(ctx, input.upload);
-			return startRoom(ctx, image, input, input.upload);
+			return startRoom(ctx, image, input, { upload: input.upload });
 		}),
 
 	/**
@@ -104,9 +104,13 @@ export const roomsRouter = router({
 				throw new TRPCError({ code: "FORBIDDEN", message: "roomFull" });
 			}
 		}
-		const { seed, rows, cols, status, shared } = room;
+		const { seed, rows, cols, status, shared, sampleId } = room;
 		const imageUrl = await ctx.images.link(room.imageUrl);
-		return { code, imageUrl, seed, rows, cols, status, shared };
+		const sample = sampleId
+			? await db.query.samples.findFirst({ where: { id: sampleId } })
+			: undefined;
+		const credit = creditOf(sample?.author ?? null, sample?.authorUrl ?? null);
+		return { code, imageUrl, credit, seed, rows, cols, status, shared };
 	}),
 
 	/** Lets others join my room by its code; I need a name of my own first. */

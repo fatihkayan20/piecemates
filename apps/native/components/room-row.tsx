@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { Photo } from "@/components/photo";
+import { SampleCredit } from "@/components/sample-credit";
 
 /** One of my rooms, for Continue and History; opens the room unless it was cleared. */
 export function RoomRow({ room }: { room: RoomSummary }) {
@@ -21,6 +22,7 @@ export function RoomRow({ room }: { room: RoomSummary }) {
 				<Text className="font-medium text-foreground">{lines.title}</Text>
 				<Text className="text-foreground text-sm">{lines.status}</Text>
 				<Text className="text-muted text-sm">{lines.players}</Text>
+				{room.credit && <SampleCredit credit={room.credit} />}
 			</View>
 		</Pressable>
 	);

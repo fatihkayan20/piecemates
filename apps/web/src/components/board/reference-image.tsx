@@ -9,6 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { Photo } from "@/components/photo";
+import { SampleCredit } from "@/components/sample-credit";
 
 /** The dialog is at most 48rem wide. */
 const DIALOG_SIZES = "(min-width: 48rem) 48rem, 100vw";
@@ -29,6 +30,7 @@ export function ReferenceImage({ room }: { room: RoomInfo }) {
 					alt={t("room.finishedPuzzle")}
 					className="max-h-[75vh] w-full object-contain"
 				/>
+				{room.credit && <SampleCredit credit={room.credit} />}
 			</DialogContent>
 		</Dialog>
 	);

@@ -1,6 +1,7 @@
 import type { Database } from "@piecemates/db";
 import { user } from "@piecemates/db/schema/auth";
 import { roomPlayers, rooms } from "@piecemates/db/schema/game";
+import { samples } from "@piecemates/db/schema/samples";
 import {
 	and,
 	count,
@@ -12,6 +13,8 @@ import {
 	or,
 	sql,
 } from "drizzle-orm";
+
+import { creditOf } from "./samples";
 
 /** Most rooms one list answer holds, newest first. */
 const LIST_LIMIT = 50;
@@ -59,9 +62,12 @@ export async function myRooms(db: Database, me: string, list: RoomList) {
 			finishedAt: rooms.finishedAt,
 			expiredAt: rooms.expiredAt,
 			abandonedAt: roomPlayers.abandonedAt,
+			author: samples.author,
+			authorUrl: samples.authorUrl,
 		})
 		.from(roomPlayers)
 		.innerJoin(rooms, eq(rooms.code, roomPlayers.roomCode))
+		.leftJoin(samples, eq(samples.id, rooms.sampleId))
 		.where(where(me, list))
 		.orderBy(
 			sql`coalesce(${roomPlayers.abandonedAt}, ${rooms.finishedAt}, ${rooms.createdAt}) desc`,
@@ -85,9 +91,12 @@ export async function myRooms(db: Database, me: string, list: RoomList) {
 			finishedAt,
 			expiredAt,
 			abandonedAt,
+			author,
+			authorUrl,
 			...room
 		}) => ({
 			...room,
+			credit: creditOf(author, authorUrl),
 			expired: expiredAt !== null,
 			pieces: rows * cols,
 			createdAt: createdAt.getTime(),

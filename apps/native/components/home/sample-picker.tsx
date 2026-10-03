@@ -1,10 +1,15 @@
 import type { PickedImage } from "@piecemates/client";
-import { SAMPLE_CATEGORIES, type SampleCategory } from "@piecemates/game";
+import {
+	SAMPLE_CATEGORIES,
+	type SampleCategory,
+	UNSPLASH_URL,
+} from "@piecemates/game";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
+import { CreditLink } from "@/components/credit-link";
 import { PhotoTiles } from "@/components/home/photo-tiles";
 import { SampleTile } from "@/components/home/sample-tile";
 import { api } from "@/lib/api";
@@ -23,6 +28,12 @@ export function SamplePicker({
 	const { data: samples = [] } = useQuery(api.samples(category));
 	return (
 		<View className="gap-3">
+			<Text className="text-muted text-xs">
+				<Trans
+					i18nKey="home.samplesFrom"
+					components={{ unsplash: <CreditLink url={UNSPLASH_URL} /> }}
+				/>
+			</Text>
 			{featured.length > 0 && (
 				<>
 					<Text className="text-muted">{t("home.featured")}</Text>
@@ -37,7 +48,7 @@ export function SamplePicker({
 								key={sample.id}
 								sample={sample}
 								disabled={disabled}
-								className="aspect-video w-40 overflow-hidden rounded"
+								className="w-40"
 								onPick={onPick}
 							/>
 						))}

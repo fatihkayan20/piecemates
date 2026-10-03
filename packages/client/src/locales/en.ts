@@ -54,6 +54,7 @@ export const en = {
 		sampleBy: "Photo by {{author}}",
 		sampleCredit:
 			"Photo by <author>{{author}}</author> on <unsplash>Unsplash</unsplash>",
+		samplesFrom: "Photos from <unsplash>Unsplash</unsplash>",
 		categories: {
 			nature: "Nature",
 			cities: "Cities",

@@ -22,6 +22,8 @@ type Grid = Omit<
 >;
 /** A photo from the sample catalogue, with its photographer. */
 export type Sample = Outputs["samples"]["list"][number];
+/** Who took a catalogue photo, for "Photo by … on Unsplash". */
+export type Credit = Pick<Sample, "author" | "authorUrl">;
 /** A photo to start a room from: a `sample`, a new photo to upload (`file`) or my unused upload (`upload`). */
 export type PickedImage = {
 	url: string;

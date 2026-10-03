@@ -60,13 +60,14 @@ export async function checkOpenRooms(ctx: Me) {
 /**
  * Makes the room, joins me to it and lays out its pieces. With `upload`, the
  * room takes that unused upload in the same all-or-nothing batch, so one
- * upload can't make two rooms.
+ * upload can't make two rooms. With `sample`, the room keeps which catalogue
+ * photo it shows, for its credit.
  */
 export async function startRoom(
 	ctx: Me,
 	image: { url: string; width: number; height: number },
 	grid: z.infer<typeof Grid>,
-	upload?: string,
+	{ upload, sample }: { upload?: string; sample?: string },
 ) {
 	const { db, user } = ctx;
 	const { rows, cols, rotate, aspect } = grid;
@@ -78,8 +79,8 @@ export async function startRoom(
 	const made = sql`exists (select 1 from ${rooms} where code = ${code})`;
 	const [room] = await db.batch([
 		db.run(
-			sql`insert into ${rooms} (code, owner_id, image_url, seed, rows, cols)
-				select ${code}, ${user.id}, ${image.url}, ${seed}, ${rows}, ${cols}
+			sql`insert into ${rooms} (code, owner_id, image_url, sample_id, seed, rows, cols)
+				select ${code}, ${user.id}, ${image.url}, ${sample ?? null}, ${seed}, ${rows}, ${cols}
 				where ${unused} and ${underRoomCap(user.id)}`,
 		),
 		db.run(
