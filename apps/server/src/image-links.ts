@@ -5,7 +5,7 @@ const LINK_PERIOD_MS = 604_800_000;
 const PERIODS_VALID = 2;
 const HEX = 16;
 const SIGNATURE = /^[0-9a-f]{64}$/;
-const EXPIRES = /^\d+$/;
+const EXPIRES = /^[1-9]\d*$/;
 
 let key: Promise<CryptoKey> | undefined;
 // Its own key from the auth secret, so a link signature is useless anywhere else.
@@ -40,7 +40,7 @@ export async function signImage(id: string) {
 
 /** Whether a link to this photo is ours and hasn't expired. */
 export async function checkImage(id: string, e?: string, s?: string) {
-	// Plain digits only, so one link has one spelling (and one cache key).
+	// Plain digits without a leading zero, so one link has one spelling (and one cache key).
 	if (!e || !EXPIRES.test(e) || !s || !SIGNATURE.test(s)) return false;
 	const expires = Number(e);
 	if (expires <= Date.now()) return false;
