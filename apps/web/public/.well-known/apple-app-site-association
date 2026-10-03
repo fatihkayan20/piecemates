@@ -1,0 +1,10 @@
+{
+	"applinks": {
+		"details": [
+			{
+				"appIDs": ["YSJTN63UR4.com.piecemates.app"],
+				"components": [{ "/": "/room/*" }]
+			}
+		]
+	}
+}

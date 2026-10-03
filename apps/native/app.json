@@ -9,7 +9,9 @@
 		"userInterfaceStyle": "automatic",
 		"ios": {
 			"supportsTablet": true,
-			"bundleIdentifier": "com.piecemates.app"
+			"bundleIdentifier": "com.piecemates.app",
+			"appleTeamId": "YSJTN63UR4",
+			"associatedDomains": ["applinks:piecemates.fatihkayan.dev"]
 		},
 		"android": {
 			"adaptiveIcon": {
