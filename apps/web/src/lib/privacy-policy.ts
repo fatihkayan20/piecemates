@@ -57,7 +57,7 @@ export const PRIVACY_POLICY = {
 		{
 			title: "Your choices",
 			body: [
-				"You can ask us to see, export or delete your account and everything tied to it by emailing the address below. We reply within 30 days.",
+				"You can delete your account yourself in Settings: it goes at once with your rooms and uploads; rooms you shared stay with the other players, without you. You can also ask us to see, export or delete your data by emailing the address below. We reply within 30 days.",
 				"Piecemates is not meant for children under 13.",
 			],
 		},

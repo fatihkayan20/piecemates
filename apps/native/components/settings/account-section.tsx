@@ -7,8 +7,9 @@ import { useTranslation } from "react-i18next";
 
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
+import { confirmDeleteAccount } from "@/lib/delete-account";
 
-/** Who I am: a guest gets Link account, a signed-up player sees their email and Sign out. */
+/** Who I am: a guest gets Link account, a signed-up player sees their email, Sign out and Delete account. */
 export function AccountSection() {
 	const { t } = useTranslation();
 	const foreground = useThemeColor("foreground");
@@ -30,15 +31,23 @@ export function AccountSection() {
 					modifiers={[tint(foreground)]}
 				/>
 			) : (
-				// biome-ignore lint/a11y/useValidAriaRole: SwiftUI's button role, not ARIA.
-				<Button
-					role="destructive"
-					label={t("account.signOut")}
-					onPress={async () => {
-						await signOutToGuest(authClient);
-						await api.queryClient.invalidateQueries();
-					}}
-				/>
+				<>
+					{/* biome-ignore lint/a11y/useValidAriaRole: SwiftUI's button role, not ARIA. */}
+					<Button
+						role="destructive"
+						label={t("account.signOut")}
+						onPress={async () => {
+							await signOutToGuest(authClient);
+							await api.queryClient.invalidateQueries();
+						}}
+					/>
+					{/* biome-ignore lint/a11y/useValidAriaRole: SwiftUI's button role, not ARIA. */}
+					<Button
+						role="destructive"
+						label={t("account.deleteAccount")}
+						onPress={confirmDeleteAccount}
+					/>
+				</>
 			)}
 		</Section>
 	);

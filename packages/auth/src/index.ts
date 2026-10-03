@@ -15,6 +15,8 @@ const IP_HEADER = "cf-connecting-ip";
 const HOUR_S = 3600;
 /** Accounts (guest or email) one IP can make in an hour, so nobody mints endless free ones. */
 const ACCOUNTS_PER_HOUR = 10;
+/** Account deletions one IP can try in an hour; each one checks a password. */
+const DELETES_PER_HOUR = 5;
 
 /** The caller's IP as every limit counts it: an IPv6 /64 is one caller, since one home or phone gets a whole /64. */
 export const clientIp = (headers: Headers) => {
@@ -47,6 +49,8 @@ export type AuthConfig = {
 export function createAuth(
 	env: AuthConfig,
 	database: Database,
+	/** Runs before an account and everything it owns (cascading in D1) is deleted. */
+	beforeDeleteUser: (userId: string) => Promise<void>,
 	desktopOrigins: readonly string[] = [],
 ) {
 	return betterAuth({
@@ -71,6 +75,7 @@ export function createAuth(
 			customRules: {
 				"/sign-in/anonymous": { window: HOUR_S, max: ACCOUNTS_PER_HOUR },
 				"/sign-up/email": { window: HOUR_S, max: ACCOUNTS_PER_HOUR },
+				"/delete-user": { window: HOUR_S, max: DELETES_PER_HOUR },
 			},
 		},
 		advanced: {
@@ -79,6 +84,12 @@ export function createAuth(
 				sameSite: "none",
 				secure: true,
 				httpOnly: true,
+			},
+		},
+		user: {
+			deleteUser: {
+				enabled: true,
+				beforeDelete: (user) => beforeDeleteUser(user.id),
 			},
 		},
 		databaseHooks: {

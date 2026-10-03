@@ -45,8 +45,6 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 - [ ] **Cloudflare overview**: usage, limits and monitoring for Workers, Durable Objects, D1 and R2 on the free plan.
 - [ ] **AI playtest once more**: play one large puzzle the way a person would, to find issues and improvements. An orchestrator starts two sub-agents, one driving iOS and one driving web, each with its own focus (e.g. bagging edge pieces vs. building the middle). They only get the app and what it does, and report back as users.
 
-- [ ] **Room cap when a guest links**: signing in from a guest moves the guest's rooms into the account (`onLinkAccount` in `packages/auth`) without checking the open-room cap, so a player can end up over it (seen in testing: 3 + 3 = 6). Home still blocks new rooms until they finish or abandon some; decide whether that's fine or whether linking should abandon or refuse the extras.
-- [ ] **Delete account**: players can delete their account in the app (App Store requirement), with their sessions and room memberships.
 - [ ] **Terms of service**: a terms page next to the privacy policy, linked from Settings.
 
 - [ ] **Real music tracks**: the three ambient loops are generated placeholders (a small synth script, ~390 KB AAC each); swap in licensed tracks under the same ids (`calm`, `drift`, `night`) in `apps/*/assets/music`.
@@ -63,6 +61,8 @@ Keep this updated as work lands. Move items to **Done** with the commit that shi
 
 ## Done
 
+- [x] **Delete account (App Store 5.1.1(v))**: a signed-up player deletes their account from Settings (web: confirmed in place; iOS: a password prompt), confirmed with their password and limited to 5 tries an hour per IP. Shared rooms they own pass to the first other player (with the photo); rooms only they played are cleared; their sockets close; they're left a fresh guest. The privacy policy says so.
+- [x] **Room cap when a guest links: kept as is**: linking can leave a player over the open-room cap (3 + 3 = 6); Home blocks new rooms until they finish or abandon some, which is enough.
 - [x] **Account and settings on web and native**: web's header is just Piecemates, History and a settings gear. The gear opens a sheet like native's Settings tab: Account, Puzzle (the room sheet's controls, now shared), dark mode and the privacy policy. Rooms have no header (a back button sits in the top row). The template Dashboard, theme menu and user menu are gone. Guests see "Link account" (sign up or sign in; their rooms move over) instead of Sign out; linked players see their email and Sign out, which leaves them a fresh guest (`signOutToGuest`). Native Settings has the same Account section, and Link account is a SwiftUI form in the app's monochrome look, replacing the unused template sign-in/up components.
 - [x] **Privacy policy**: a plain `/privacy` page on the web (no header, so it reads well in the app's browser) says what we collect, store, delete and share (Cloudflare, PostHog, Sentry, Unsplash). The web settings sheet links to it, and native Settings > About opens it with `expo-web-browser` at `EXPO_PUBLIC_WEB_URL`. Requests go to the contact email on the page.
 - [x] **Unsplash credit wherever a sample shows (§9, §4)**: Home says "Photos from Unsplash" and names each tile's photographer (linked); Continue and History rows, the room (under the board) and its reference image say "Photo by … on Unsplash". Rooms keep their sample (`rooms.sample_id`, older rooms backfilled by image URL). Every link carries `utm_source=piecemates`. `cb2e9c1`

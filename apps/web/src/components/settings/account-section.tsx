@@ -6,7 +6,9 @@ import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 
-/** Who I am: a guest gets Link account, a signed-up player sees their email and Sign out. */
+import { DeleteAccount } from "./delete-account";
+
+/** Who I am: a guest gets Link account, a signed-up player sees their email, Sign out and Delete account. */
 export function AccountSection({ onLeave }: { onLeave: () => void }) {
 	const { t } = useTranslation();
 	const { data: session } = authClient.useSession();
@@ -35,16 +37,19 @@ export function AccountSection({ onLeave }: { onLeave: () => void }) {
 					</Button>
 				</>
 			) : (
-				<Button
-					variant="destructive"
-					onClick={async () => {
-						await signOutToGuest(authClient);
-						await api.queryClient.invalidateQueries();
-						onLeave();
-					}}
-				>
-					{t("account.signOut")}
-				</Button>
+				<>
+					<Button
+						variant="destructive"
+						onClick={async () => {
+							await signOutToGuest(authClient);
+							await api.queryClient.invalidateQueries();
+							onLeave();
+						}}
+					>
+						{t("account.signOut")}
+					</Button>
+					<DeleteAccount onLeave={onLeave} />
+				</>
 			)}
 		</section>
 	);

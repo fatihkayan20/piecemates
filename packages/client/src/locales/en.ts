@@ -27,6 +27,13 @@ export const en = {
 		signIn: "Sign in",
 		signUp: "Sign up",
 		signOut: "Sign out",
+		deleteAccount: "Delete account",
+		deleteTitle: "Delete your account?",
+		deleteHint:
+			"Your account and your puzzles go for good. Puzzles you shared stay with the other players. Enter your password to confirm.",
+		deleteConfirm: "Delete for good",
+		cancel: "Cancel",
+		deleted: "Account deleted",
 		welcomeBack: "Welcome back",
 		createAccount: "Create account",
 		name: "Name",
