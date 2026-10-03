@@ -3,6 +3,7 @@ import { cellOf, generateEdges, piecePath } from "@piecemates/game";
 import {
 	type Container,
 	Graphics,
+	GraphicsContext,
 	GraphicsPath,
 	Matrix,
 	Texture,
@@ -15,6 +16,15 @@ export async function loadTexture(url: string) {
 	await img.decode();
 	return Texture.from(img);
 }
+
+/** Pixi's stroke alignment that keeps a stroke inside its shape. */
+const STROKE_INSIDE = 1;
+
+/** Each piece drawn flat (placed on the board) and raised (loose, with a shadow). */
+const looks = new WeakMap<
+	Graphics,
+	{ flat: GraphicsContext; raised: GraphicsContext }
+>();
 
 /** Draws the board frame and every piece into `world`; returns the pieces by index. */
 export function drawPieces(
@@ -33,19 +43,31 @@ export function drawPieces(
 	);
 	return generateEdges(seed, rows, cols).map((edges, i) => {
 		const { row, col } = cellOf(grid, i);
-		const g = new Graphics()
-			.path(new GraphicsPath(piecePath(edges, w, h)))
-			.fill({
-				texture,
-				textureSpace: "global",
-				matrix: new Matrix()
-					.scale(1 / texturePxPerUnit, 1 / texturePxPerUnit)
-					.translate(-col * w, -row * h),
-			})
-			.stroke({
-				width: BOARD_STYLE.outline.width,
-				color: BOARD_STYLE.outline.color,
-			});
+		const path = new GraphicsPath(piecePath(edges, w, h));
+		const draw = (shadow: boolean) => {
+			const c = new GraphicsContext();
+			if (shadow)
+				c.translate(BOARD_STYLE.shadow.offset, BOARD_STYLE.shadow.offset)
+					.path(path)
+					.fill(BOARD_STYLE.shadow.color)
+					.resetTransform();
+			return c
+				.path(path)
+				.fill({
+					texture,
+					textureSpace: "global",
+					matrix: new Matrix()
+						.scale(1 / texturePxPerUnit, 1 / texturePxPerUnit)
+						.translate(-col * w, -row * h),
+				})
+				.stroke({ ...BOARD_STYLE.bevel, alignment: STROKE_INSIDE })
+				.stroke(BOARD_STYLE.outline);
+		};
+		const flat = draw(false);
+		const g = new Graphics(draw(true));
+		looks.set(g, { flat, raised: g.context });
+		// Only the piece itself picks up the pointer, not its shadow.
+		g.hitArea = { contains: (x, y) => flat.containsPoint({ x, y }) };
 		g.cursor = "grab";
 		// Turns go around the piece's centre; `place` puts its top-left.
 		g.pivot.set(w / 2, h / 2);
@@ -66,6 +88,9 @@ export function syncPieces(pieces: Graphics[], room: RoomSnapshot) {
 		// Placed pieces let the pointer through, to the pieces under them or the camera.
 		g.eventMode = view.held || view.placed ? "none" : "static";
 		g.rotation = (view.rot * Math.PI) / 2;
+		const look = looks.get(g);
+		const context = view.placed ? look?.flat : look?.raised;
+		if (context && g.context !== context) g.context = context;
 		if (!room.drag?.starts.has(i)) place(g, view.x, view.y);
 	});
 }

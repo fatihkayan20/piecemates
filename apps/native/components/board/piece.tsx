@@ -43,6 +43,16 @@ export function Piece({
 			origin={{ x: grid.w / 2, y: grid.h / 2 }}
 			opacity={view.held ? BOARD_STYLE.heldOpacity : 1}
 		>
+			{!view.placed && (
+				<Group
+					transform={[
+						{ translateX: BOARD_STYLE.shadow.offset },
+						{ translateY: BOARD_STYLE.shadow.offset },
+					]}
+				>
+					<Path path={path} color={BOARD_STYLE.shadow.color} />
+				</Group>
+			)}
 			<Group clip={path}>
 				<Image
 					image={image}
@@ -51,6 +61,13 @@ export function Piece({
 					width={grid.cols * grid.w}
 					height={grid.rows * grid.h}
 					fit="fill"
+				/>
+				{/* Clipped to the piece, so only the stroke's inner half shows. */}
+				<Path
+					path={path}
+					style="stroke"
+					strokeWidth={BOARD_STYLE.bevel.width * 2}
+					color={BOARD_STYLE.bevel.color}
 				/>
 			</Group>
 			<Path
