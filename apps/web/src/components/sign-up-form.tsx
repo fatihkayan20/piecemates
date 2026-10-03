@@ -1,16 +1,14 @@
-import { NAME_MIN, PASSWORD_MIN } from "@piecemates/client";
+import { accountForm } from "@piecemates/client";
 import { Button } from "@piecemates/ui/components/button";
-import { Input } from "@piecemates/ui/components/input";
-import { Label } from "@piecemates/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import z from "zod";
 
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 
+import { FormField } from "./form-field";
 import { Loader } from "./loader";
 
 export function SignUpForm({
@@ -28,6 +26,7 @@ export function SignUpForm({
 		defaultValues: {
 			email: "",
 			password: "",
+			confirm: "",
 			name: "",
 		},
 		onSubmit: async ({ value }) => {
@@ -52,20 +51,7 @@ export function SignUpForm({
 				},
 			);
 		},
-		validators: {
-			onSubmit: z.object({
-				name: z
-					.string()
-					.min(NAME_MIN, t("account.nameTooShort", { min: NAME_MIN })),
-				email: z.email(t("account.invalidEmail")),
-				password: z
-					.string()
-					.min(
-						PASSWORD_MIN,
-						t("account.passwordTooShort", { min: PASSWORD_MIN }),
-					),
-			}),
-		},
+		validators: { onSubmit: accountForm(true) },
 	});
 
 	if (isPending) {
@@ -86,73 +72,64 @@ export function SignUpForm({
 				}}
 				className="space-y-4"
 			>
-				<div>
-					<form.Field name="name">
-						{(field) => (
-							<div className="space-y-2">
-								<Label htmlFor={field.name}>{t("account.name")}</Label>
-								<Input
-									id={field.name}
-									name={field.name}
-									value={field.state.value}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-								{field.state.meta.errors.map((error) => (
-									<p key={error?.message} className="text-red-500">
-										{error?.message}
-									</p>
-								))}
-							</div>
-						)}
-					</form.Field>
-				</div>
+				<form.Field name="name">
+					{(field) => (
+						<FormField
+							name={field.name}
+							label={t("account.name")}
+							autoComplete="name"
+							value={field.state.value}
+							errors={field.state.meta.errors}
+							onBlur={field.handleBlur}
+							onChange={field.handleChange}
+						/>
+					)}
+				</form.Field>
 
-				<div>
-					<form.Field name="email">
-						{(field) => (
-							<div className="space-y-2">
-								<Label htmlFor={field.name}>{t("account.email")}</Label>
-								<Input
-									id={field.name}
-									name={field.name}
-									type="email"
-									value={field.state.value}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-								{field.state.meta.errors.map((error) => (
-									<p key={error?.message} className="text-red-500">
-										{error?.message}
-									</p>
-								))}
-							</div>
-						)}
-					</form.Field>
-				</div>
+				<form.Field name="email">
+					{(field) => (
+						<FormField
+							name={field.name}
+							label={t("account.email")}
+							type="email"
+							autoComplete="email"
+							value={field.state.value}
+							errors={field.state.meta.errors}
+							onBlur={field.handleBlur}
+							onChange={field.handleChange}
+						/>
+					)}
+				</form.Field>
 
-				<div>
-					<form.Field name="password">
-						{(field) => (
-							<div className="space-y-2">
-								<Label htmlFor={field.name}>{t("account.password")}</Label>
-								<Input
-									id={field.name}
-									name={field.name}
-									type="password"
-									value={field.state.value}
-									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-								{field.state.meta.errors.map((error) => (
-									<p key={error?.message} className="text-red-500">
-										{error?.message}
-									</p>
-								))}
-							</div>
-						)}
-					</form.Field>
-				</div>
+				<form.Field name="password">
+					{(field) => (
+						<FormField
+							name={field.name}
+							label={t("account.password")}
+							type="password"
+							autoComplete="new-password"
+							value={field.state.value}
+							errors={field.state.meta.errors}
+							onBlur={field.handleBlur}
+							onChange={field.handleChange}
+						/>
+					)}
+				</form.Field>
+
+				<form.Field name="confirm">
+					{(field) => (
+						<FormField
+							name={field.name}
+							label={t("account.confirmPassword")}
+							type="password"
+							autoComplete="new-password"
+							value={field.state.value}
+							errors={field.state.meta.errors}
+							onBlur={field.handleBlur}
+							onChange={field.handleChange}
+						/>
+					)}
+				</form.Field>
 
 				<form.Subscribe
 					selector={(state) => ({

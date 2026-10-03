@@ -14,6 +14,7 @@
 		"@tanstack/query-core": "5.104.0",
 		"@trpc/client": "^11.19.0",
 		"i18next": "^26.4.2",
+		"zod": "catalog:",
 		"zustand": "catalog:"
 	},
 	"devDependencies": {

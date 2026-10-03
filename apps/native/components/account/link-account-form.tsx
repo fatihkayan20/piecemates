@@ -24,11 +24,10 @@ import {
 	textContentType,
 	textInputAutocapitalization,
 } from "@expo/ui/swift-ui/modifiers";
-import { NAME_MIN, PASSWORD_MIN } from "@piecemates/client";
+import { accountForm } from "@piecemates/client";
 import { useThemeColor } from "heroui-native";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import z from "zod";
 
 import { useSheetStyle } from "@/hooks/use-sheet-style";
 import { authClient } from "@/lib/auth-client";
@@ -48,37 +47,28 @@ export function LinkAccountForm() {
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [confirm, setConfirm] = useState("");
 	const [error, setError] = useState<string>();
 	const [busy, setBusy] = useState(false);
 	const signingUp = mode === "signUp";
 	const emailRef = useRef<TextFieldRef>(null);
 	const passwordRef = useRef<SecureFieldRef>(null);
+	const confirmRef = useRef<SecureFieldRef>(null);
 
 	const submit = async () => {
-		const parsed = z
-			.object({
-				name: signingUp
-					? z
-							.string()
-							.trim()
-							.min(NAME_MIN, t("account.nameTooShort", { min: NAME_MIN }))
-					: z.string(),
-				email: z.email(t("account.invalidEmail")),
-				password: z
-					.string()
-					.min(
-						PASSWORD_MIN,
-						t("account.passwordTooShort", { min: PASSWORD_MIN }),
-					),
-			})
-			.safeParse({ name, email: email.trim(), password });
+		const parsed = accountForm(signingUp).safeParse({
+			name,
+			email: email.trim(),
+			password,
+			confirm,
+		});
 		if (!parsed.success) {
 			setError(parsed.error.issues[0]?.message);
 			return;
 		}
 		setBusy(true);
 		setError(undefined);
-		const { data: fields } = parsed;
+		const { confirm: _, ...fields } = parsed.data;
 		const result = signingUp
 			? await authClient.signUp.email(fields)
 			: await authClient.signIn.email(fields);
@@ -136,10 +126,24 @@ export function LinkAccountForm() {
 					onTextChange={setPassword}
 					modifiers={[
 						textContentType(signingUp ? "newPassword" : "password"),
-						submitLabel("go"),
-						onSubmit(submit),
+						submitLabel(signingUp ? "next" : "go"),
+						onSubmit(
+							signingUp ? () => void confirmRef.current?.focus() : submit,
+						),
 					]}
 				/>
+				{signingUp && (
+					<SecureField
+						ref={confirmRef}
+						placeholder={t("account.confirmPassword")}
+						onTextChange={setConfirm}
+						modifiers={[
+							textContentType("newPassword"),
+							submitLabel("go"),
+							onSubmit(submit),
+						]}
+					/>
+				)}
 			</Section>
 			<Section>
 				<Button

@@ -39,6 +39,8 @@ export const en = {
 		name: "Name",
 		email: "Email",
 		password: "Password",
+		confirmPassword: "Confirm password",
+		passwordsDiffer: "Passwords don't match",
 		submitting: "Submitting…",
 		signedIn: "Signed in",
 		signedUp: "Account created",

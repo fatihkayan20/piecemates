@@ -509,6 +509,9 @@ importers:
       i18next:
         specifier: ^26.4.2
         version: 26.4.2(typescript@6.0.3)
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.5
       zustand:
         specifier: 'catalog:'
         version: 5.0.15(@types/react@19.2.18)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
