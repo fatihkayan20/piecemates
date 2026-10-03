@@ -50,9 +50,17 @@ export const cameraControl: CameraControl = {
 /** The viewport the camera last followed, so a burst of layouts moves it once. */
 let followed = { ...viewport };
 const follow = debounce(() => {
+	const before = table();
 	setBoardSize(viewport);
-	const bounds = table();
-	if (bounds) setCamera(resizeCamera(getCamera(), bounds, followed, viewport));
+	const after = table();
+	if (before && after)
+		setCamera(
+			resizeCamera(
+				getCamera(),
+				{ table: before, viewport: followed },
+				{ table: after, viewport: { ...viewport } },
+			),
+		);
 	followed = { ...viewport };
 }, RESIZE_DEBOUNCE_MS);
 

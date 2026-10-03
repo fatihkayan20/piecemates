@@ -37,9 +37,17 @@ export function createCamera(world: Container, screen: Rectangle) {
 		/** Keeps the zoom and centre point when the canvas changes size, and lays my pile out for it. */
 		resize: debounce(() => {
 			const to = { width: screen.width, height: screen.height };
+			const before = table();
 			setBoardSize(to);
-			const bounds = table();
-			if (bounds) set(resizeCamera(get(), bounds, last, to));
+			const after = table();
+			if (before && after)
+				set(
+					resizeCamera(
+						get(),
+						{ table: before, viewport: last },
+						{ table: after, viewport: to },
+					),
+				);
 			last = to;
 		}, RESIZE_DEBOUNCE_MS),
 		/** Zooms and moves with two fingers, from where they were when the pinch began. */

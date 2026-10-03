@@ -133,27 +133,27 @@ export function clampCamera(
 	};
 }
 
+/** A table and the viewport it was shown in, before or after a resize. */
+type View = { table: Rect; viewport: Viewport };
+
 /**
- * Follows a viewport resize: keeps the table point at the screen centre and
- * the zoom relative to the whole-table fit, then keeps the table on screen.
+ * Follows a viewport resize (my table may change with it, as my pile is laid
+ * out for the new shape): keeps the table point at the screen centre and the
+ * zoom relative to the whole-table fit, then keeps the table on screen.
  */
-export function resizeCamera(
-	camera: Camera,
-	table: Rect,
-	from: Viewport,
-	to: Viewport,
-): Camera {
-	const scale =
-		(camera.scale * fitCamera(table, to).scale) / fitCamera(table, from).scale;
-	const centreX = (from.width / 2 - camera.x) / camera.scale;
-	const centreY = (from.height / 2 - camera.y) / camera.scale;
+export function resizeCamera(camera: Camera, from: View, to: View): Camera {
+	const fit = fitCamera(to.table, to.viewport).scale;
+	const ratio = camera.scale / fitCamera(from.table, from.viewport).scale;
+	const scale = Math.min(MAX_SCALE, Math.max(fit, ratio * fit));
+	const centreX = (from.viewport.width / 2 - camera.x) / camera.scale;
+	const centreY = (from.viewport.height / 2 - camera.y) / camera.scale;
 	return clampCamera(
 		{
 			scale,
-			x: to.width / 2 - centreX * scale,
-			y: to.height / 2 - centreY * scale,
+			x: to.viewport.width / 2 - centreX * scale,
+			y: to.viewport.height / 2 - centreY * scale,
 		},
-		table,
-		to,
+		to.table,
+		to.viewport,
 	);
 }

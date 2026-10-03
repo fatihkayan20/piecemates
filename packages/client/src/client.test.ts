@@ -1,13 +1,19 @@
 import assert from "node:assert/strict";
 import { mock, test } from "node:test";
 
-import { createState, type ServerMsg, tableRect } from "@piecemates/game";
+import {
+	createState,
+	gridOptions,
+	type ServerMsg,
+	tableRect,
+} from "@piecemates/game";
 
 import {
 	CONFETTI_COUNT,
 	type Cue,
 	clampCamera,
 	debounce,
+	defaultGrid,
 	finishDrag,
 	fitCamera,
 	formatDuration,
@@ -229,7 +235,11 @@ test("a resize keeps the zoom and the centre point", () => {
 	const big = { width: 800, height: 600 };
 	const small = { width: 400, height: 300 };
 	const fitted = fitCamera(bounds, big);
-	const refit = resizeCamera(fitted, bounds, big, small);
+	const refit = resizeCamera(
+		fitted,
+		{ table: bounds, viewport: big },
+		{ table: bounds, viewport: small },
+	);
 	assert.deepEqual(
 		refit,
 		fitCamera(bounds, small),
@@ -237,12 +247,33 @@ test("a resize keeps the zoom and the centre point", () => {
 	);
 
 	const zoomed = zoomAt(fitted, 400, 300, 2, bounds, big);
-	const moved = resizeCamera(zoomed, bounds, big, small);
+	const moved = resizeCamera(
+		zoomed,
+		{ table: bounds, viewport: big },
+		{ table: bounds, viewport: small },
+	);
 	const near = (a: number, b: number) => Math.abs(a - b) < 1e-6;
 	assert.ok(near(moved.scale, refit.scale * 2), "zoom kept relative to fit");
 	assert.ok(
 		near((200 - moved.x) / moved.scale, (400 - zoomed.x) / zoomed.scale),
 		"centre point kept",
+	);
+
+	const tall = {
+		...bounds,
+		y: bounds.y - bounds.height,
+		height: bounds.height * 3,
+	};
+	const portrait = { width: 300, height: 600 };
+	const turned = resizeCamera(
+		fitted,
+		{ table: bounds, viewport: big },
+		{ table: tall, viewport: portrait },
+	);
+	assert.deepEqual(
+		turned,
+		fitCamera(tall, portrait),
+		"a fitted table stays fitted when my table changes shape",
 	);
 });
 
@@ -323,4 +354,12 @@ test("each screen draws its own pile; a drop places pile partners first", () => 
 		"piece 1 lands where the phone shows it, then 0 snaps to it",
 	);
 	assert.deepEqual({ x: sent[1]?.x, y: sent[1]?.y }, seen);
+});
+
+test("phones default to fewer pieces than bigger screens", () => {
+	const options = gridOptions(1600, 1200);
+	const phone = defaultGrid(options, { width: 390, height: 844 });
+	const desktop = defaultGrid(options, { width: 1440, height: 900 });
+	assert.ok(phone && desktop && phone.count < desktop.count);
+	assert.ok(phone.count >= 40 && phone.count <= 60);
 });
